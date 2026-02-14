@@ -1,81 +1,70 @@
 
-# Atualizar Site Macapabá com Imagens Reais, Video Hero e Dados de Unidades
+# Atualizar Identidade Visual do Macapaba - Verde + Dourado + Logo
 
 ## O que sera feito
 
-### 1. Copiar imagens do usuario para o projeto
-Copiar as 6 imagens enviadas para `src/assets/` para uso no site:
-- `Sessao-sem-titulo01932-scaled.jpeg` - Prato variado (sushi, carne, arroz)
-- `Sessao-sem-titulo01601-scaled.jpeg` - Sushi variado
-- `Sessao-sem-titulo01573-1-scaled.jpeg` - Garcom servindo, suco de laranja
-- `DSC09846.jpg` - Clientes no restaurante
-- `DSC09880.jpg` - Salao do restaurante
+### 1. Adicionar a logomarca ao projeto
+- Copiar `Ativo-1-1.png` (logo branco) para `src/assets/logo-macapaba.png`
+- Usar a logo no **Header** (substituir o texto "MACAPABA" pela imagem da logo)
+- Usar a logo no **Footer**
+- Usar a logo no **Hero** da Home (acima ou junto ao texto principal)
 
-Nota: A imagem `Sessao-sem-titulo01932-scaled-2.jpeg` e duplicata da primeira, sera ignorada.
+### 2. Mudar paleta de cores: de preto+laranja para verde escuro+dourado
+Analisando a identidade visual do Macapaba na imagem enviada:
+- **Fundo principal**: verde oliva escuro (aproximadamente HSL 90, 25%, 15-18%)
+- **Cards/secundario**: verde oliva mais escuro (HSL 90, 20%, 12%)
+- **Cor de destaque (primary)**: dourado/amber (HSL 42, 65%, 58%) - substituindo o laranja
+- **Texto principal**: creme/bege claro (HSL 40, 30%, 92%)
+- **Texto secundario**: verde claro/cinza esverdeado
+- **Bordas**: verde escuro com leve contraste
 
-### 2. Hero com Video de fundo
-- Substituir o placeholder do Hero por um elemento `<video>` de fundo
-- O usuario mencionou que tem um video para colocar, mas nao foi anexado neste envio
-- Por enquanto, preparar a estrutura do Hero para video com overlay escuro (~60%) usando gradiente/fundo semitransparente
-- Usar a imagem do garcom (01573) como fallback/poster do video ate o video ser fornecido
-- O video ficara atras do texto com overlay de ~60% escuro
+Alteracoes no `src/index.css` (variaveis CSS):
+- `--background`: de preto puro para verde escuro
+- `--card`: verde escuro mais claro
+- `--primary`: de laranja para dourado/amber
+- `--accent`: de laranja para dourado
+- `--secondary`: tons de verde escuro
+- `--muted`: verde acinzentado
+- `--border`: verde com leve contraste
+- `--ring`: dourado
+- `--foreground`: creme/bege (nao branco puro)
 
-### 3. Portfolio Preview na Home com imagens reais
-Substituir os 6 placeholders "Foto 1-6" por imagens reais do restaurante:
-- Posicao 1: Prato variado (01932)
-- Posicao 2: Sushi (01601)
-- Posicao 3: Garcom servindo (01573)
-- Posicao 4: Clientes comendo (DSC09846)
-- Posicao 5: Salao do restaurante (DSC09880)
-- Posicao 6: Reutilizar uma das fotos de comida
+### 3. Atualizar utilitarios
+- `.text-gradient` no CSS: trocar `from-primary to-orange-400` para `from-primary to-amber-300` (dourado)
 
-### 4. Secao "Desde 1998" com imagem
-Adicionar a imagem do salao do restaurante (DSC09880) ao lado direito da secao de historia, junto com os contadores.
-
-### 5. Atualizar informacoes das Unidades
-Atualizar o Footer com os dados corretos:
-- **Endereco 01**: Av. Ernestino Borges, N 39-B | Tel: (96) 988011317
-- **Endereco 02 (Em breve)**: Av. Ataide Teive 644 - Centro | Tel: (96) 988011317
-
-Inserir/atualizar os dados das unidades no banco de dados via migration SQL para que a pagina /unidades e o Footer mostrem os dados corretos.
-
-### 6. Atualizar Footer
-- Trocar endereco e telefone para os dados reais fornecidos
-- Mostrar as duas unidades no footer
+### 4. Verificar componentes com cores hardcoded
+- `Header.tsx`: trocar texto "MACAPABA" por `<img>` da logo
+- `Footer.tsx`: trocar texto "MACAPABA" por `<img>` da logo
+- `Index.tsx` Hero: manter overlay mas ajustar se necessario
 
 ---
 
 ## Detalhes Tecnicos
 
-### Arquivos criados/copiados
-- `src/assets/prato-variado.jpeg` (de Sessao-sem-titulo01932-scaled.jpeg)
-- `src/assets/sushi.jpeg` (de Sessao-sem-titulo01601-scaled.jpeg)
-- `src/assets/garcom-servindo.jpeg` (de Sessao-sem-titulo01573-1-scaled.jpeg)
-- `src/assets/clientes-restaurante.jpeg` (de DSC09846.jpg)
-- `src/assets/salao-restaurante.jpeg` (de DSC09880.jpg)
+### Paleta de cores (variaveis HSL)
+```text
+--background:       90 25% 15%     (verde oliva escuro - fundo principal)
+--foreground:        40 30% 92%    (creme claro)
+--card:              90 22% 12%    (verde mais escuro - cards)
+--card-foreground:   40 30% 92%
+--primary:           42 65% 58%    (dourado/amber - destaque)
+--primary-foreground: 90 30% 10%   (verde escuro para texto sobre dourado)
+--secondary:         90 20% 20%    (verde medio)
+--secondary-foreground: 40 20% 85%
+--muted:             90 15% 22%
+--muted-foreground:  90 10% 55%
+--accent:            42 65% 58%    (dourado)
+--accent-foreground: 90 30% 10%
+--border:            90 15% 25%
+--input:             90 15% 25%
+--ring:              42 65% 58%
+```
 
 ### Arquivos modificados
-- `src/pages/Index.tsx` - Hero com video/fallback, portfolio com imagens reais, secao historia com imagem
-- `src/components/Footer.tsx` - Dados de contato atualizados
-- Migration SQL para inserir/atualizar unidades no banco
+- `src/index.css` - Nova paleta de cores
+- `src/components/Header.tsx` - Logo imagem + ajustes
+- `src/components/Footer.tsx` - Logo imagem
+- `src/pages/Index.tsx` - Logo no hero (opcional)
 
-### Hero - Estrutura do video
-O Hero tera:
-- `<video>` autoplay, muted, loop, playsInline com poster de fallback
-- Overlay com `bg-black/60` (60% escuro) sobre o video
-- Texto e botoes por cima do overlay
-- Quando o usuario enviar o video, basta trocar o src do video
-
-### Dados das Unidades (Migration SQL)
-```text
-INSERT/UPDATE units:
-1. "Macapaba - Ernestino Borges" (principal)
-   - Endereco: Av. Ernestino Borges, N 39-B
-   - Telefone: (96) 988011317
-   - ativo: true, principal: true
-
-2. "Macapaba - Ataide Teive (Em breve)"
-   - Endereco: Av. Ataide Teive 644 - Centro  
-   - Telefone: (96) 988011317
-   - ativo: true, principal: false
-```
+### Arquivo copiado
+- `src/assets/logo-macapaba.png` (de user-uploads://Ativo-1-1.png)
