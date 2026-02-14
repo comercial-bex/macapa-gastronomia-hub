@@ -5,6 +5,12 @@ import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 import { UtensilsCrossed, Users, Calendar } from "lucide-react";
 
+import pratoVariado from "@/assets/prato-variado.jpeg";
+import sushi from "@/assets/sushi.jpeg";
+import garcomServindo from "@/assets/garcom-servindo.jpeg";
+import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
+import salaoRestaurante from "@/assets/salao-restaurante.jpeg";
+
 const weekDays = [
   { label: "Seg", day: "Segunda-feira" },
   { label: "Ter", day: "Terça-feira" },
@@ -15,19 +21,34 @@ const weekDays = [
   { label: "Dom", day: "Domingo" },
 ];
 
+const portfolioImages = [
+  { src: pratoVariado, alt: "Prato variado com sushi, carne e arroz" },
+  { src: sushi, alt: "Sushi variado" },
+  { src: garcomServindo, alt: "Garçom servindo no restaurante" },
+  { src: clientesRestaurante, alt: "Clientes no restaurante" },
+  { src: salaoRestaurante, alt: "Salão do restaurante" },
+  { src: pratoVariado, alt: "Prato especial do Macapabá" },
+];
+
 const Index = () => {
   return (
     <Layout>
       {/* Hero */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background z-10" />
-        <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-30" />
+        {/* Video background (placeholder until video is provided) */}
+        <img
+          src={garcomServindo}
+          alt="Restaurante Macapabá"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark overlay 60% */}
+        <div className="absolute inset-0 bg-black/60 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6"
+            className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6 text-white"
           >
             Macapabá — <span className="text-primary">Sabor</span> e tradição em Macapá desde 1998
           </motion.h1>
@@ -35,7 +56,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto"
           >
             Uma casa feita de encontros, histórias e pratos que viram memória.
           </motion.p>
@@ -51,7 +72,7 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/cardapio">
-              <Button size="lg" variant="outline" className="border-foreground/20 hover:bg-foreground/5 font-semibold uppercase tracking-wider px-8">
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold uppercase tracking-wider px-8">
                 Ver Cardápio
               </Button>
             </Link>
@@ -76,16 +97,25 @@ const Index = () => {
                   </Button>
                 </Link>
               </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-secondary rounded-lg p-8 text-center">
-                  <UtensilsCrossed className="h-8 w-8 text-primary mx-auto mb-3" />
-                  <p className="font-display text-4xl font-bold">50<span className="text-primary">+</span></p>
-                  <p className="text-muted-foreground text-sm mt-1">Variedades</p>
+              <div className="space-y-6">
+                <div className="rounded-lg overflow-hidden aspect-video">
+                  <img
+                    src={salaoRestaurante}
+                    alt="Salão do Restaurante Macapabá"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="bg-secondary rounded-lg p-8 text-center">
-                  <Users className="h-8 w-8 text-primary mx-auto mb-3" />
-                  <p className="font-display text-4xl font-bold">100<span className="text-primary">+</span></p>
-                  <p className="text-muted-foreground text-sm mt-1">Capacidade</p>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-secondary rounded-lg p-8 text-center">
+                    <UtensilsCrossed className="h-8 w-8 text-primary mx-auto mb-3" />
+                    <p className="font-display text-4xl font-bold">50<span className="text-primary">+</span></p>
+                    <p className="text-muted-foreground text-sm mt-1">Variedades</p>
+                  </div>
+                  <div className="bg-secondary rounded-lg p-8 text-center">
+                    <Users className="h-8 w-8 text-primary mx-auto mb-3" />
+                    <p className="font-display text-4xl font-bold">100<span className="text-primary">+</span></p>
+                    <p className="text-muted-foreground text-sm mt-1">Capacidade</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -103,13 +133,16 @@ const Index = () => {
             </div>
           </ScrollReveal>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {portfolioImages.map((img, i) => (
               <ScrollReveal key={i} delay={i * 0.1}>
                 <div className="aspect-square bg-secondary rounded-lg overflow-hidden group cursor-pointer relative">
                   <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors duration-300 z-10" />
-                  <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-sm">
-                    Foto {i}
-                  </div>
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
                 </div>
               </ScrollReveal>
             ))}
