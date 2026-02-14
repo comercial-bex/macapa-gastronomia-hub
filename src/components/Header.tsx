@@ -1,0 +1,100 @@
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+
+const navLinks = [
+  { label: "Home", path: "/" },
+  { label: "Portfólio", path: "/portfolio" },
+  { label: "Cardápio", path: "/cardapio" },
+  { label: "Unidades", path: "/unidades" },
+  { label: "Trabalhe Conosco", path: "/trabalhe-conosco" },
+];
+
+const Header = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+      <div className="container mx-auto flex items-center justify-between h-16 px-4">
+        <Link to="/" className="font-display text-2xl font-bold tracking-wide text-primary">
+          MACAPABÁ
+        </Link>
+
+        <nav className="hidden lg:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`text-sm font-medium tracking-wide uppercase transition-colors hover:text-primary ${
+                location.pathname === link.path ? "text-primary" : "text-foreground/70"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden lg:flex items-center gap-3">
+          <a
+            href="https://wa.me/5596981054789"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors"
+          >
+            <Phone className="h-4 w-4" />
+            <span>(96) 98105-4789</span>
+          </a>
+          <Link to="/reserva">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-wide uppercase text-xs px-6">
+              Reserva
+            </Button>
+          </Link>
+        </div>
+
+        <button
+          className="lg:hidden text-foreground"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Menu"
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden bg-background border-b border-border overflow-hidden"
+          >
+            <nav className="flex flex-col p-4 gap-3">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`text-sm font-medium uppercase py-2 transition-colors ${
+                    location.pathname === link.path ? "text-primary" : "text-foreground/70"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Link to="/reserva" onClick={() => setMobileOpen(false)}>
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-xs mt-2">
+                  Reserva
+                </Button>
+              </Link>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+};
+
+export default Header;

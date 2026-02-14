@@ -1,0 +1,127 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import Layout from "@/components/Layout";
+import ScrollReveal from "@/components/ScrollReveal";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X } from "lucide-react";
+
+interface PortfolioItem {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  categoria: string;
+  tipo: string;
+  url: string | null;
+  destaque: boolean;
+  ordem: number;
+}
+
+const Portfolio = () => {
+  const [items, setItems] = useState<PortfolioItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState("Todos");
+  const [lightbox, setLightbox] = useState<PortfolioItem | null>(null);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const { data } = await supabase
+        .from("portfolio_items")
+        .select("*")
+        .eq("ativo", true)
+        .order("ordem");
+      if (data) {
+        setItems(data);
+        const cats = [...new Set(data.map((item) => item.categoria))];
+        setCategories(["Todos", ...cats]);
+      }
+    };
+    fetchItems();
+  }, []);
+
+  const filtered = activeFilter === "Todos" ? items : items.filter((i) => i.categoria === activeFilter);
+
+  return (
+    <Layout>
+      <section className="py-24 px-4">
+        <div className="container mx-auto">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Galeria</p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">Nosso Portfólio</h1>
+            </div>
+          </ScrollReveal>
+
+          {categories.length > 1 && (
+            <ScrollReveal>
+              <div className="flex flex-wrap justify-center gap-2 mb-12">
+                {categories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={activeFilter === cat ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveFilter(cat)}
+                    className={activeFilter === cat ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+            </ScrollReveal>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filtered.map((item, i) => (
+              <ScrollReveal key={item.id} delay={i * 0.05}>
+                <div
+                  className="aspect-square bg-secondary rounded-lg overflow-hidden cursor-pointer group relative"
+                  onClick={() => setLightbox(item)}
+                >
+                  {item.url ? (
+                    item.tipo === "video" ? (
+                      <video src={item.url} className="w-full h-full object-cover" muted />
+                    ) : (
+                      <img src={item.url} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    )
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-sm">{item.titulo}</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <p className="text-sm font-semibold">{item.titulo}</p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+
+          {filtered.length === 0 && (
+            <p className="text-center text-muted-foreground py-20">Nenhum item encontrado no portfólio.</p>
+          )}
+        </div>
+      </section>
+
+      <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
+        <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-md border-border p-2">
+          <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 z-50 text-foreground hover:text-primary">
+            <X className="h-6 w-6" />
+          </button>
+          {lightbox && (
+            <div>
+              {lightbox.tipo === "video" && lightbox.url ? (
+                <video src={lightbox.url} controls className="w-full rounded-lg" />
+              ) : lightbox.url ? (
+                <img src={lightbox.url} alt={lightbox.titulo} className="w-full rounded-lg" />
+              ) : null}
+              <div className="p-4">
+                <h3 className="font-display text-xl font-bold">{lightbox.titulo}</h3>
+                {lightbox.descricao && <p className="text-muted-foreground text-sm mt-1">{lightbox.descricao}</p>}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Layout>
+  );
+};
+
+export default Portfolio;
