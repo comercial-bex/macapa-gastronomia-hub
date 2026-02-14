@@ -1,100 +1,81 @@
 
+# Atualizar Site Macapabá com Imagens Reais, Video Hero e Dados de Unidades
 
-# 🍽️ Restaurante Macapabá — Website Institucional + Painel Admin
+## O que sera feito
 
-## Visão Geral
-Website institucional premium com tema escuro (preto/cinza + laranja) e painel administrativo para gestão de conteúdo. Inspirado no site atual, mas com design elevado, animações suaves e experiência moderna.
+### 1. Copiar imagens do usuario para o projeto
+Copiar as 6 imagens enviadas para `src/assets/` para uso no site:
+- `Sessao-sem-titulo01932-scaled.jpeg` - Prato variado (sushi, carne, arroz)
+- `Sessao-sem-titulo01601-scaled.jpeg` - Sushi variado
+- `Sessao-sem-titulo01573-1-scaled.jpeg` - Garcom servindo, suco de laranja
+- `DSC09846.jpg` - Clientes no restaurante
+- `DSC09880.jpg` - Salao do restaurante
 
----
+Nota: A imagem `Sessao-sem-titulo01932-scaled-2.jpeg` e duplicata da primeira, sera ignorada.
 
-## 🎨 Design & Identidade
-- **Tema escuro premium**: fundo preto/cinza escuro, textos brancos, acentos em laranja (#E8834A)
-- **Tipografia moderna** com bastante respiro e hierarquia clara
-- **Animações**: scroll reveal (fade-in), hover effects nos cards, transições suaves entre páginas
-- **100% responsivo** (mobile-first)
+### 2. Hero com Video de fundo
+- Substituir o placeholder do Hero por um elemento `<video>` de fundo
+- O usuario mencionou que tem um video para colocar, mas nao foi anexado neste envio
+- Por enquanto, preparar a estrutura do Hero para video com overlay escuro (~60%) usando gradiente/fundo semitransparente
+- Usar a imagem do garcom (01573) como fallback/poster do video ate o video ser fornecido
+- O video ficara atras do texto com overlay de ~60% escuro
 
----
+### 3. Portfolio Preview na Home com imagens reais
+Substituir os 6 placeholders "Foto 1-6" por imagens reais do restaurante:
+- Posicao 1: Prato variado (01932)
+- Posicao 2: Sushi (01601)
+- Posicao 3: Garcom servindo (01573)
+- Posicao 4: Clientes comendo (DSC09846)
+- Posicao 5: Salao do restaurante (DSC09880)
+- Posicao 6: Reutilizar uma das fotos de comida
 
-## 📄 Páginas Públicas
+### 4. Secao "Desde 1998" com imagem
+Adicionar a imagem do salao do restaurante (DSC09880) ao lado direito da secao de historia, junto com os contadores.
 
-### 1. Home (/)
-- **Header fixo** com logo, menu de navegação, botão "Reserva" (laranja) e ícone WhatsApp
-- **Hero** com slider automático (3 mídias — placeholder inicialmente) com headline "Macapabá — Sabor e tradição em Macapá desde 1998" e botões CTA
-- **Bloco "Desde 1998"** com história resumida e contadores (50+ variedades, 100+ capacidade)
-- **Preview Portfólio** — 6 itens em destaque com grid elegante
-- **Cardápio da Semana** — botões Seg–Dom que linkam para /cardapio com filtro do dia
-- **CTA final** "Reserve sua mesa agora"
-- **Footer** com endereço, contato, links e redes sociais
+### 5. Atualizar informacoes das Unidades
+Atualizar o Footer com os dados corretos:
+- **Endereco 01**: Av. Ernestino Borges, N 39-B | Tel: (96) 988011317
+- **Endereco 02 (Em breve)**: Av. Ataide Teive 644 - Centro | Tel: (96) 988011317
 
-### 2. Portfólio (/portfolio)
-- Grid de imagens/vídeos com filtros por categoria
-- Lightbox ao clicar para visualização ampliada
-- Itens marcados como "destaque" aparecem na Home
+Inserir/atualizar os dados das unidades no banco de dados via migration SQL para que a pagina /unidades e o Footer mostrem os dados corretos.
 
-### 3. Cardápio (/cardapio)
-- **Aba "Bebidas"**: organizado por categorias (Água, Refrigerantes, Sucos, etc.) com nome, volume e preço
-- **Aba "Cardápio da Semana"**: seletor de dia (Seg–Dom) mostrando pratos do dia, com nota "O cardápio pode variar"
-
-### 4. Unidades (/unidades)
-- Cards com nome, endereço, telefone, horários
-- Unidade principal em destaque
-- Botão "Como chegar" abrindo Google Maps
-
-### 5. Trabalhe Conosco (/trabalhe-conosco)
-- Cards de vagas ativas
-- Fluxo em 2 etapas: selecionar vaga → preencher formulário (nome, telefone, e-mail, experiência, disponibilidade, upload currículo PDF/DOC, observações)
-- Envio salva no banco + notifica por e-mail
-
-### 6. Reserva (/reserva)
-- Formulário: nome, telefone/WhatsApp, data, horário, nº pessoas, observações
-- Salva no banco + envia e-mail
-- Botão alternativo "Reservar pelo WhatsApp" com mensagem pré-preenchida
+### 6. Atualizar Footer
+- Trocar endereco e telefone para os dados reais fornecidos
+- Mostrar as duas unidades no footer
 
 ---
 
-## 🔐 Painel Administrativo (/admin)
+## Detalhes Tecnicos
 
-- **Login** com e-mail e senha (autenticação via Supabase Auth)
-- **Dashboard limpo** com menu lateral e as seções:
-  - **Portfólio**: CRUD de itens (upload mídia, categoria, destaque, reordenar, ativo)
-  - **Bebidas**: CRUD de categorias e itens (nome, volume, preço, ativo, ordem)
-  - **Cardápio da Semana**: editar pratos por dia, adicionar/remover/reordenar
-  - **Unidades**: CRUD (nome, endereço, telefone, horários, maps, principal)
-  - **Vagas**: CRUD de vagas (título, descrição, ativa)
-  - **Candidaturas**: lista com visualização e download de currículo
-  - **Reservas**: lista com visualização de detalhes
+### Arquivos criados/copiados
+- `src/assets/prato-variado.jpeg` (de Sessao-sem-titulo01932-scaled.jpeg)
+- `src/assets/sushi.jpeg` (de Sessao-sem-titulo01601-scaled.jpeg)
+- `src/assets/garcom-servindo.jpeg` (de Sessao-sem-titulo01573-1-scaled.jpeg)
+- `src/assets/clientes-restaurante.jpeg` (de DSC09846.jpg)
+- `src/assets/salao-restaurante.jpeg` (de DSC09880.jpg)
 
----
+### Arquivos modificados
+- `src/pages/Index.tsx` - Hero com video/fallback, portfolio com imagens reais, secao historia com imagem
+- `src/components/Footer.tsx` - Dados de contato atualizados
+- Migration SQL para inserir/atualizar unidades no banco
 
-## 🗄️ Backend (Supabase / Lovable Cloud)
+### Hero - Estrutura do video
+O Hero tera:
+- `<video>` autoplay, muted, loop, playsInline com poster de fallback
+- Overlay com `bg-black/60` (60% escuro) sobre o video
+- Texto e botoes por cima do overlay
+- Quando o usuario enviar o video, basta trocar o src do video
 
-### Banco de Dados
-- **portfolio_items** — título, descrição, categoria, tipo (imagem/vídeo), url, destaque, ordem, ativo
-- **beverage_categories** — nome, ordem, ativo
-- **beverages** — categoria_id, nome, volume, preço, ativo, ordem
-- **weekly_menu_days** — dia da semana, ordem
-- **weekly_menu_items** — day_id, prato, ordem, ativo
-- **units** — nome, endereço, telefone, horários, maps_url, principal, ativo
-- **job_positions** — título, descrição, ativa, ordem
-- **job_applications** — vaga_id, nome, telefone, email, experiência, disponibilidade, currículo_url, observações
-- **reservations** — nome, telefone, data, horário, pessoas, observações
+### Dados das Unidades (Migration SQL)
+```text
+INSERT/UPDATE units:
+1. "Macapaba - Ernestino Borges" (principal)
+   - Endereco: Av. Ernestino Borges, N 39-B
+   - Telefone: (96) 988011317
+   - ativo: true, principal: true
 
-### Storage
-- Bucket para imagens/vídeos do portfólio
-- Bucket para currículos (PDF/DOC)
-
-### Auth
-- Autenticação por e-mail/senha para o painel admin
-- RLS policies para proteger dados administrativos
-
-### Edge Functions
-- Envio de e-mail para notificações de reserva e candidatura
-
----
-
-## ⚡ Performance & SEO
-- Lazy loading de imagens e vídeos
-- Animações com scroll reveal (fade-in, scale-in)
-- Meta tags e títulos otimizados por página
-- Acessibilidade básica (alt texts, contraste, foco)
-
+2. "Macapaba - Ataide Teive (Em breve)"
+   - Endereco: Av. Ataide Teive 644 - Centro  
+   - Telefone: (96) 988011317
+   - ativo: true, principal: false
+```
