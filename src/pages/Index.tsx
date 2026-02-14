@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import ScrollReveal from "@/components/ScrollReveal";
+import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import Layout from "@/components/Layout";
-import { motion } from "framer-motion";
+import AnimatedImage from "@/components/AnimatedImage";
+import AnimatedCounter from "@/components/AnimatedCounter";
+import SectionDivider from "@/components/SectionDivider";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { UtensilsCrossed, Users, Calendar } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 
@@ -32,17 +36,23 @@ const portfolioImages = [
 ];
 
 const Index = () => {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Video background (placeholder until video is provided) */}
-        <img
+      {/* Hero with Parallax */}
+      <section ref={heroRef} className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+        <motion.img
           src={garcomServindo}
           alt="Restaurante Macapabá"
           className="absolute inset-0 w-full h-full object-cover"
+          style={{ y: heroY }}
         />
-        {/* Dark overlay 60% */}
         <div className="absolute inset-0 bg-black/60 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
           <motion.div
@@ -76,18 +86,26 @@ const Index = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link to="/reserva">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-8">
-                Fazer Reserva
-              </Button>
+              <motion.div
+                animate={{ boxShadow: ["0 0 0 0 hsl(var(--primary) / 0.4)", "0 0 0 12px hsl(var(--primary) / 0)", "0 0 0 0 hsl(var(--primary) / 0)"] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                className="rounded-md inline-block"
+              >
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-8 active:scale-95 transition-transform">
+                  Fazer Reserva
+                </Button>
+              </motion.div>
             </Link>
             <Link to="/cardapio">
-              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold uppercase tracking-wider px-8">
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold uppercase tracking-wider px-8 hover:scale-105 active:scale-95 transition-transform">
                 Ver Cardápio
               </Button>
             </Link>
           </motion.div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* Desde 1998 */}
       <section className="py-24 px-4">
@@ -101,14 +119,14 @@ const Index = () => {
                   Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá para quem busca uma experiência gastronômica completa.
                 </p>
                 <Link to="/reserva">
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-105 active:scale-95 transition-transform">
                     Fazer Reserva
                   </Button>
                 </Link>
               </div>
               <div className="space-y-6">
                 <div className="rounded-lg overflow-hidden aspect-video">
-                  <img
+                  <AnimatedImage
                     src={salaoRestaurante}
                     alt="Salão do Restaurante Macapabá"
                     className="w-full h-full object-cover"
@@ -117,12 +135,18 @@ const Index = () => {
                 <div className="grid grid-cols-2 gap-6">
                   <div className="bg-secondary rounded-lg p-8 text-center">
                     <UtensilsCrossed className="h-8 w-8 text-primary mx-auto mb-3" />
-                    <p className="font-display text-4xl font-bold">50<span className="text-primary">+</span></p>
+                    <p className="font-display text-4xl font-bold">
+                      <AnimatedCounter target={50} suffix="" />
+                      <span className="text-primary">+</span>
+                    </p>
                     <p className="text-muted-foreground text-sm mt-1">Variedades</p>
                   </div>
                   <div className="bg-secondary rounded-lg p-8 text-center">
                     <Users className="h-8 w-8 text-primary mx-auto mb-3" />
-                    <p className="font-display text-4xl font-bold">100<span className="text-primary">+</span></p>
+                    <p className="font-display text-4xl font-bold">
+                      <AnimatedCounter target={100} suffix="" />
+                      <span className="text-primary">+</span>
+                    </p>
                     <p className="text-muted-foreground text-sm mt-1">Capacidade</p>
                   </div>
                 </div>
@@ -131,6 +155,8 @@ const Index = () => {
           </ScrollReveal>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* Portfolio Preview */}
       <section className="py-24 px-4 bg-secondary/50">
@@ -141,9 +167,9 @@ const Index = () => {
               <h2 className="font-display text-4xl md:text-5xl font-bold">Momentos & Sabores</h2>
             </div>
           </ScrollReveal>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <ScrollReveal stagger className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {portfolioImages.map((img, i) => (
-              <ScrollReveal key={i} delay={i * 0.1}>
+              <StaggerItem key={i}>
                 <div className="aspect-square bg-secondary rounded-lg overflow-hidden group cursor-pointer relative">
                   <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors duration-300 z-10" />
                   <img
@@ -153,18 +179,20 @@ const Index = () => {
                     loading="lazy"
                   />
                 </div>
-              </ScrollReveal>
+              </StaggerItem>
             ))}
-          </div>
+          </ScrollReveal>
           <div className="text-center mt-12">
             <Link to="/portfolio">
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold hover:scale-105 active:scale-95 transition-transform">
                 Ver Portfólio Completo
               </Button>
             </Link>
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* Cardápio da Semana */}
       <section className="py-24 px-4">
@@ -175,22 +203,24 @@ const Index = () => {
               <h2 className="font-display text-4xl md:text-5xl font-bold">Cardápio da Semana</h2>
             </div>
           </ScrollReveal>
-          <ScrollReveal>
-            <div className="flex flex-wrap justify-center gap-3">
-              {weekDays.map((day) => (
-                <Link key={day.day} to={`/cardapio?dia=${encodeURIComponent(day.day)}`}>
+          <ScrollReveal stagger className="flex flex-wrap justify-center gap-3">
+            {weekDays.map((day) => (
+              <StaggerItem key={day.day}>
+                <Link to={`/cardapio?dia=${encodeURIComponent(day.day)}`}>
                   <Button
                     variant="outline"
-                    className="border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 uppercase tracking-wider text-xs font-semibold px-6 py-5"
+                    className="border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 uppercase tracking-wider text-xs font-semibold px-6 py-5 hover:scale-105 active:scale-95"
                   >
                     {day.label}
                   </Button>
                 </Link>
-              ))}
-            </div>
+              </StaggerItem>
+            ))}
           </ScrollReveal>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* CTA Final */}
       <section className="py-24 px-4 bg-secondary/50">
@@ -202,7 +232,7 @@ const Index = () => {
               Garanta seu lugar para uma experiência gastronômica inesquecível.
             </p>
             <Link to="/reserva">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-10">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-10 hover:scale-105 active:scale-95 transition-transform">
                 Fazer Reserva
               </Button>
             </Link>

@@ -1,12 +1,29 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
+import { motion } from "framer-motion";
 import logoMacapaba from "@/assets/logo-macapaba.png";
+
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.15 } },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
 
 const Footer = () => (
   <footer className="bg-secondary border-t border-border">
     <div className="container mx-auto px-4 py-16">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-        <div>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-50px" }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-12"
+      >
+        <motion.div variants={fadeUp}>
           <img src={logoMacapaba} alt="Macapabá" className="h-12 mb-4" />
           <p className="text-muted-foreground text-sm leading-relaxed">
             Sabor e tradição em Macapá desde 1998. Uma casa feita de encontros, histórias e pratos que viram memória.
@@ -19,9 +36,9 @@ const Footer = () => (
               <Facebook className="h-5 w-5" />
             </a>
           </div>
-        </div>
+        </motion.div>
 
-        <div>
+        <motion.div variants={fadeUp}>
           <h4 className="font-display text-lg font-semibold mb-4">Links</h4>
           <nav className="flex flex-col gap-2">
             {[
@@ -36,9 +53,9 @@ const Footer = () => (
               </Link>
             ))}
           </nav>
-        </div>
+        </motion.div>
 
-        <div>
+        <motion.div variants={fadeUp}>
           <h4 className="font-display text-lg font-semibold mb-4">Unidade 1</h4>
           <div className="flex flex-col gap-3 text-sm text-muted-foreground mb-6">
             <div className="flex items-start gap-2">
@@ -65,8 +82,8 @@ const Footer = () => (
               <span>restaurantemacapaba123@gmail.com</span>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
     <div className="border-t border-border py-6 text-center text-xs text-muted-foreground">
       © {new Date().getFullYear()} Restaurante Macapabá. Todos os direitos reservados.

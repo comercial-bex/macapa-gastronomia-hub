@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,23 @@ const navLinks = [
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+    <motion.header
+      className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-500 ${
+        scrolled
+          ? "bg-background/90 backdrop-blur-lg border-border/50"
+          : "bg-transparent border-transparent backdrop-blur-none"
+      }`}
+    >
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/">
           <img src={logoMacapaba} alt="Macapabá" className="h-10" />
@@ -94,7 +107,7 @@ const Header = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </motion.header>
   );
 };
 
