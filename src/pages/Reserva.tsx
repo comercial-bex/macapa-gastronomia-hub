@@ -63,32 +63,32 @@ const Reserva = () => {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="nome">Nome *</Label>
-                    <Input id="nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required maxLength={100} />
+                    <Input id="nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required maxLength={100} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                   </div>
                   <div>
                     <Label htmlFor="telefone">Telefone / WhatsApp *</Label>
-                    <Input id="telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} required maxLength={20} />
+                    <Input id="telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} required maxLength={20} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="data">Data *</Label>
-                    <Input id="data" type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} required />
+                    <Input id="data" type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                   </div>
                   <div>
                     <Label htmlFor="horario">Horário *</Label>
-                    <Input id="horario" type="time" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} required />
+                    <Input id="horario" type="time" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                   </div>
                   <div>
                     <Label htmlFor="pessoas">Nº Pessoas *</Label>
-                    <Input id="pessoas" type="number" min="1" max="50" value={form.pessoas} onChange={(e) => setForm({ ...form, pessoas: e.target.value })} required />
+                    <Input id="pessoas" type="number" min="1" max="50" value={form.pessoas} onChange={(e) => setForm({ ...form, pessoas: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                   </div>
                 </div>
                 <div>
                   <Label htmlFor="observacoes">Observações</Label>
-                  <Textarea id="observacoes" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} maxLength={500} />
+                  <Textarea id="observacoes" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} maxLength={500} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                 </div>
-                <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider">
+                <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-[1.02] active:scale-95 transition-transform">
                   {loading ? "Enviando..." : "Enviar Reserva"}
                 </Button>
               </form>
@@ -96,7 +96,7 @@ const Reserva = () => {
               <div className="mt-6 text-center">
                 <p className="text-muted-foreground text-sm mb-3">ou</p>
                 <a href={`https://wa.me/5596981054789?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2">
+                  <Button variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2 hover:scale-105 active:scale-95 transition-transform">
                     <MessageCircle className="h-4 w-4" /> Reservar pelo WhatsApp
                   </Button>
                 </a>

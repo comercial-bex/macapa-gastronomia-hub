@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import ScrollReveal from "@/components/ScrollReveal";
+import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface PortfolioItem {
   id: string;
@@ -70,12 +71,15 @@ const Portfolio = () => {
             </ScrollReveal>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filtered.map((item, i) => (
-              <ScrollReveal key={item.id} delay={i * 0.05}>
-                <div
+          <ScrollReveal stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filtered.map((item) => (
+              <StaggerItem key={item.id}>
+                <motion.div
                   className="aspect-square bg-secondary rounded-lg overflow-hidden cursor-pointer group relative"
                   onClick={() => setLightbox(item)}
+                  whileHover={{ rotateY: 3, rotateX: -2, scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ perspective: 800 }}
                 >
                   {item.url ? (
                     item.tipo === "video" ? (
@@ -89,10 +93,10 @@ const Portfolio = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                     <p className="text-sm font-semibold">{item.titulo}</p>
                   </div>
-                </div>
-              </ScrollReveal>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </ScrollReveal>
 
           {filtered.length === 0 && (
             <p className="text-center text-muted-foreground py-20">Nenhum item encontrado no portfólio.</p>

@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import ScrollReveal from "@/components/ScrollReveal";
+import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface BeverageCategory {
   id: string;
@@ -92,21 +93,27 @@ const Cardapio = () => {
                   <ScrollReveal key={cat.id}>
                     <div className="mb-10">
                       <h3 className="font-display text-2xl font-bold mb-4 text-primary">{cat.nome}</h3>
-                      <div className="space-y-3">
+                      <ScrollReveal stagger className="space-y-0">
                         {items.map((bev) => (
-                          <div key={bev.id} className="flex justify-between items-center py-3 border-b border-border/50">
-                            <div>
-                              <span className="font-medium">{bev.nome}</span>
-                              {bev.volume && <span className="text-muted-foreground text-sm ml-2">({bev.volume})</span>}
-                            </div>
-                            {bev.preco !== null && (
-                              <span className="text-primary font-semibold">
-                                R$ {Number(bev.preco).toFixed(2).replace(".", ",")}
-                              </span>
-                            )}
-                          </div>
+                          <StaggerItem key={bev.id}>
+                            <motion.div
+                              className="flex justify-between items-center py-3 border-b border-border/50 hover:bg-secondary/50 px-2 rounded transition-colors"
+                              whileHover={{ x: 4 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <div>
+                                <span className="font-medium">{bev.nome}</span>
+                                {bev.volume && <span className="text-muted-foreground text-sm ml-2">({bev.volume})</span>}
+                              </div>
+                              {bev.preco !== null && (
+                                <span className="text-primary font-semibold">
+                                  R$ {Number(bev.preco).toFixed(2).replace(".", ",")}
+                                </span>
+                              )}
+                            </motion.div>
+                          </StaggerItem>
                         ))}
-                      </div>
+                      </ScrollReveal>
                     </div>
                   </ScrollReveal>
                 );
@@ -137,15 +144,21 @@ const Cardapio = () => {
                     <h3 className="font-display text-2xl font-bold mb-6">
                       {days.find((d) => d.id === activeDay)?.dia_semana}
                     </h3>
-                    <div className="space-y-3">
+                    <ScrollReveal stagger className="space-y-0">
                       {menuItems
                         .filter((item) => item.day_id === activeDay)
                         .map((item) => (
-                          <div key={item.id} className="py-3 border-b border-border/50">
-                            <span className="font-medium">{item.prato}</span>
-                          </div>
+                          <StaggerItem key={item.id}>
+                            <motion.div
+                              className="py-3 border-b border-border/50 hover:bg-secondary/50 px-2 rounded transition-colors"
+                              whileHover={{ x: 4 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <span className="font-medium">{item.prato}</span>
+                            </motion.div>
+                          </StaggerItem>
                         ))}
-                    </div>
+                    </ScrollReveal>
                     {menuItems.filter((item) => item.day_id === activeDay).length === 0 && (
                       <p className="text-muted-foreground py-6">Nenhum prato cadastrado para este dia.</p>
                     )}

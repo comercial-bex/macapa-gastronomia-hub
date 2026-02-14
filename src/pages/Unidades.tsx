@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import ScrollReveal from "@/components/ScrollReveal";
+import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { MapPin, Phone, Clock, ExternalLink, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface Unit {
   id: string;
@@ -37,10 +38,14 @@ const Unidades = () => {
             </div>
           </ScrollReveal>
 
-          <div className="space-y-6">
-            {units.map((unit, i) => (
-              <ScrollReveal key={unit.id} delay={i * 0.1}>
-                <div className={`bg-card rounded-lg p-8 border ${unit.principal ? "border-primary" : "border-border"} relative`}>
+          <ScrollReveal stagger className="space-y-6">
+            {units.map((unit) => (
+              <StaggerItem key={unit.id}>
+                <motion.div
+                  className={`bg-card rounded-lg p-8 border ${unit.principal ? "border-primary" : "border-border"} relative transition-shadow duration-300`}
+                  whileHover={{ y: -4, boxShadow: "0 8px 30px -8px hsl(42 65% 58% / 0.25)" }}
+                  transition={{ duration: 0.3 }}
+                >
                   {unit.principal && (
                     <div className="absolute top-4 right-4 flex items-center gap-1 text-primary text-xs font-semibold uppercase">
                       <Star className="h-4 w-4 fill-primary" /> Principal
@@ -72,10 +77,10 @@ const Unidades = () => {
                       </Button>
                     </a>
                   )}
-                </div>
-              </ScrollReveal>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </ScrollReveal>
 
           {units.length === 0 && (
             <p className="text-center text-muted-foreground py-20">Nenhuma unidade cadastrada.</p>
