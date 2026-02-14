@@ -28,7 +28,7 @@ export default function ImageGallery({ images, title, subtitle, className }: Ima
         </div>
       )}
 
-      <div className="flex h-[500px] md:h-[600px] gap-2 overflow-x-auto">
+      <div className="flex h-[300px] sm:h-[400px] md:h-[600px] gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-hide touch-pan-x">
         {images.map((image, idx) => {
           const isHovered = hoveredIndex === idx;
           const isDefault = hoveredIndex === null && idx === 0;
@@ -38,8 +38,10 @@ export default function ImageGallery({ images, title, subtitle, className }: Ima
             <div
               key={idx}
               className={cn(
-                "relative overflow-hidden rounded-xl cursor-pointer transition-all duration-700 ease-in-out flex-shrink-0",
-                isExpanded ? "w-[60%] md:w-[50%]" : "w-[15%] md:w-[12%]"
+                "relative overflow-hidden rounded-lg sm:rounded-xl cursor-pointer transition-all duration-700 ease-in-out flex-shrink-0 snap-start",
+                isExpanded
+                  ? "w-[70%] sm:w-[60%] md:w-[50%]"
+                  : "w-[18%] sm:w-[15%] md:w-[12%]"
               )}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
