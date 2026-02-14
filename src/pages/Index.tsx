@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import ImageGallery from "@/components/ui/image-gallery";
 import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import Layout from "@/components/Layout";
 import AnimatedImage from "@/components/AnimatedImage";
@@ -162,25 +163,12 @@ const Index = () => {
       <section className="py-24 px-4 bg-secondary/50">
         <div className="container mx-auto">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Nosso Portfólio</p>
-              <h2 className="font-display text-4xl md:text-5xl font-bold">Momentos & Sabores</h2>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal stagger className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {portfolioImages.map((img, i) => (
-              <StaggerItem key={i}>
-                <div className="aspect-square bg-secondary rounded-lg overflow-hidden group cursor-pointer relative">
-                  <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors duration-300 z-10" />
-                  <img
-                    src={img.src}
-                    alt={img.alt}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </div>
-              </StaggerItem>
-            ))}
+            <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3 text-center">Nosso Portfólio</p>
+            <ImageGallery
+              images={portfolioImages}
+              title="Momentos & Sabores"
+              subtitle="Uma coleção visual dos nossos melhores momentos – cada imagem capturada com dedicação, emoção e sabor."
+            />
           </ScrollReveal>
           <div className="text-center mt-12">
             <Link to="/portfolio">
