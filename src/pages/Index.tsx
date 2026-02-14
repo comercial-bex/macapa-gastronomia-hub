@@ -4,6 +4,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 import { UtensilsCrossed, Users, Calendar } from "lucide-react";
+import logoMacapaba from "@/assets/logo-macapaba.png";
 
 import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
@@ -44,13 +45,21 @@ const Index = () => {
         {/* Dark overlay 60% */}
         <div className="absolute inset-0 bg-black/60 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6 text-white"
+            className="mb-6"
           >
-            Macapabá — <span className="text-primary">Sabor</span> e tradição em Macapá desde 1998
+            <img src={logoMacapaba} alt="Macapabá" className="h-20 md:h-28 mx-auto mb-6" />
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="font-display text-4xl md:text-6xl font-bold leading-tight mb-6 text-white"
+          >
+            <span className="text-primary">Sabor</span> e tradição em Macapá desde 1998
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

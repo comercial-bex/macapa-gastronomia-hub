@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
+import logoMacapaba from "@/assets/logo-macapaba.png";
 
 const Footer = () => (
   <footer className="bg-secondary border-t border-border">
     <div className="container mx-auto px-4 py-16">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
         <div>
-          <h3 className="font-display text-2xl font-bold text-primary mb-4">MACAPABÁ</h3>
+          <img src={logoMacapaba} alt="Macapabá" className="h-12 mb-4" />
           <p className="text-muted-foreground text-sm leading-relaxed">
             Sabor e tradição em Macapá desde 1998. Uma casa feita de encontros, histórias e pratos que viram memória.
           </p>
