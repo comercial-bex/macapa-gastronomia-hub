@@ -38,15 +38,26 @@ const Footer = () => (
         </div>
 
         <div>
-          <h4 className="font-display text-lg font-semibold mb-4">Contato</h4>
-          <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+          <h4 className="font-display text-lg font-semibold mb-4">Unidade 1</h4>
+          <div className="flex flex-col gap-3 text-sm text-muted-foreground mb-6">
             <div className="flex items-start gap-2">
               <MapPin className="h-4 w-4 mt-0.5 text-primary" />
-              <span>Av. Fab, 540 - Central, Macapá - AP</span>
+              <span>Av. Ernestino Borges, N 39-B</span>
             </div>
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary" />
-              <span>(96) 98105-4789</span>
+              <span>(96) 988011317</span>
+            </div>
+          </div>
+          <h4 className="font-display text-lg font-semibold mb-4">Unidade 2 <span className="text-primary text-sm">(Em breve)</span></h4>
+          <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 mt-0.5 text-primary" />
+              <span>Av. Ataíde Teive 644 - Centro</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-primary" />
+              <span>(96) 988011317</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-primary" />
