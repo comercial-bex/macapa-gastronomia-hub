@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          acao: string
+          created_at: string
+          descricao: string | null
+          id: string
+          modulo: string
+          user_id: string
+          user_nome: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          modulo: string
+          user_id: string
+          user_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          modulo?: string
+          user_id?: string
+          user_nome?: string | null
+        }
+        Relationships: []
+      }
       beverage_categories: {
         Row: {
           ativo: boolean
@@ -83,6 +113,7 @@ export type Database = {
           id: string
           nome: string
           observacoes: string | null
+          status: string
           telefone: string
           vaga_id: string | null
         }
@@ -95,6 +126,7 @@ export type Database = {
           id?: string
           nome: string
           observacoes?: string | null
+          status?: string
           telefone: string
           vaga_id?: string | null
         }
@@ -107,6 +139,7 @@ export type Database = {
           id?: string
           nome?: string
           observacoes?: string | null
+          status?: string
           telefone?: string
           vaga_id?: string | null
         }
@@ -188,18 +221,24 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           id: string
+          nome: string | null
           role: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           id: string
+          nome?: string | null
           role?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           id?: string
+          nome?: string | null
           role?: string
         }
         Relationships: []

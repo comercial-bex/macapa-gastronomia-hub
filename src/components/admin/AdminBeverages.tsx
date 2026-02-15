@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Wine } from "lucide-react";
 
 const AdminBeverages = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -33,11 +34,8 @@ const AdminBeverages = () => {
   const saveCat = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
     try {
-      if (editingCat) {
-        await supabase.from("beverage_categories").update(catForm).eq("id", editingCat.id);
-      } else {
-        await supabase.from("beverage_categories").insert(catForm);
-      }
+      if (editingCat) { await supabase.from("beverage_categories").update(catForm).eq("id", editingCat.id); }
+      else { await supabase.from("beverage_categories").insert(catForm); }
       toast.success("Salvo!"); setCatOpen(false); fetchData();
     } catch { toast.error("Erro"); } finally { setLoading(false); }
   };
@@ -46,11 +44,8 @@ const AdminBeverages = () => {
     e.preventDefault(); setLoading(true);
     try {
       const payload = { ...bevForm, preco: bevForm.preco ? parseFloat(bevForm.preco) : null, volume: bevForm.volume || null };
-      if (editingBev) {
-        await supabase.from("beverages").update(payload).eq("id", editingBev.id);
-      } else {
-        await supabase.from("beverages").insert(payload);
-      }
+      if (editingBev) { await supabase.from("beverages").update(payload).eq("id", editingBev.id); }
+      else { await supabase.from("beverages").insert(payload); }
       toast.success("Salvo!"); setBevOpen(false); fetchData();
     } catch { toast.error("Erro"); } finally { setLoading(false); }
   };
@@ -64,39 +59,56 @@ const AdminBeverages = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold">Bebidas</h2>
+        <div>
+          <h2 className="font-display text-2xl font-bold">Bebidas</h2>
+          <p className="text-muted-foreground text-sm mt-1">{categories.length} categorias · {beverages.length} itens</p>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true }); setCatOpen(true); }}>+ Categoria</Button>
-          <Button className="bg-primary text-primary-foreground" onClick={() => { setEditingBev(null); setBevForm({ category_id: categories[0]?.id || "", nome: "", volume: "", preco: "", ativo: true, ordem: 0 }); setBevOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1" /> Bebida
+          <Button onClick={() => { setEditingBev(null); setBevForm({ category_id: categories[0]?.id || "", nome: "", volume: "", preco: "", ativo: true, ordem: 0 }); setBevOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" /> Bebida
           </Button>
         </div>
       </div>
 
-      {categories.map((cat) => (
-        <div key={cat.id} className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <h3 className="font-display text-lg font-bold text-primary">{cat.nome}</h3>
-            <Button size="icon" variant="ghost" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo }); setCatOpen(true); }}><Pencil className="h-3 w-3" /></Button>
-          </div>
-          <div className="space-y-2">
-            {beverages.filter((b) => b.category_id === cat.id).map((bev) => (
-              <div key={bev.id} className="bg-card border border-border rounded-md p-3 flex justify-between items-center">
-                <div>
-                  <span className="font-medium">{bev.nome}</span>
-                  {bev.volume && <span className="text-muted-foreground text-xs ml-2">({bev.volume})</span>}
-                  {bev.preco && <span className="text-primary text-sm ml-3">R$ {Number(bev.preco).toFixed(2)}</span>}
-                  {!bev.ativo && <span className="text-xs text-muted-foreground ml-2">(inativo)</span>}
+      {categories.map((cat) => {
+        const catBevs = beverages.filter((b) => b.category_id === cat.id);
+        return (
+          <div key={cat.id} className="mb-8">
+            <div className="flex items-center gap-3 mb-3 pb-2 border-b border-border">
+              <Wine className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-lg font-bold">{cat.nome}</h3>
+              <Badge variant={cat.ativo ? "default" : "secondary"} className="text-xs">{cat.ativo ? "Ativa" : "Inativa"}</Badge>
+              <span className="text-xs text-muted-foreground ml-auto">{catBevs.length} itens</span>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo }); setCatOpen(true); }}>
+                <Pencil className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {catBevs.map((bev) => (
+                <div key={bev.id} className="bg-card border border-border rounded-lg p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <span className={`font-medium text-sm ${!bev.ativo ? "text-muted-foreground line-through" : ""}`}>{bev.nome}</span>
+                    {bev.volume && <span className="text-muted-foreground text-xs">({bev.volume})</span>}
+                    {!bev.ativo && <Badge variant="secondary" className="text-xs">Inativo</Badge>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {bev.preco && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 text-sm font-semibold">
+                        R$ {Number(bev.preco).toFixed(2)}
+                      </Badge>
+                    )}
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingBev(bev); setBevForm({ category_id: bev.category_id, nome: bev.nome, volume: bev.volume || "", preco: bev.preco?.toString() || "", ativo: bev.ativo, ordem: bev.ordem }); setBevOpen(true); }}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteBev(bev.id)}><Trash2 className="h-3 w-3" /></Button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => { setEditingBev(bev); setBevForm({ category_id: bev.category_id, nome: bev.nome, volume: bev.volume || "", preco: bev.preco?.toString() || "", ativo: bev.ativo, ordem: bev.ordem }); setBevOpen(true); }}><Pencil className="h-3 w-3" /></Button>
-                  <Button size="icon" variant="ghost" className="text-destructive" onClick={() => deleteBev(bev.id)}><Trash2 className="h-3 w-3" /></Button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <Dialog open={catOpen} onOpenChange={setCatOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
@@ -105,7 +117,7 @@ const AdminBeverages = () => {
             <div><Label>Nome</Label><Input value={catForm.nome} onChange={(e) => setCatForm({ ...catForm, nome: e.target.value })} required /></div>
             <div><Label>Ordem</Label><Input type="number" value={catForm.ordem} onChange={(e) => setCatForm({ ...catForm, ordem: parseInt(e.target.value) || 0 })} /></div>
             <label className="flex items-center gap-2 text-sm"><Switch checked={catForm.ativo} onCheckedChange={(v) => setCatForm({ ...catForm, ativo: v })} /> Ativa</label>
-            <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground">{loading ? "Salvando..." : "Salvar"}</Button>
+            <Button type="submit" disabled={loading} className="w-full">{loading ? "Salvando..." : "Salvar"}</Button>
           </form>
         </DialogContent>
       </Dialog>
@@ -126,7 +138,7 @@ const AdminBeverages = () => {
             </div>
             <div><Label>Ordem</Label><Input type="number" value={bevForm.ordem} onChange={(e) => setBevForm({ ...bevForm, ordem: parseInt(e.target.value) || 0 })} /></div>
             <label className="flex items-center gap-2 text-sm"><Switch checked={bevForm.ativo} onCheckedChange={(v) => setBevForm({ ...bevForm, ativo: v })} /> Ativo</label>
-            <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground">{loading ? "Salvando..." : "Salvar"}</Button>
+            <Button type="submit" disabled={loading} className="w-full">{loading ? "Salvando..." : "Salvar"}</Button>
           </form>
         </DialogContent>
       </Dialog>
