@@ -116,7 +116,7 @@ const AdminMenu = () => {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {dayItems.map((item) => (
-              <div key={item.id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div key={item.id} className="glass-effect rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {/* Media preview */}
                 <div className="relative aspect-[16/10] bg-muted">
                   {item.imagem_url ? (

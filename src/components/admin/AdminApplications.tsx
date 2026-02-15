@@ -74,7 +74,7 @@ const AdminApplications = () => {
       {/* Cards */}
       <div className="space-y-3">
         {filteredApps.map((app) => (
-          <div key={app.id} className="bg-card border border-border rounded-lg p-4">
+          <div key={app.id} className="glass-effect rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <p className="font-medium">{app.nome}</p>
@@ -118,7 +118,7 @@ const AdminApplications = () => {
 
       {/* Detail modal */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="glass-effect max-w-md">
           <DialogHeader><DialogTitle className="font-display">Candidatura</DialogTitle></DialogHeader>
           {selected && (
             <div className="space-y-3 text-sm">

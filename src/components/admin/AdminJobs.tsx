@@ -68,7 +68,7 @@ const AdminJobs = () => {
 
       <div className="space-y-3">
         {jobs.map((job) => (
-          <div key={job.id} className="bg-card border border-border rounded-lg p-4 flex justify-between items-center hover:shadow-sm transition-shadow">
+          <div key={job.id} className="glass-effect rounded-lg p-4 flex justify-between items-center hover:shadow-sm transition-shadow">
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <p className="font-medium">{job.titulo}</p>
@@ -92,7 +92,7 @@ const AdminJobs = () => {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="glass-effect max-w-md">
           <DialogHeader><DialogTitle className="font-display">{editing ? "Editar" : "Nova"} Vaga</DialogTitle></DialogHeader>
           <form onSubmit={save} className="space-y-4">
             <div><Label>Título</Label><Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} required /></div>

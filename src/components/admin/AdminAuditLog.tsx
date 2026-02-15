@@ -62,7 +62,7 @@ const AdminAuditLog = () => {
 
       <div className="space-y-3">
         {filtered.map((log: any) => (
-          <div key={log.id} className="bg-card border border-border rounded-lg p-4 flex items-start gap-4">
+          <div key={log.id} className="glass-effect rounded-lg p-4 flex items-start gap-4">
             <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
               <User className="h-4 w-4 text-muted-foreground" />
             </div>
