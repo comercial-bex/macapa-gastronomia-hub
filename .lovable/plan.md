@@ -1,55 +1,33 @@
 
 
-# Glassmorphism Visivel -- 3 Alternativas
+# Melhorias: Botao "Ver Site" + Login Moderno
 
-O efeito atual nao aparece porque os blobs de fundo tem opacidade muito baixa (3-8%) e o fundo verde escuro absorve tudo. Vou apresentar 3 opcoes com intensidades diferentes, todas mantendo a identidade visual da marca.
+## 1. Botao "Ver Site" na Sidebar do Admin
 
----
+Atualmente, a sidebar so tem o botao "Sair" na parte inferior. Vou adicionar um botao "Ver Site" que abre o site principal em uma nova aba, permitindo ao admin visualizar o site sem perder a sessao do painel.
 
-## Alternativa 1: "Dourado Elegante" (Recomendada)
+**Onde:** Na secao inferior da sidebar (`src/pages/Admin.tsx`), logo acima do botao "Sair".
 
-Mantem as cores da marca (dourado/ambar) mas com opacidade muito maior nos blobs e glass-effect mais pronunciado.
+- Icone: `ExternalLink` do lucide-react
+- Comportamento: Abre "/" em nova aba (`target="_blank"`)
+- Estilo: Mesmo padrao do botao "Sair", mas com cor neutra (sem vermelho)
+- Tambem sera adicionado no header mobile
 
-- Blobs: `bg-primary/20` e `bg-amber-500/15` (em vez de /8 e /6)
-- Glass-effect: `bg-white/[0.06]` com `border-white/[0.10]`
-- Cards com borda mais visivel e sombra interna sutil
-- Resultado: sofisticado, coerente com a marca, efeito visivel
+## 2. Login mais Dinamico e Moderno
 
-## Alternativa 2: "Roxo-Dourado" (Estilo Referencia)
+A pagina de login (`src/pages/AdminLogin.tsx`) esta funcional mas os blobs de fundo tem opacidade muito baixa (mesma questao do admin). Melhorias:
 
-Inspirada diretamente na imagem AetherUI: adiciona tons de roxo/violeta aos blobs, criando contraste vibrante com o fundo verde.
-
-- Blobs: `bg-purple-600/20`, `bg-primary/20`, `bg-fuchsia-500/12`
-- Glass-effect: `bg-white/[0.08]` com `border-white/[0.12]`
-- Gradiente sutil nos cards ao hover
-- Resultado: moderno e chamativo, mais contraste visual
-
-## Alternativa 3: "Neon Sutil"
-
-Usa cores neon (ciano e ambar) em baixa saturacao para criar um efeito futurista mas discreto.
-
-- Blobs: `bg-cyan-500/15`, `bg-primary/18`, `bg-emerald-500/10`
-- Glass-effect: `bg-white/[0.05]` com borda `border-white/[0.08]`
-- Glow sutil nos cards ativos
-- Resultado: futurista e limpo, menos agressivo
-
----
-
-## Implementacao (apos escolha)
-
-| Arquivo | Alteracao |
-|---|---|
-| `src/pages/Admin.tsx` | Aumentar opacidade e tamanho dos blobs, ajustar cores conforme alternativa |
-| `src/index.css` | Atualizar `.glass-effect` com opacidade maior e bordas mais visiveis |
+- **Blobs animados**: Aumentar opacidade para `bg-primary/20` e `bg-amber-500/15` (igual ao admin) e adicionar `animate-blob`
+- **Animacao de entrada escalonada**: Adicionar delay progressivo nos campos (email aparece, depois senha, depois botao)
+- **Link "Voltar ao site"**: Adicionar um link discreto abaixo do formulario para voltar a pagina principal
+- **Glass-effect mais visivel**: Ja usa `.glass-effect`, que agora esta atualizado com opacidade maior
 
 ## Detalhes Tecnicos
 
-- Apenas alteracoes de classes Tailwind CSS (opacidade, cores, blur)
-- Nenhuma dependencia nova
-- Compativel com o tema escuro existente
-- Os 3 blobs animados continuam com a animacao `animate-blob` ja implementada
+| Arquivo | Alteracao |
+|---|---|
+| `src/pages/Admin.tsx` | Adicionar botao "Ver Site" com icone `ExternalLink` na sidebar (desktop e mobile) |
+| `src/pages/AdminLogin.tsx` | Aumentar opacidade dos blobs, adicionar animacao blob, escalonar entrada dos campos, link "Voltar ao site" |
 
-## Publicacao
-
-Sobre publicar o app: apos implementar a alternativa escolhida, basta clicar no botao "Publish" no canto superior direito do Lovable para enviar as mudancas para producao.
+Nenhuma dependencia nova necessaria. Todas as ferramentas (framer-motion, lucide-react) ja estao instaladas.
 
