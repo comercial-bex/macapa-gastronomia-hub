@@ -19,6 +19,12 @@ import garcomServindo from "@/assets/garcom-servindo.jpeg";
 import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpeg";
 
+import foodDemo1 from "@/assets/food-demo-1.jpeg";
+import foodDemo2 from "@/assets/food-demo-2.jpeg";
+import foodDemo3 from "@/assets/food-demo-3.jpeg";
+
+const demoImages = [foodDemo1, foodDemo2, foodDemo3];
+
 const weekDayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const getDishIcon = (name: string): LucideIcon => {
@@ -262,49 +268,38 @@ const Index = () => {
               className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
             >
               {selectedItems.length > 0 ? (
-                selectedItems.map((item) => {
+                selectedItems.map((item, index) => {
                   const DishIcon = getDishIcon(item.prato);
-                  const hasMedia = !!item.imagem_url;
+                  const mediaUrl = item.imagem_url || demoImages[index % 3];
+                  const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
                   const currentDay = menuDays.find((d) => d.id === selectedDayId);
                   return (
                     <div
                       key={item.id}
-                      onClick={() => hasMedia && setSelectedDish({ prato: item.prato, imagem_url: item.imagem_url!, tipo_midia: item.tipo_midia, dia_semana: currentDay?.dia_semana || "" })}
-                      className={`relative overflow-hidden rounded-xl border border-primary/10 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/25 hover:scale-[1.03] transition-all duration-300 group ${hasMedia ? "cursor-pointer" : ""}`}
+                      onClick={() => setSelectedDish({ prato: item.prato, imagem_url: mediaUrl, tipo_midia: mediaTipo, dia_semana: currentDay?.dia_semana || "" })}
+                      className="relative overflow-hidden rounded-xl border border-primary/10 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/25 hover:scale-[1.03] transition-all duration-300 group cursor-pointer"
                     >
-                      {hasMedia ? (
-                        <>
-                          <div className="aspect-[4/3] w-full overflow-hidden">
-                            {item.tipo_midia === 'video' ? (
-                              <div className="relative w-full h-full">
-                                <video src={item.imagem_url!} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                                    <Play className="h-5 w-5 text-white ml-0.5" />
-                                  </div>
-                                </div>
+                      <div className="aspect-[4/3] w-full overflow-hidden">
+                        {mediaTipo === 'video' ? (
+                          <div className="relative w-full h-full">
+                            <video src={mediaUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                                <Play className="h-5 w-5 text-white ml-0.5" />
                               </div>
-                            ) : (
-                              <img src={item.imagem_url!} alt={item.prato} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                            )}
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/30 backdrop-blur-sm">
-                              <DishIcon className="h-4 w-4 text-primary" />
                             </div>
-                            <span className="text-sm font-semibold text-white drop-shadow-lg">{item.prato}</span>
                           </div>
-                        </>
-                      ) : (
-                        <div className="p-5 flex items-center gap-4 bg-gradient-to-br from-secondary via-secondary/90 to-secondary/70">
-                          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-primary/15 group-hover:bg-primary/25 transition-colors duration-300">
-                            <DishIcon className="h-5 w-5 text-primary shrink-0" />
-                          </div>
-                          <span className="relative text-sm font-medium text-foreground">{item.prato}</span>
+                        ) : (
+                          <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        )}
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/30 backdrop-blur-sm">
+                          <DishIcon className="h-4 w-4 text-primary" />
                         </div>
-                      )}
+                        <span className="text-sm font-semibold text-white drop-shadow-lg">{item.prato}</span>
+                      </div>
                     </div>
                   );
                 })
