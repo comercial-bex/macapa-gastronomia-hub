@@ -101,7 +101,7 @@ const Index = () => {
           src={garcomServindo}
           alt="Restaurante Macapabá"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ y: heroY }}
+          style={{ y: heroY, willChange: "transform" }}
         />
         <div className="absolute inset-0 bg-black/60 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
