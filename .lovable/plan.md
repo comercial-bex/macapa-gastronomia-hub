@@ -1,29 +1,78 @@
 
-# Imagens Demonstrativas no Cardapio da Semana
+
+# Cardapio Interativo -- Layout Side-by-Side com Reels
 
 ## Objetivo
 
-Usar as 3 fotos enviadas como imagens temporarias de demonstracao para todos os pratos do cardapio que ainda nao possuem foto cadastrada. Isso permite visualizar como ficara o layout completo com thumbnails e o modal Reels antes de cadastrar as fotos definitivas pelo painel admin.
+Substituir o layout atual de grid com cards quadrados por um layout dividido em duas colunas: a esquerda mostra os dias da semana e os nomes dos pratos (como uma lista de navegacao), e a direita exibe a midia do prato selecionado em formato vertical 9:16 (estilo Reels). Ao navegar pelos pratos, a foto/video atualiza dinamicamente no painel direito.
 
-## O Que Vai Mudar
+## Layout Proposto
 
-- Todos os pratos sem foto propria passarao a exibir uma das 3 fotos enviadas (distribuidas de forma alternada)
-- Os cards no grid mostrarao as thumbnails com overlay e nome do prato sobreposto
-- Clicar em qualquer prato abrira o modal Reels com a foto em formato vertical (9:16)
-- As fotos serao salvas em `src/assets` e importadas diretamente no componente
-- Quando o prato tiver foto propria cadastrada pelo admin, ela tera prioridade sobre a foto demonstrativa
+```text
+DESKTOP:
++----------------------------------+-------------------+
+| Cardapio da Semana               |                   |
+|                                  |                   |
+| [Seg] [Ter] [Qua] [Qui] ...     |   FOTO / VIDEO    |
+|                                  |   (9:16)          |
+|  > Peixe a Delicia        (*)   |                   |
+|    Escondidinho de Charque       |   nome do prato   |
+|    Cupim                         |   dia da semana   |
+|    Caranguejo                    |                   |
+|    Peixe Frito                   |                   |
+|                                  |                   |
++----------------------------------+-------------------+
+
+MOBILE:
++-------------------------+
+| Cardapio da Semana      |
+| [Seg] [Ter] [Qua] ...  |
+|                         |
+|   FOTO / VIDEO (9:16)   |
+|   nome + dia            |
+|                         |
+| > Peixe a Delicia  (*)  |
+|   Escondidinho          |
+|   Cupim                 |
++-------------------------+
+```
+
+## O Que Muda
+
+- O grid de cards com thumbnails sera removido
+- O modal Reels (Dialog) sera removido -- a midia agora aparece inline na propria secao
+- Os dias da semana continuam como abas/botoes no topo
+- Os pratos aparecem como lista clicavel no lado esquerdo (desktop) ou abaixo da midia (mobile)
+- O primeiro prato do dia ja vem selecionado automaticamente
+- Ao clicar em um prato, a midia 9:16 troca com animacao suave (fade + slide)
+- As 3 fotos demo continuam sendo usadas como fallback para pratos sem foto propria
 
 ## Detalhes Tecnicos
 
-### 1. Copiar as 3 fotos para `src/assets`
-- `food-demo-1.jpeg` (garcom servindo prato com suco)
-- `food-demo-2.jpeg` (sushi variado)
-- `food-demo-3.jpeg` (prato misto com carne e sushi)
+### Modificar `src/pages/Index.tsx` -- Secao Cardapio (linhas 228-373)
 
-### 2. Modificar `src/pages/Index.tsx`
-- Importar as 3 imagens demo
-- Criar array `demoImages` com as 3 fotos
-- Na renderizacao dos cards, quando `item.imagem_url` for null, usar `demoImages[index % 3]` como fallback
-- O card sempre renderizara no formato com thumbnail (nunca mais no formato so com icone enquanto as demos estiverem ativas)
-- O clique no card abrira o modal Reels usando a imagem demo correspondente
-- Manter a logica de prioridade: foto do banco > foto demo
+1. **Novo estado**: `selectedItemIndex` (number) para controlar qual prato esta ativo na lista
+2. **Layout flex/grid**: `md:flex-row` com duas colunas no desktop, `flex-col` no mobile
+3. **Coluna esquerda (desktop)**:
+   - Abas dos dias (mantidas)
+   - Lista vertical dos pratos com estilo de navegacao (highlight no item ativo, borda lateral primary, transicao suave)
+   - Cada item mostra icone + nome do prato
+   - Hover e active states elegantes
+4. **Coluna direita (desktop) / topo (mobile)**:
+   - Container com `aspect-ratio: 9/16` fixo
+   - Imagem ou video do prato selecionado
+   - Gradient overlay na parte inferior com nome do prato e dia da semana sobrepostos
+   - Animacao com `framer-motion` (AnimatePresence + fade/slide) ao trocar de prato
+   - Se video: autoplay, muted, loop, playsInline
+5. **Responsividade**:
+   - Mobile: midia 9:16 centralizada em cima, lista de pratos embaixo
+   - Desktop: lado a lado com proporcoes equilibradas
+6. **Remover**: o Dialog/modal Reels atual (linhas 314-360), pois a experiencia agora e inline
+7. **Auto-selecao**: ao trocar de dia, o primeiro prato daquele dia fica automaticamente selecionado
+
+### Nenhuma alteracao no banco de dados
+- Usa os mesmos dados e colunas existentes (`imagem_url`, `tipo_midia`)
+- Mesma logica de fallback com `demoImages`
+
+### Nenhuma nova dependencia
+- Usa framer-motion, Lucide e Tailwind ja instalados
