@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard } from "lucide-react";
+import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import AdminPortfolio from "@/components/admin/AdminPortfolio";
@@ -118,6 +118,9 @@ const Admin = () => {
             <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
           </div>
         </Link>
+        <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.06] rounded-md transition-all duration-200 w-full">
+          <ExternalLink className="h-4 w-4" /> Ver Site
+        </a>
         <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive transition-all duration-200">
           <LogOut className="h-4 w-4" /> Sair
         </Button>
