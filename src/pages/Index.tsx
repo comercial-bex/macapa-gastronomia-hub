@@ -6,10 +6,11 @@ import Layout from "@/components/Layout";
 import AnimatedImage from "@/components/AnimatedImage";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionDivider from "@/components/SectionDivider";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
 import { UtensilsCrossed, Users, Calendar } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
+import { supabase } from "@/integrations/supabase/client";
 
 import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
@@ -17,15 +18,7 @@ import garcomServindo from "@/assets/garcom-servindo.jpeg";
 import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpeg";
 
-const weekDays = [
-  { label: "Seg", day: "Segunda-feira" },
-  { label: "Ter", day: "Terça-feira" },
-  { label: "Qua", day: "Quarta-feira" },
-  { label: "Qui", day: "Quinta-feira" },
-  { label: "Sex", day: "Sexta-feira" },
-  { label: "Sáb", day: "Sábado" },
-  { label: "Dom", day: "Domingo" },
-];
+const weekDayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const portfolioImages = [
   { src: pratoVariado, alt: "Prato variado com sushi, carne e arroz" },
@@ -44,6 +37,37 @@ const Index = () => {
   });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
 
+  // Cardápio da Semana - dados do banco
+  const [menuDays, setMenuDays] = useState<{ id: string; dia_semana: string; ordem: number }[]>([]);
+  const [menuItems, setMenuItems] = useState<{ id: string; prato: string; day_id: string | null; ordem: number }[]>([]);
+  const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      const { data: days } = await supabase
+        .from("weekly_menu_days")
+        .select("*")
+        .order("ordem");
+      const { data: items } = await supabase
+        .from("weekly_menu_items")
+        .select("*")
+        .eq("ativo", true)
+        .order("ordem");
+
+      if (days && days.length > 0) {
+        setMenuDays(days);
+        // Auto-selecionar o dia atual (0=Dom, 1=Seg...)
+        const jsDay = new Date().getDay(); // 0=Dom
+        const mappedIndex = jsDay === 0 ? 6 : jsDay - 1; // 0=Seg...6=Dom
+        const todayDay = days[mappedIndex] || days[0];
+        setSelectedDayId(todayDay.id);
+      }
+      if (items) setMenuItems(items);
+    };
+    fetchMenu();
+  }, []);
+
+  const selectedItems = menuItems.filter((item) => item.day_id === selectedDayId);
   return (
     <Layout>
       {/* Hero with Parallax */}
@@ -186,25 +210,73 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="container mx-auto">
           <ScrollReveal>
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Cardápio</p>
-              <h2 className="font-display text-4xl md:text-5xl font-bold">Cardápio da Semana</h2>
+              <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Cardápio da Semana</h2>
+              <p className="text-muted-foreground max-w-lg mx-auto">
+                Descubra os pratos especiais preparados com carinho para cada dia
+              </p>
             </div>
           </ScrollReveal>
-          <ScrollReveal stagger className="flex flex-wrap justify-center gap-3">
-            {weekDays.map((day) => (
-              <StaggerItem key={day.day}>
-                <Link to={`/cardapio?dia=${encodeURIComponent(day.day)}`}>
-                  <Button
-                    variant="outline"
-                    className="border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 uppercase tracking-wider text-xs font-semibold px-6 py-5 hover:scale-105 active:scale-95"
-                  >
-                    {day.label}
-                  </Button>
-                </Link>
-              </StaggerItem>
-            ))}
+
+          {/* Tabs dos dias */}
+          <ScrollReveal>
+            <div className="flex flex-wrap justify-center gap-2 mb-12">
+              {menuDays.map((day, i) => (
+                <button
+                  key={day.id}
+                  onClick={() => setSelectedDayId(day.id)}
+                  className={`px-5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
+                    selectedDayId === day.id
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
+                      : "bg-secondary text-secondary-foreground hover:bg-primary/20 hover:scale-105"
+                  }`}
+                >
+                  {weekDayLabels[i] || day.dia_semana}
+                </button>
+              ))}
+            </div>
           </ScrollReveal>
+
+          {/* Grid de pratos */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedDayId}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+              className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
+            >
+              {selectedItems.length > 0 ? (
+                selectedItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-secondary rounded-lg p-5 flex items-center gap-3 hover:bg-secondary/80 hover:scale-[1.02] transition-all duration-300"
+                  >
+                    <UtensilsCrossed className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm font-medium text-foreground">{item.prato}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  <p>Nenhum prato cadastrado para este dia.</p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          <p className="text-center text-muted-foreground text-xs mt-6 italic">
+            * O cardápio pode sofrer alterações sem aviso prévio
+          </p>
+
+          <div className="text-center mt-10">
+            <Link to="/cardapio">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-8 hover:scale-105 active:scale-95 transition-transform">
+                Ver Cardápio Completo
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
