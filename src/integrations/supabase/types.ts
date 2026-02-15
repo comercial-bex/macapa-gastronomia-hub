@@ -293,22 +293,28 @@ export type Database = {
           ativo: boolean
           day_id: string | null
           id: string
+          imagem_url: string | null
           ordem: number
           prato: string
+          tipo_midia: string
         }
         Insert: {
           ativo?: boolean
           day_id?: string | null
           id?: string
+          imagem_url?: string | null
           ordem?: number
           prato: string
+          tipo_midia?: string
         }
         Update: {
           ativo?: boolean
           day_id?: string | null
           id?: string
+          imagem_url?: string | null
           ordem?: number
           prato?: string
+          tipo_midia?: string
         }
         Relationships: [
           {
