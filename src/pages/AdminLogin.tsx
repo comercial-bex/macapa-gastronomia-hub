@@ -48,7 +48,12 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      {/* Decorative background blobs */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/8 blur-[120px]" />
+        <div className="absolute bottom-[-15%] left-[-10%] w-[40%] h-[40%] rounded-full bg-accent/6 blur-[100px]" />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -73,7 +78,7 @@ const AdminLogin = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="bg-card border border-primary/20 rounded-xl p-6 shadow-lg shadow-primary/5"
+          className="glass-effect rounded-xl p-6 shadow-lg shadow-primary/5"
         >
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
