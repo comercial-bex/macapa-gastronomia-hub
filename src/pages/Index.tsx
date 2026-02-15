@@ -8,8 +8,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionDivider from "@/components/SectionDivider";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import { UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat, X, Play, type LucideIcon } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat, Play, type LucideIcon } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -59,7 +58,7 @@ const Index = () => {
   const [menuDays, setMenuDays] = useState<{ id: string; dia_semana: string; ordem: number }[]>([]);
   const [menuItems, setMenuItems] = useState<{ id: string; prato: string; day_id: string | null; ordem: number; imagem_url: string | null; tipo_midia: string }[]>([]);
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
-  const [selectedDish, setSelectedDish] = useState<{ prato: string; imagem_url: string; tipo_midia: string; dia_semana: string } | null>(null);
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -85,6 +84,11 @@ const Index = () => {
     };
     fetchMenu();
   }, []);
+
+  // Auto-select first dish when day changes
+  useEffect(() => {
+    setSelectedItemIndex(0);
+  }, [selectedDayId]);
 
   const selectedItems = menuItems.filter((item) => item.day_id === selectedDayId);
   return (
@@ -257,7 +261,7 @@ const Index = () => {
             </div>
           </ScrollReveal>
 
-          {/* Grid de pratos */}
+          {/* Layout Side-by-Side Reels */}
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedDayId}
@@ -265,99 +269,123 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.35 }}
-              className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
+              className="flex flex-col md:flex-row gap-8 max-w-5xl mx-auto"
             >
               {selectedItems.length > 0 ? (
-                selectedItems.map((item, index) => {
-                  const DishIcon = getDishIcon(item.prato);
-                  const mediaUrl = item.imagem_url || demoImages[index % 3];
-                  const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
-                  const currentDay = menuDays.find((d) => d.id === selectedDayId);
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setSelectedDish({ prato: item.prato, imagem_url: mediaUrl, tipo_midia: mediaTipo, dia_semana: currentDay?.dia_semana || "" })}
-                      className="relative overflow-hidden rounded-xl border border-primary/10 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/25 hover:scale-[1.03] transition-all duration-300 group cursor-pointer"
-                    >
-                      <div className="aspect-[4/3] w-full overflow-hidden">
-                        {mediaTipo === 'video' ? (
-                          <div className="relative w-full h-full">
-                            <video src={mediaUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                                <Play className="h-5 w-5 text-white ml-0.5" />
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                        )}
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/30 backdrop-blur-sm">
-                          <DishIcon className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm font-semibold text-white drop-shadow-lg">{item.prato}</span>
-                      </div>
+                <>
+                  {/* Mobile: Media on top */}
+                  <div className="md:hidden flex justify-center">
+                    <div className="relative w-full max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/40">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={selectedItems[selectedItemIndex]?.id || selectedItemIndex}
+                          initial={{ opacity: 0, x: 30 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -30 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                          className="absolute inset-0"
+                        >
+                          {(() => {
+                            const item = selectedItems[selectedItemIndex];
+                            if (!item) return null;
+                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
+                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            return (
+                              <>
+                                {mediaTipo === 'video' ? (
+                                  <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                ) : (
+                                  <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
+                                <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
+                                  <h3 className="font-display text-xl font-bold text-white">{item.prato}</h3>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </motion.div>
+                      </AnimatePresence>
                     </div>
-                  );
-                })
+                  </div>
+
+                  {/* Left Column: Dish List */}
+                  <div className="flex-1 min-w-0">
+                    <div className="space-y-1">
+                      {selectedItems.map((item, index) => {
+                        const DishIcon = getDishIcon(item.prato);
+                        const isActive = index === selectedItemIndex;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setSelectedItemIndex(index)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
+                              isActive
+                                ? "bg-primary/10 border-l-4 border-primary shadow-sm"
+                                : "hover:bg-secondary/80 border-l-4 border-transparent"
+                            }`}
+                          >
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors duration-300 ${
+                              isActive ? "bg-primary/20" : "bg-secondary"
+                            }`}>
+                              <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                            </div>
+                            <span className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                              {item.prato}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right Column: 9:16 Media Viewer (Desktop only) */}
+                  <div className="hidden md:flex items-start justify-center flex-shrink-0">
+                    <div className="relative w-[300px] aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/40">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={selectedItems[selectedItemIndex]?.id || selectedItemIndex}
+                          initial={{ opacity: 0, x: 40 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -40 }}
+                          transition={{ duration: 0.35, ease: "easeOut" }}
+                          className="absolute inset-0"
+                        >
+                          {(() => {
+                            const item = selectedItems[selectedItemIndex];
+                            if (!item) return null;
+                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
+                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            return (
+                              <>
+                                {mediaTipo === 'video' ? (
+                                  <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                ) : (
+                                  <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
+                                <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
+                                  <h3 className="font-display text-2xl font-bold text-white">{item.prato}</h3>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </>
               ) : (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
+                <div className="w-full text-center py-8 text-muted-foreground">
                   <p>Nenhum prato cadastrado para este dia.</p>
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
-
-          {/* Modal Reels */}
-          <Dialog open={!!selectedDish} onOpenChange={() => setSelectedDish(null)}>
-            <DialogContent className="max-w-sm sm:max-w-md p-0 border-0 bg-transparent shadow-none [&>button]:hidden overflow-hidden rounded-2xl">
-              <AnimatePresence>
-                {selectedDish && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="relative aspect-[9/16] w-full bg-black rounded-2xl overflow-hidden"
-                  >
-                    {selectedDish.tipo_midia === 'video' ? (
-                      <video
-                        src={selectedDish.imagem_url}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                      />
-                    ) : (
-                      <img
-                        src={selectedDish.imagem_url}
-                        alt={selectedDish.prato}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                    )}
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30" />
-                    {/* Close button */}
-                    <button
-                      onClick={() => setSelectedDish(null)}
-                      className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors"
-                    >
-                      <X className="h-5 w-5 text-white" />
-                    </button>
-                    {/* Dish info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{selectedDish.dia_semana}</p>
-                      <h3 className="font-display text-2xl font-bold text-white">{selectedDish.prato}</h3>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </DialogContent>
-          </Dialog>
 
           <p className="text-center text-muted-foreground text-xs mt-6 italic">
             * O cardápio pode sofrer alterações sem aviso prévio
