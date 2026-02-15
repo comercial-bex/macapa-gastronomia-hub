@@ -1,33 +1,59 @@
 
 
-# Melhorias: Botao "Ver Site" + Login Moderno
+# Reserva Inline na Pagina Inicial
 
-## 1. Botao "Ver Site" na Sidebar do Admin
+## Resumo
 
-Atualmente, a sidebar so tem o botao "Sair" na parte inferior. Vou adicionar um botao "Ver Site" que abre o site principal em uma nova aba, permitindo ao admin visualizar o site sem perder a sessao do painel.
+Substituir a secao CTA final da pagina inicial por uma secao completa de reservas com:
+- Formulario de reserva embutido (sem redirecionar para /reserva)
+- Imagem do salao do restaurante ao lado do formulario
+- Dupla acao: salvar no banco de dados E opcao de enviar via WhatsApp com todos os dados preenchidos
+- Feedback visual apos envio com sucesso
 
-**Onde:** Na secao inferior da sidebar (`src/pages/Admin.tsx`), logo acima do botao "Sair".
+## O que muda visualmente
 
-- Icone: `ExternalLink` do lucide-react
-- Comportamento: Abre "/" em nova aba (`target="_blank"`)
-- Estilo: Mesmo padrao do botao "Sair", mas com cor neutra (sem vermelho)
-- Tambem sera adicionado no header mobile
+A secao final da pagina inicial, que hoje mostra apenas um botao "Fazer Reserva" apontando para `/reserva`, sera substituida por um layout em duas colunas:
 
-## 2. Login mais Dinamico e Moderno
+```text
++-------------------------------+----------------------------+
+|                               |                            |
+|   Imagem do salao             |   Formulario de Reserva    |
+|   (salao-restaurante.jpeg)    |   - Nome *                 |
+|                               |   - Telefone *             |
+|                               |   - Data * | Horario *     |
+|                               |   - Nro Pessoas *          |
+|                               |   - Observacoes            |
+|                               |                            |
+|                               |   [Enviar Reserva]         |
+|                               |   ou                       |
+|                               |   [Reservar pelo WhatsApp] |
++-------------------------------+----------------------------+
+```
 
-A pagina de login (`src/pages/AdminLogin.tsx`) esta funcional mas os blobs de fundo tem opacidade muito baixa (mesma questao do admin). Melhorias:
+Em mobile, a imagem fica em cima e o formulario embaixo.
 
-- **Blobs animados**: Aumentar opacidade para `bg-primary/20` e `bg-amber-500/15` (igual ao admin) e adicionar `animate-blob`
-- **Animacao de entrada escalonada**: Adicionar delay progressivo nos campos (email aparece, depois senha, depois botao)
-- **Link "Voltar ao site"**: Adicionar um link discreto abaixo do formulario para voltar a pagina principal
-- **Glass-effect mais visivel**: Ja usa `.glass-effect`, que agora esta atualizado com opacidade maior
+## Fluxo de envio melhorado
+
+1. **Botao "Enviar Reserva"**: Salva no banco de dados (tabela `reservations`) e mostra toast de sucesso
+2. **Botao "Reservar pelo WhatsApp"**: Abre o WhatsApp com mensagem pre-preenchida contendo todos os dados do formulario (nome, data, horario, pessoas, observacoes) -- nao salva no banco, apenas redireciona
+3. Apos envio com sucesso pelo formulario, exibir opcao de tambem enviar pelo WhatsApp como confirmacao
+
+## Navegacao
+
+- O botao "Reserva" no Header passara a fazer scroll suave ate a secao `#reserva` na pagina inicial (usando anchor link) em vez de navegar para `/reserva`
+- A rota `/reserva` continuara funcionando como fallback mas redirecionara para `/#reserva`
 
 ## Detalhes Tecnicos
 
 | Arquivo | Alteracao |
 |---|---|
-| `src/pages/Admin.tsx` | Adicionar botao "Ver Site" com icone `ExternalLink` na sidebar (desktop e mobile) |
-| `src/pages/AdminLogin.tsx` | Aumentar opacidade dos blobs, adicionar animacao blob, escalonar entrada dos campos, link "Voltar ao site" |
+| `src/pages/Index.tsx` | Substituir secao CTA final (linhas 409-425) pelo formulario completo de reserva com imagem lateral, usando a mesma logica de `Reserva.tsx` (estado, submit, whatsapp) |
+| `src/components/Header.tsx` | Alterar link "Reserva" do botao no header de `/reserva` para scroll suave ate `#reserva` na pagina inicial |
+| `src/pages/Reserva.tsx` | Redirecionar para `/#reserva` para manter compatibilidade |
 
-Nenhuma dependencia nova necessaria. Todas as ferramentas (framer-motion, lucide-react) ja estao instaladas.
+### Dependencias
+Nenhuma nova -- ja temos `supabase`, `sonner`, `lucide-react`, `framer-motion` e os componentes de UI necessarios.
+
+### Imagem utilizada
+`salao-restaurante.jpeg` -- ja importada no Index.tsx como `salaoRestaurante`.
 
