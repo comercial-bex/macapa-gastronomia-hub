@@ -265,10 +265,13 @@ const Index = () => {
                   return (
                     <div
                       key={item.id}
-                      className="bg-secondary rounded-lg p-5 flex items-center gap-3 hover:bg-secondary/80 hover:scale-[1.02] transition-all duration-300"
+                      className="relative overflow-hidden rounded-xl p-5 flex items-center gap-4 bg-gradient-to-br from-secondary via-secondary/90 to-secondary/70 border border-primary/10 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/25 hover:scale-[1.03] transition-all duration-300 group"
                     >
-                      <DishIcon className="h-5 w-5 text-primary shrink-0" />
-                      <span className="text-sm font-medium text-foreground">{item.prato}</span>
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-primary/15 group-hover:bg-primary/25 transition-colors duration-300">
+                        <DishIcon className="h-5 w-5 text-primary shrink-0" />
+                      </div>
+                      <span className="relative text-sm font-medium text-foreground">{item.prato}</span>
                     </div>
                   );
                 })
