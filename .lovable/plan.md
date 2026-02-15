@@ -1,78 +1,43 @@
 
+# Glassmorphism Sidebar para o Painel Admin
 
-# Dashboard + Auditoria Global + Melhorias Visuais
+## Objetivo
 
-## 1. Dashboard na Pagina Inicial do Admin
+Aplicar o estilo visual "glassmorphism" (fundo translucido com blur, bordas sutis de vidro) na sidebar do painel admin, inspirado no componente 21st.dev. Nao vamos copiar o componente generico -- vamos adaptar o efeito visual ao layout existente do Admin.tsx, mantendo toda a logica de rotas, perfil e autenticacao.
 
-Criar um novo componente `AdminDashboard.tsx` que sera a rota padrao (`/admin/*` fallback) no lugar do Portfolio.
+## O que muda
 
-### Estatisticas exibidas em cards com icones e contadores animados:
-- **Reservas** -- total de reservas registradas
-- **Candidaturas** -- total por status (Novos, Verificados, Aptos, etc.) com mini-badges coloridos
-- **Portfolio** -- total de itens, quantos ativos e destaques
-- **Cardapio** -- total de pratos cadastrados
-- **Bebidas** -- total de categorias e itens
-- **Vagas** -- ativas vs inativas
-- **Unidades** -- total ativas
+### 1. Sidebar Desktop (`Admin.tsx`)
+- Trocar `bg-secondary border-r border-border` por classes glassmorphism:
+  - `backdrop-blur-xl bg-white/5 border-r border-white/10`
+- Adicionar sombra sutil e efeito de vidro nos links ativos
+- Links hover com `bg-white/10` em vez de `bg-muted`
+- Link ativo com `bg-white/10 border-l-2 border-primary` (efeito glow sutil)
+- Secao de perfil na parte inferior com borda `border-white/10`
 
-### Secao adicional:
-- **Ultimas alteracoes** -- lista dos 5 registros mais recentes da tabela `audit_logs` com avatar, nome do admin, acao, modulo e data
+### 2. Sidebar Mobile
+- Mesmo tratamento glassmorphism no aside mobile
+- Overlay escuro mantido com `bg-black/50`
 
-### Layout:
-- Grid responsivo de cards (2 colunas mobile, 3-4 desktop)
-- Cada card com icone, label, valor numerico grande e subtexto
-- Animacao de entrada com Framer Motion (staggered fade-in)
+### 3. Background do Layout
+- Adicionar formas decorativas (gradientes) no fundo do layout admin para que o efeito de blur tenha algo para "desfocar"
+- Dois blobs de cor (primary e accent) posicionados com absolute, opacity baixa
 
----
+### 4. Login (`AdminLogin.tsx`)
+- Aplicar glassmorphism no card de login: `backdrop-blur-xl bg-white/5 border border-white/10`
+- Adicionar blobs decorativos no fundo
 
-## 2. Integrar useAuditLog em Todos os Modulos
+### 5. CSS Auxiliar
+- Adicionar classe utilitaria `.glass-effect` no `index.css` para reutilizacao
 
-Adicionar `logAction()` em cada operacao de create/update/delete dos seguintes componentes:
+## Arquivos Modificados
 
-| Componente | Acoes a registrar |
+| Arquivo | Alteracao |
 |---|---|
-| `AdminPortfolio.tsx` | Criou/Editou/Excluiu item do portfolio |
-| `AdminMenu.tsx` | Adicionou/Removeu prato, Upload/Remocao de midia, Toggle ativo |
-| `AdminBeverages.tsx` | Criou/Editou categoria, Criou/Editou/Excluiu bebida |
-| `AdminUnits.tsx` | Criou/Editou/Excluiu unidade |
-| `AdminJobs.tsx` | Criou/Editou/Excluiu vaga |
-| `AdminReservations.tsx` | (somente leitura, sem log) |
-| `AdminSettings.tsx` | Salvou configuracoes (listar chaves alteradas) |
-| `AdminProfile.tsx` | Atualizou perfil (nome/avatar) |
-
-O hook `useAuditLog` ja existe e funciona. Basta importar e chamar `logAction(modulo, acao, descricao)` apos cada operacao bem-sucedida.
-
----
-
-## 3. Melhorias Visuais Pendentes
-
-### 3.1 Sidebar (`Admin.tsx`)
-- Adicionar link "Dashboard" como primeiro item com icone `LayoutDashboard`
-- Rota padrao `*` aponta para `AdminDashboard` em vez de `AdminPortfolio`
-
-### 3.2 Login (`AdminLogin.tsx`)
-- Ja esta com logo, icones e animacoes -- sem alteracoes pendentes
-
----
+| `src/pages/Admin.tsx` | Classes glassmorphism na sidebar desktop e mobile, blobs decorativos no fundo |
+| `src/pages/AdminLogin.tsx` | Glassmorphism no card de login, blobs de fundo |
+| `src/index.css` | Classe utilitaria `.glass-effect` |
 
 ## Detalhes Tecnicos
 
-### Novo arquivo
-- `src/components/admin/AdminDashboard.tsx`
-
-### Arquivos modificados
-- `src/pages/Admin.tsx` -- adicionar rota e link do Dashboard, alterar fallback
-- `src/components/admin/AdminPortfolio.tsx` -- adicionar useAuditLog
-- `src/components/admin/AdminMenu.tsx` -- adicionar useAuditLog
-- `src/components/admin/AdminBeverages.tsx` -- adicionar useAuditLog
-- `src/components/admin/AdminUnits.tsx` -- adicionar useAuditLog
-- `src/components/admin/AdminJobs.tsx` -- adicionar useAuditLog
-- `src/components/admin/AdminSettings.tsx` -- adicionar useAuditLog
-- `src/components/admin/AdminProfile.tsx` -- adicionar useAuditLog (se ausente)
-
-### Dependencias
-Nenhuma nova. Usa Framer Motion, Lucide, Radix UI e Tailwind ja instalados.
-
-### Banco de dados
-Nenhuma migracao necessaria. Todas as tabelas e o hook de auditoria ja existem.
-
+Nenhuma dependencia nova. Usa apenas Tailwind CSS (`backdrop-blur-xl`, `bg-white/5`, `border-white/10`) e CSS custom. Toda a logica de rotas, autenticacao e perfil permanece intacta.
