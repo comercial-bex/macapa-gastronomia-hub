@@ -1,75 +1,74 @@
 
+# Cardapio Interativo com Midia Visual (Estilo Reels/Food Porn)
 
-# Melhorias: Tema Visual e Secao Cardapio na Home
+## Visao Geral
 
-## 1. Problema do "Modo Dia" / Cores Sumindo
+Transformar a secao "Cardapio da Semana" na home em uma experiencia visual imersiva. Ao clicar em um prato, uma midia (foto ou video curto) sera exibida em um modal estilo "Reels" -- vertical, elegante, com overlay escuro e informacoes do prato sobrepostas. Os pratos no grid passarao a ter thumbnails visuais quando cadastrados.
 
-Analisei o CSS e o Tailwind config -- as variaveis de cor estao corretas no codigo (verde oliva escuro `hsl(90, 25%, 15%)` para background, dourado `hsl(42, 65%, 58%)` para primary). O tema nao mudou no codigo.
+## O Que Muda Para o Usuario
 
-O problema pode ser que o seu navegador esta aplicando um "modo claro" que nao existe no CSS do site. Atualmente o site so tem **um unico tema** (escuro). Se voce estiver vendo cores claras/brancas, pode ser cache do navegador. Vou garantir que nao haja conflito adicionando uma classe `dark` forcada no HTML e removendo qualquer possibilidade de tema claro interferir.
+- Cada prato podera ter uma foto ou video curto associado (cadastrado pelo admin)
+- Na home, os cards dos pratos mostrarao uma thumbnail da imagem quando disponivel
+- Ao clicar em um prato com midia, abre um modal vertical estilo Reels com a foto/video em tela cheia
+- Pratos sem midia continuam funcionando normalmente com o icone atual
+- O admin podera fazer upload de imagens/videos para cada prato
 
-**Acoes:**
-- Adicionar `class="dark"` no `<html>` do `index.html` para forcar o tema escuro
-- Verificar se `next-themes` (que esta instalado) nao esta interferindo
-
----
-
-## 2. Redesign da Secao Cardapio na Home (principal)
-
-A secao atual e muito simples -- apenas botoes com abreviacoes dos dias (Seg, Ter, Qua...) que redirecionam para `/cardapio`. Nao mostra nenhum prato, nao atrai o visitante.
-
-### Nova proposta: Cardapio interativo com preview dos pratos
-
-A ideia e transformar essa secao em algo muito mais atrativo, mostrando **os pratos do dia diretamente na home**, sem precisar sair da pagina:
-
-- Titulo "Cardapio da Semana" com subtitulo convidativo
-- Botoes dos dias da semana como tabs interativas (horizontais)
-- Ao clicar/hover em um dia, os pratos daquele dia aparecem abaixo em um grid elegante com animacoes
-- O dia atual da semana vem selecionado por padrao automaticamente
-- Cards dos pratos com icone de garfo e estilo sofisticado
-- Botao "Ver Cardapio Completo" abaixo para ir a pagina `/cardapio`
-- Os dados vem do banco de dados (tabelas `weekly_menu_days` e `weekly_menu_items`)
-
-### Visual proposto
+## Layout Proposto
 
 ```text
-+------------------------------------------------------+
-|              Cardapio                                |
-|        Cardapio da Semana                            |
-|  Descubra os pratos especiais de cada dia            |
-|                                                      |
-|  [Seg] [Ter] [*Qua*] [Qui] [Sex] [Sab] [Dom]       |
-|                                                      |
-|  +---------------+  +---------------+                |
-|  | Peixe Crocante|  | Bacalhau      |                |
-|  +---------------+  +---------------+                |
-|  | Pernil        |  | Camarao c/    |                |
-|  |               |  | Legumes       |                |
-|  +---------------+  +---------------+                |
-|  | Peito Frango  |  | Estrogonofe   |                |
-|  +---------------+  +---------------+                |
-|  | Vatapa        |                                   |
-|  +---------------+                                   |
-|                                                      |
-|  * O cardapio pode variar                            |
-|                                                      |
-|        [ VER CARDAPIO COMPLETO ]                     |
-+------------------------------------------------------+
+CARD NO GRID (com imagem):
++---------------------------+
+|  [foto thumbnail]         |
+|  +-----------------------+|
+|  | icone  Peixe Crocante ||
+|  +-----------------------+|
++---------------------------+
+
+MODAL REELS (ao clicar):
++---------------------+
+|                     |
+|                     |
+|   FOTO / VIDEO      |
+|   (vertical,        |
+|    tela cheia)       |
+|                     |
+|  gradient overlay    |
+|  ---                 |
+|  Peixe Crocante      |
+|  Quarta-feira        |
+|         [X fechar]   |
++---------------------+
 ```
 
 ## Detalhes Tecnicos
 
-### Arquivo modificado: `src/pages/Index.tsx`
-- Secao "Cardapio da Semana" (linhas 185-209): substituir completamente
-- Adicionar imports de `useState`, `useEffect` e do client do banco de dados
-- Buscar dados das tabelas `weekly_menu_days` e `weekly_menu_items` via query
-- Detectar o dia da semana atual automaticamente (`new Date().getDay()`) para pre-selecionar
-- Renderizar os pratos em grid `grid-cols-2 md:grid-cols-3` com cards estilizados
-- Cada card tera fundo `bg-secondary` com hover effect sutil
-- Animacoes com `ScrollReveal` e `StaggerItem` ja existentes no projeto
-- Manter o botao "Ver Cardapio Completo" linkando para `/cardapio`
+### 1. Migracao do Banco de Dados
+- Adicionar coluna `imagem_url` (text, nullable) na tabela `weekly_menu_items`
+- Adicionar coluna `tipo_midia` (text, default 'imagem') para diferenciar foto de video
+- Criar bucket de storage `menu-items` (publico) para uploads de imagens/videos dos pratos
+- Adicionar politica RLS de leitura publica e escrita admin no bucket
 
-### Arquivo modificado: `index.html`
-- Adicionar `class="dark"` na tag `<html>` para forcar tema escuro
+### 2. Modificar `src/pages/Index.tsx` - Secao Cardapio
+- Redesenhar os cards: quando o prato tem `imagem_url`, exibir thumbnail com overlay gradient e nome sobreposto
+- Quando nao tem imagem, manter o card atual com icone
+- Adicionar estado `selectedDish` para controlar o modal
+- Ao clicar em um prato com midia, abrir modal estilo Reels
+- O modal tera:
+  - Fundo escuro com `backdrop-blur`
+  - Imagem ou video vertical centralizado (aspect-ratio 9/16 ou similar)
+  - Gradient na parte inferior com nome do prato e dia da semana
+  - Botao de fechar elegante
+  - Se for video: autoplay, muted, com controles sutis
+  - Animacao de entrada suave (scale + fade)
 
-### Nenhum arquivo novo sera criado
+### 3. Modificar `src/components/admin/AdminMenu.tsx`
+- Adicionar campo de upload de imagem/video para cada prato
+- Usar o bucket `menu-items` do storage para salvar os arquivos
+- Preview da midia no formulario do admin
+- Botao para remover midia associada
+
+### 4. Atualizar tipos TypeScript
+- Os tipos serao atualizados automaticamente apos a migracao, incluindo `imagem_url` e `tipo_midia`
+
+### Dependencias
+- Nenhuma nova dependencia necessaria -- usa Lucide, Framer Motion, Radix Dialog e Supabase Storage ja disponiveis no projeto
