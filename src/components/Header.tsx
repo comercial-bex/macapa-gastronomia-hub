@@ -4,6 +4,7 @@ import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logoMacapaba from "@/assets/logo-macapaba.png";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -17,6 +18,7 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { getSetting } = useSiteSettings();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -53,13 +55,13 @@ const Header = () => {
 
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href="https://wa.me/5596981054789"
+            href={`https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors"
           >
             <Phone className="h-4 w-4" />
-            <span>(96) 98105-4789</span>
+            <span>{getSetting("telefone_principal", "(96) 98105-4789")}</span>
           </a>
           <Link to="/reserva">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-wide uppercase text-xs px-6">

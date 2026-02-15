@@ -11,6 +11,7 @@ import { useRef, useState, useEffect } from "react";
 import { UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat, Play, type LucideIcon } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
@@ -47,6 +48,7 @@ const portfolioImages = [
 ];
 
 const Index = () => {
+  const { getSetting } = useSiteSettings();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -117,7 +119,7 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="font-display text-4xl md:text-6xl font-bold leading-tight mb-6 text-white"
           >
-            <span className="text-primary">Sabor</span> e tradição em Macapá desde 1998
+            <span className="text-primary">Sabor</span> {getSetting("hero_titulo", "e tradição em Macapá desde 1998").replace(/^Sabor\s*/, "")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -125,7 +127,7 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto"
           >
-            Uma casa feita de encontros, histórias e pratos que viram memória.
+            {getSetting("hero_subtitulo", "Uma casa feita de encontros, histórias e pratos que viram memória.")}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -161,10 +163,10 @@ const Index = () => {
           <ScrollReveal>
             <div className="grid md:grid-cols-2 gap-16 items-center">
               <div>
-                <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Desde 1998</p>
-                <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">A História</h2>
+                <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{getSetting("historia_subtitulo", "Desde 1998")}</p>
+                <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">{getSetting("historia_titulo", "A História")}</h2>
                 <p className="text-muted-foreground leading-relaxed mb-8">
-                  Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá para quem busca uma experiência gastronômica completa.
+                  {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá para quem busca uma experiência gastronômica completa.")}
                 </p>
                 <Link to="/reserva">
                   <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-105 active:scale-95 transition-transform">
@@ -408,9 +410,9 @@ const Index = () => {
         <div className="container mx-auto text-center">
           <ScrollReveal>
             <Calendar className="h-12 w-12 text-primary mx-auto mb-6" />
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">Reserve sua mesa agora</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">{getSetting("cta_titulo", "Reserve sua mesa agora")}</h2>
             <p className="text-muted-foreground mb-10 max-w-xl mx-auto">
-              Garanta seu lugar para uma experiência gastronômica inesquecível.
+              {getSetting("cta_subtitulo", "Garanta seu lugar para uma experiência gastronômica inesquecível.")}
             </p>
             <Link to="/reserva">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-10 hover:scale-105 active:scale-95 transition-transform">
