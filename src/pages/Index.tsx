@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import ImageGallery from "@/components/ui/image-gallery";
 import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import Layout from "@/components/Layout";
@@ -8,10 +11,11 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionDivider from "@/components/SectionDivider";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import { UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat, Play, type LucideIcon } from "lucide-react";
+import { UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat, Play, MessageCircle, type LucideIcon } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { toast } from "sonner";
 
 import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
@@ -136,7 +140,13 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/reserva">
+            <a
+              href="#reserva"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <motion.div
                 animate={{ boxShadow: ["0 0 0 0 hsl(var(--primary) / 0.4)", "0 0 0 12px hsl(var(--primary) / 0)", "0 0 0 0 hsl(var(--primary) / 0)"] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
@@ -146,7 +156,7 @@ const Index = () => {
                   Fazer Reserva
                 </Button>
               </motion.div>
-            </Link>
+            </a>
             <Link to="/cardapio">
               <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold uppercase tracking-wider px-8 hover:scale-105 active:scale-95 transition-transform">
                 Ver Cardápio
@@ -169,11 +179,17 @@ const Index = () => {
                 <p className="text-muted-foreground leading-relaxed mb-8">
                   {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá para quem busca uma experiência gastronômica completa.")}
                 </p>
-                <Link to="/reserva">
+            <a
+                  href="#reserva"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
                   <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-105 active:scale-95 transition-transform">
                     Fazer Reserva
                   </Button>
-                </Link>
+                </a>
               </div>
               <div className="space-y-6">
                 <div className="rounded-lg overflow-hidden aspect-video">
@@ -406,24 +422,152 @@ const Index = () => {
 
       <SectionDivider />
 
-      {/* CTA Final */}
-      <section className="py-24 px-4 bg-secondary/50">
-        <div className="container mx-auto text-center">
-          <ScrollReveal>
-            <Calendar className="h-12 w-12 text-primary mx-auto mb-6" />
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">{getSetting("cta_titulo", "Reserve sua mesa agora")}</h2>
-            <p className="text-muted-foreground mb-10 max-w-xl mx-auto">
+      {/* Reserva Inline */}
+      <ReservaInline getSetting={getSetting} />
+    </Layout>
+  );
+};
+
+/* ── Reserva Inline Component ── */
+const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [form, setForm] = useState({
+    nome: "", telefone: "", data: "", horario: "", pessoas: "2", observacoes: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.nome.trim() || !form.telefone.trim() || !form.data || !form.horario) {
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.from("reservations").insert({
+        nome: form.nome.trim(),
+        telefone: form.telefone.trim(),
+        data: form.data,
+        horario: form.horario,
+        pessoas: parseInt(form.pessoas) || 1,
+        observacoes: form.observacoes.trim(),
+      });
+      if (error) throw error;
+      toast.success("Reserva enviada com sucesso! Entraremos em contato.");
+      setSent(true);
+    } catch {
+      toast.error("Erro ao enviar reserva. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const whatsappUrl = `https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}?text=${encodeURIComponent(
+    `Olá! Gostaria de fazer uma reserva:\nNome: ${form.nome}\nTelefone: ${form.telefone}\nData: ${form.data}\nHorário: ${form.horario}\nPessoas: ${form.pessoas}${form.observacoes ? `\nObs: ${form.observacoes}` : ""}`
+  )}`;
+
+  const resetForm = () => {
+    setForm({ nome: "", telefone: "", data: "", horario: "", pessoas: "2", observacoes: "" });
+    setSent(false);
+  };
+
+  return (
+    <section id="reserva" className="py-24 px-4 bg-secondary/50">
+      <div className="container mx-auto">
+        <ScrollReveal>
+          <div className="text-center mb-12">
+            <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Reserva</p>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">{getSetting("cta_titulo", "Reserve sua mesa agora")}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
               {getSetting("cta_subtitulo", "Garanta seu lugar para uma experiência gastronômica inesquecível.")}
             </p>
-            <Link to="/reserva">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-10 hover:scale-105 active:scale-95 transition-transform">
-                Fazer Reserva
-              </Button>
-            </Link>
-          </ScrollReveal>
-        </div>
-      </section>
-    </Layout>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal>
+          <div className="grid lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-border bg-card shadow-xl max-w-5xl mx-auto">
+            {/* Image */}
+            <div className="relative h-64 lg:h-auto min-h-[400px]">
+              <img
+                src={salaoRestaurante}
+                alt="Salão do Restaurante Macapabá"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/10" />
+            </div>
+
+            {/* Form */}
+            <div className="p-8 md:p-10">
+              {!sent ? (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="res-nome">Nome *</Label>
+                      <Input id="res-nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required maxLength={100} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                    </div>
+                    <div>
+                      <Label htmlFor="res-telefone">Telefone / WhatsApp *</Label>
+                      <Input id="res-telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} required maxLength={20} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="res-data">Data *</Label>
+                      <Input id="res-data" type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                    </div>
+                    <div>
+                      <Label htmlFor="res-horario">Horário *</Label>
+                      <Input id="res-horario" type="time" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                    </div>
+                    <div>
+                      <Label htmlFor="res-pessoas">Nº Pessoas *</Label>
+                      <Input id="res-pessoas" type="number" min="1" max="50" value={form.pessoas} onChange={(e) => setForm({ ...form, pessoas: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="res-obs">Observações</Label>
+                    <Textarea id="res-obs" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} maxLength={500} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                  </div>
+                  <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-[1.02] active:scale-95 transition-transform">
+                    {loading ? "Enviando..." : "Enviar Reserva"}
+                  </Button>
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-sm mb-3">ou</p>
+                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                      <Button type="button" variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2 hover:scale-105 active:scale-95 transition-transform">
+                        <MessageCircle className="h-4 w-4" /> Reservar pelo WhatsApp
+                      </Button>
+                    </a>
+                  </div>
+                </form>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center h-full text-center py-8 gap-6"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-2xl font-bold mb-2">Reserva Enviada!</h3>
+                    <p className="text-muted-foreground">Entraremos em contato para confirmar. Você também pode confirmar pelo WhatsApp:</p>
+                  </div>
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2 hover:scale-105 active:scale-95 transition-transform">
+                      <MessageCircle className="h-4 w-4" /> Confirmar pelo WhatsApp
+                    </Button>
+                  </a>
+                  <Button variant="ghost" onClick={resetForm} className="text-muted-foreground hover:text-foreground">
+                    Fazer nova reserva
+                  </Button>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
   );
 };
 

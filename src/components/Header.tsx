@@ -63,11 +63,21 @@ const Header = () => {
             <Phone className="h-4 w-4" />
             <span>{getSetting("telefone_principal", "(96) 98105-4789")}</span>
           </a>
-          <Link to="/reserva">
+          <a
+            href="/#reserva"
+            onClick={(e) => {
+              e.preventDefault();
+              if (location.pathname === "/") {
+                document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" });
+              } else {
+                window.location.href = "/#reserva";
+              }
+            }}
+          >
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-wide uppercase text-xs px-6">
               Reserva
             </Button>
-          </Link>
+          </a>
         </div>
 
         <button
@@ -100,11 +110,22 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
-              <Link to="/reserva" onClick={() => setMobileOpen(false)}>
+              <a
+                href="/#reserva"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMobileOpen(false);
+                  if (location.pathname === "/") {
+                    document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" });
+                  } else {
+                    window.location.href = "/#reserva";
+                  }
+                }}
+              >
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-xs mt-2">
                   Reserva
                 </Button>
-              </Link>
+              </a>
             </nav>
           </motion.div>
         )}
