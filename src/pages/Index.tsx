@@ -8,7 +8,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionDivider from "@/components/SectionDivider";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import { UtensilsCrossed, Users, Calendar } from "lucide-react";
+import { UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat, type LucideIcon } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,6 +19,17 @@ import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpeg";
 
 const weekDayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+const getDishIcon = (name: string): LucideIcon => {
+  const n = name.toLowerCase();
+  if (n.includes("peixe") || n.includes("salmão") || n.includes("bacalhau")) return Fish;
+  if (n.includes("camarão") || n.includes("caranguejo")) return Shell;
+  if (n.includes("filé") || n.includes("costela") || n.includes("cupim") || n.includes("charque") || n.includes("pernil") || n.includes("língua") || n.includes("panceta") || n.includes("pururuca") || n.includes("calabresa")) return Beef;
+  if (n.includes("frango") || n.includes("peru")) return Drumstick;
+  if (n.includes("caldeirada") || n.includes("creme") || n.includes("vatapá") || n.includes("bobó") || n.includes("pirão") || n.includes("estrogonofe") || n.includes("maniçoba") || n.includes("dobradinha")) return CookingPot;
+  if (n.includes("lasanha") || n.includes("escondidinho")) return Wheat;
+  return UtensilsCrossed;
+};
 
 const portfolioImages = [
   { src: pratoVariado, alt: "Prato variado com sushi, carne e arroz" },
@@ -249,15 +260,18 @@ const Index = () => {
               className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto"
             >
               {selectedItems.length > 0 ? (
-                selectedItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-secondary rounded-lg p-5 flex items-center gap-3 hover:bg-secondary/80 hover:scale-[1.02] transition-all duration-300"
-                  >
-                    <UtensilsCrossed className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-sm font-medium text-foreground">{item.prato}</span>
-                  </div>
-                ))
+                selectedItems.map((item) => {
+                  const DishIcon = getDishIcon(item.prato);
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-secondary rounded-lg p-5 flex items-center gap-3 hover:bg-secondary/80 hover:scale-[1.02] transition-all duration-300"
+                    >
+                      <DishIcon className="h-5 w-5 text-primary shrink-0" />
+                      <span className="text-sm font-medium text-foreground">{item.prato}</span>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="col-span-full text-center py-8 text-muted-foreground">
                   <p>Nenhum prato cadastrado para este dia.</p>
