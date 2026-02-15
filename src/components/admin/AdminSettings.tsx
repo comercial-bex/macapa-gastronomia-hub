@@ -5,19 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Type, MessageSquare, Globe } from "lucide-react";
 
-interface Setting {
-  id: string;
-  chave: string;
-  valor: string;
-  descricao: string;
-}
+interface Setting { id: string; chave: string; valor: string; descricao: string; }
 
-const categories: Record<string, string[]> = {
-  "Textos Principais": ["hero_titulo", "hero_subtitulo", "historia_titulo", "historia_subtitulo", "historia_texto", "footer_descricao"],
-  "CTA (Chamada para Ação)": ["cta_titulo", "cta_subtitulo"],
-  "Contato & Redes Sociais": ["telefone_principal", "whatsapp_numero", "email_contato", "instagram_url", "facebook_url"],
+const categoryConfig: Record<string, { keys: string[]; icon: typeof Type }> = {
+  "Textos Principais": { keys: ["hero_titulo", "hero_subtitulo", "historia_titulo", "historia_subtitulo", "historia_texto", "footer_descricao"], icon: Type },
+  "CTA (Chamada para Ação)": { keys: ["cta_titulo", "cta_subtitulo"], icon: MessageSquare },
+  "Contato & Redes Sociais": { keys: ["telefone_principal", "whatsapp_numero", "email_contato", "instagram_url", "facebook_url"], icon: Globe },
 };
 
 const longFields = ["historia_texto", "hero_subtitulo", "footer_descricao", "cta_subtitulo"];
@@ -30,9 +25,7 @@ const AdminSettings = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data, error } = await supabase
-        .from("site_settings" as any)
-        .select("*");
+      const { data, error } = await supabase.from("site_settings" as any).select("*");
       if (error) { toast.error("Erro ao carregar configurações"); return; }
       setSettings((data as any[]) || []);
       setLoading(false);
@@ -40,10 +33,7 @@ const AdminSettings = () => {
     fetch();
   }, []);
 
-  const handleChange = (chave: string, valor: string) => {
-    setEdited((prev) => ({ ...prev, [chave]: valor }));
-  };
-
+  const handleChange = (chave: string, valor: string) => setEdited((prev) => ({ ...prev, [chave]: valor }));
   const getValue = (s: Setting) => edited[s.chave] ?? s.valor;
 
   const handleSave = async () => {
@@ -52,21 +42,13 @@ const AdminSettings = () => {
     setSaving(true);
     try {
       for (const [chave, valor] of changes) {
-        const { error } = await (supabase.from("site_settings" as any) as any)
-          .update({ valor })
-          .eq("chave", chave);
+        const { error } = await (supabase.from("site_settings" as any) as any).update({ valor }).eq("chave", chave);
         if (error) throw error;
       }
-      setSettings((prev) =>
-        prev.map((s) => (edited[s.chave] !== undefined ? { ...s, valor: edited[s.chave] } : s))
-      );
+      setSettings((prev) => prev.map((s) => (edited[s.chave] !== undefined ? { ...s, valor: edited[s.chave] } : s)));
       setEdited({});
       toast.success("Configurações salvas com sucesso!");
-    } catch {
-      toast.error("Erro ao salvar configurações.");
-    } finally {
-      setSaving(false);
-    }
+    } catch { toast.error("Erro ao salvar configurações."); } finally { setSaving(false); }
   };
 
   if (loading) return <div className="text-muted-foreground py-12 text-center">Carregando configurações...</div>;
@@ -87,37 +69,34 @@ const AdminSettings = () => {
       </div>
 
       <div className="space-y-10">
-        {Object.entries(categories).map(([catName, keys]) => (
-          <div key={catName}>
-            <h2 className="text-lg font-semibold mb-4 border-b border-border pb-2">{catName}</h2>
-            <div className="space-y-4">
-              {keys.map((key) => {
-                const s = settings.find((s) => s.chave === key);
-                if (!s) return null;
-                const isLong = longFields.includes(key);
-                return (
-                  <div key={key}>
-                    <Label className="text-sm text-muted-foreground mb-1 block">{s.descricao}</Label>
-                    {isLong ? (
-                      <Textarea
-                        value={getValue(s)}
-                        onChange={(e) => handleChange(s.chave, e.target.value)}
-                        rows={3}
-                        className="focus:ring-primary/30 focus:ring-2 transition-shadow"
-                      />
-                    ) : (
-                      <Input
-                        value={getValue(s)}
-                        onChange={(e) => handleChange(s.chave, e.target.value)}
-                        className="focus:ring-primary/30 focus:ring-2 transition-shadow"
-                      />
-                    )}
-                  </div>
-                );
-              })}
+        {Object.entries(categoryConfig).map(([catName, config]) => {
+          const Icon = config.icon;
+          return (
+            <div key={catName}>
+              <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border">
+                <Icon className="h-4 w-4 text-primary" />
+                <h2 className="text-lg font-semibold">{catName}</h2>
+              </div>
+              <div className="space-y-4">
+                {config.keys.map((key) => {
+                  const s = settings.find((s) => s.chave === key);
+                  if (!s) return null;
+                  const isLong = longFields.includes(key);
+                  return (
+                    <div key={key} className="bg-card border border-border rounded-lg p-4">
+                      <Label className="text-sm text-muted-foreground mb-2 block">{s.descricao}</Label>
+                      {isLong ? (
+                        <Textarea value={getValue(s)} onChange={(e) => handleChange(s.chave, e.target.value)} rows={3} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                      ) : (
+                        <Input value={getValue(s)} onChange={(e) => handleChange(s.chave, e.target.value)} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

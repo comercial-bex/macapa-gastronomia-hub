@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye } from "lucide-react";
+import { Eye, Calendar, Clock, Users } from "lucide-react";
 
 const AdminReservations = () => {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -18,18 +19,30 @@ const AdminReservations = () => {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold mb-6">Reservas</h2>
+      <div className="mb-6">
+        <h2 className="font-display text-2xl font-bold">Reservas</h2>
+        <p className="text-muted-foreground text-sm mt-1">{reservations.length} reservas registradas</p>
+      </div>
 
       <div className="space-y-3">
         {reservations.map((r) => (
-          <div key={r.id} className="bg-card border border-border rounded-lg p-4 flex justify-between items-center">
-            <div>
-              <p className="font-medium">{r.nome}</p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(r.data).toLocaleDateString("pt-BR")} às {r.horario} · {r.pessoas} pessoa{r.pessoas > 1 ? "s" : ""}
-              </p>
+          <div key={r.id} className="bg-card border border-border rounded-lg p-4 flex justify-between items-center hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">{r.nome}</p>
+                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(r.data).toLocaleDateString("pt-BR")}</span>
+                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {r.horario}</span>
+                </div>
+              </div>
             </div>
-            <Button size="icon" variant="ghost" onClick={() => setSelected(r)}><Eye className="h-4 w-4" /></Button>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-primary/10 text-primary border-primary/20">{r.pessoas} pessoa{r.pessoas > 1 ? "s" : ""}</Badge>
+              <Button size="icon" variant="ghost" onClick={() => setSelected(r)}><Eye className="h-4 w-4" /></Button>
+            </div>
           </div>
         ))}
         {reservations.length === 0 && <p className="text-muted-foreground py-12 text-center">Nenhuma reserva.</p>}
