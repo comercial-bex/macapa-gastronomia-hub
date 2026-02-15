@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { CalendarDays, Users, Image, Wine, Briefcase, MapPin, UtensilsCrossed, ClipboardList, TrendingUp, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 interface StatCard {
   label: string;
@@ -27,11 +28,16 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState<StatCard[]>([]);
   const [appByStatus, setAppByStatus] = useState<Record<string, number>>({});
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [reservationsByMonth, setReservationsByMonth] = useState<{ name: string; total: number }[]>([]);
+  const [applicationsByMonth, setApplicationsByMonth] = useState<{ name: string; total: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
-      const [res, apps, portfolio, menu, bevCats, bevs, jobs, units, logs] = await Promise.all([
+      const sixMonthsAgo = subMonths(new Date(), 5);
+      const months = eachMonthOfInterval({ start: startOfMonth(sixMonthsAgo), end: new Date() });
+
+      const [res, apps, portfolio, menu, bevCats, bevs, jobs, units, logs, resAll, appsAll] = await Promise.all([
         supabase.from("reservations").select("id", { count: "exact", head: true }),
         supabase.from("job_applications").select("status"),
         supabase.from("portfolio_items").select("ativo, destaque"),
@@ -41,6 +47,8 @@ const AdminDashboard = () => {
         supabase.from("job_positions").select("ativa"),
         supabase.from("units").select("ativo"),
         (supabase.from("audit_logs") as any).select("*").order("created_at", { ascending: false }).limit(5),
+        supabase.from("reservations").select("created_at").gte("created_at", startOfMonth(sixMonthsAgo).toISOString()),
+        supabase.from("job_applications").select("created_at").gte("created_at", startOfMonth(sixMonthsAgo).toISOString()),
       ]);
 
       const statusCounts: Record<string, number> = {};
@@ -62,6 +70,22 @@ const AdminDashboard = () => {
         { label: "Vagas", value: jobsData.length, icon: Briefcase, color: "text-green-500", subtitle: `${jobsData.filter(j => j.ativa).length} ativas` },
         { label: "Unidades", value: unitsData.length, icon: MapPin, color: "text-teal-500", subtitle: `${unitsData.filter(u => u.ativo).length} ativas` },
       ]);
+
+      // Chart data - reservations by month
+      const resMonthly = months.map(m => {
+        const monthKey = format(m, "yyyy-MM");
+        const count = (resAll.data || []).filter((r: any) => r.created_at?.startsWith(monthKey)).length;
+        return { name: format(m, "MMM", { locale: ptBR }), total: count };
+      });
+      setReservationsByMonth(resMonthly);
+
+      // Chart data - applications by month
+      const appsMonthly = months.map(m => {
+        const monthKey = format(m, "yyyy-MM");
+        const count = (appsAll.data || []).filter((a: any) => a.created_at?.startsWith(monthKey)).length;
+        return { name: format(m, "MMM", { locale: ptBR }), total: count };
+      });
+      setApplicationsByMonth(appsMonthly);
 
       setRecentLogs(logs.data || []);
       setLoading(false);
@@ -101,8 +125,53 @@ const AdminDashboard = () => {
           </motion.div>
         ))}
       </div>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-card border border-border rounded-xl p-5"
+        >
+          <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-primary" /> Reservas por Mês
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={reservationsByMonth}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+              />
+              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
 
-      {/* Candidaturas by status */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="bg-card border border-border rounded-xl p-5"
+        >
+          <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" /> Candidaturas por Mês
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={applicationsByMonth}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+              />
+              <Bar dataKey="total" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
+
       {Object.keys(appByStatus).length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
