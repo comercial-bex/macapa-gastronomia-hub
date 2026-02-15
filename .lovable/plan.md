@@ -1,174 +1,78 @@
 
 
-# Reestruturacao Completa do Painel Admin
+# Dashboard + Auditoria Global + Melhorias Visuais
 
-## Visao Geral
+## 1. Dashboard na Pagina Inicial do Admin
 
-Esse plano cobre 4 grandes melhorias solicitadas: perfil do usuario, auditoria de alteracoes, Kanban de candidaturas, e melhorias visuais em todos os modulos (incluindo previews de midia).
+Criar um novo componente `AdminDashboard.tsx` que sera a rota padrao (`/admin/*` fallback) no lugar do Portfolio.
 
----
+### Estatisticas exibidas em cards com icones e contadores animados:
+- **Reservas** -- total de reservas registradas
+- **Candidaturas** -- total por status (Novos, Verificados, Aptos, etc.) com mini-badges coloridos
+- **Portfolio** -- total de itens, quantos ativos e destaques
+- **Cardapio** -- total de pratos cadastrados
+- **Bebidas** -- total de categorias e itens
+- **Vagas** -- ativas vs inativas
+- **Unidades** -- total ativas
 
-## 1. Perfil do Usuario no Painel
+### Secao adicional:
+- **Ultimas alteracoes** -- lista dos 5 registros mais recentes da tabela `audit_logs` com avatar, nome do admin, acao, modulo e data
 
-### Problema
-Nao existe exibicao do usuario logado, nem possibilidade de editar nome ou foto. Quando multiplos admins usam o painel, nao se sabe quem esta logado.
-
-### Solucao
-
-**Banco de dados** -- Adicionar colunas na tabela `profiles`:
-- `nome` (text, nullable)
-- `avatar_url` (text, nullable)
-
-**Storage** -- Criar bucket `avatars` (publico) para fotos de perfil.
-
-**Sidebar (`Admin.tsx`)** -- Exibir na parte inferior da sidebar (acima do botao "Sair"):
-- Avatar do usuario (ou iniciais como fallback)
-- Nome do usuario
-- E-mail (vindo do auth)
-
-**Nova pagina `AdminProfile.tsx`** -- Acessivel ao clicar no avatar na sidebar:
-- Campo para editar nome
-- Upload de foto de perfil (salva no bucket `avatars`)
-- Preview da foto atual
-- Botao salvar
-
-**Nova rota**: `/admin/perfil`
+### Layout:
+- Grid responsivo de cards (2 colunas mobile, 3-4 desktop)
+- Cada card com icone, label, valor numerico grande e subtexto
+- Animacao de entrada com Framer Motion (staggered fade-in)
 
 ---
 
-## 2. Log de Auditoria
+## 2. Integrar useAuditLog em Todos os Modulos
 
-### Problema
-Nao ha rastreamento de quem alterou o que no site. Quando varios admins operam, e impossivel saber quem fez a ultima atualizacao.
+Adicionar `logAction()` em cada operacao de create/update/delete dos seguintes componentes:
 
-### Solucao
+| Componente | Acoes a registrar |
+|---|---|
+| `AdminPortfolio.tsx` | Criou/Editou/Excluiu item do portfolio |
+| `AdminMenu.tsx` | Adicionou/Removeu prato, Upload/Remocao de midia, Toggle ativo |
+| `AdminBeverages.tsx` | Criou/Editou categoria, Criou/Editou/Excluiu bebida |
+| `AdminUnits.tsx` | Criou/Editou/Excluiu unidade |
+| `AdminJobs.tsx` | Criou/Editou/Excluiu vaga |
+| `AdminReservations.tsx` | (somente leitura, sem log) |
+| `AdminSettings.tsx` | Salvou configuracoes (listar chaves alteradas) |
+| `AdminProfile.tsx` | Atualizou perfil (nome/avatar) |
 
-**Nova tabela `audit_logs`**:
-
-```text
-audit_logs
-- id (uuid, PK)
-- user_id (uuid, referencia auth.users)
-- user_nome (text) -- nome do admin no momento da acao
-- acao (text) -- "criou", "editou", "excluiu"
-- modulo (text) -- "portfolio", "cardapio", "vagas", etc.
-- descricao (text) -- ex: "Editou prato 'Feijoada' no dia Segunda"
-- created_at (timestamptz)
-```
-
-RLS: somente admins podem ler e inserir.
-
-**Helper `useAuditLog`** -- Hook reutilizavel que registra acoes automaticamente:
-
-```text
-logAction("cardapio", "editou", "Adicionou prato 'Feijoada' na Segunda")
-```
-
-**Integrar em todos os modulos** -- Cada create/update/delete nos componentes admin registra um log.
-
-**Nova pagina `AdminAuditLog.tsx`**:
-- Lista cronologica com avatar, nome do admin, acao, modulo e data
-- Filtro por modulo e por periodo
-- Nova entrada no sidebar: "Historico" com icone ClipboardList
-
-**Nova rota**: `/admin/historico`
+O hook `useAuditLog` ja existe e funciona. Basta importar e chamar `logAction(modulo, acao, descricao)` apos cada operacao bem-sucedida.
 
 ---
 
-## 3. Kanban de Candidaturas
+## 3. Melhorias Visuais Pendentes
 
-### Problema
-As candidaturas sao listadas de forma plana, sem controle de etapas de selecao. Nao ha como marcar se um curriculo foi verificado, se o candidato e apto, etc.
+### 3.1 Sidebar (`Admin.tsx`)
+- Adicionar link "Dashboard" como primeiro item com icone `LayoutDashboard`
+- Rota padrao `*` aponta para `AdminDashboard` em vez de `AdminPortfolio`
 
-### Solucao
-
-**Banco de dados** -- Adicionar coluna em `job_applications`:
-- `status` (text, default `'novo'`)
-
-Valores possiveis: `novo`, `verificado`, `apto`, `nao_apto`, `contratado`, `descartado`
-
-Adicionar policy de UPDATE para admins na tabela `job_applications`.
-
-**Refatorar `AdminApplications.tsx`** com layout Kanban:
-- 6 colunas arrastando cards entre elas (ou com botoes de acao para mover)
-- Cada coluna com cor e icone distintos:
-  - **Novo** (azul) -- candidaturas recem-chegadas
-  - **Verificado** (amarelo) -- curriculo analisado
-  - **Apto** (verde) -- candidato aprovado para entrevista
-  - **Nao Apto** (laranja) -- perfil nao compativel
-  - **Contratado** (verde escuro) -- efetivado
-  - **Descartado** (vermelho) -- descartado do processo
-- Card do candidato mostra: nome, vaga, data, link para baixar curriculo
-- Clicar no card abre o modal de detalhes (ja existente, melhorado)
-- Botoes de acao rapida no card para mover entre colunas
-- Contadores em cada coluna
-
-Implementacao sem drag-and-drop externo (usa botoes/dropdown para mudar status), evitando nova dependencia.
-
----
-
-## 4. Melhorias Visuais em Todos os Modulos
-
-### 4.1 Cardapio (`AdminMenu.tsx`)
-- Thumbnails maiores dos pratos (preview da imagem/video em tamanho visivel)
-- Quando nao tem midia, mostrar placeholder visual com icone de comida
-- Indicador visual de "ativo/inativo" mais claro (badge colorido)
-- Cards com mais espacamento e sombras sutis
-
-### 4.2 Portfolio (`AdminPortfolio.tsx`)
-- Grid de cards com thumbnail grande (a imagem que ja esta no storage)
-- Exibir imagem/video em preview no card da lista (nao so miniatura 12x12)
-- Mostrar badge de categoria e tipo
-- Indicador visual de destaque e status ativo
-
-### 4.3 Bebidas (`AdminBeverages.tsx`)
-- Cards mais polidos com separadores visuais entre categorias
-- Badge de preco com destaque visual
-
-### 4.4 Reservas (`AdminReservations.tsx`)
-- Cards com icones (calendario, relogio, pessoas)
-- Badge colorido com numero de pessoas
-
-### 4.5 Vagas (`AdminJobs.tsx`)
-- Badge de status (ativa/inativa) com cor
-- Contador de candidaturas por vaga
-
-### 4.6 Configuracoes (`AdminSettings.tsx`)
-- Icones por categoria
-- Cards agrupados com bordas sutis
-
-### 4.7 Sidebar (`Admin.tsx`)
-- Secao de perfil do usuario na parte inferior
-- Novo link "Historico" e "Perfil"
-- Menu mobile (hamburger) para telas menores
+### 3.2 Login (`AdminLogin.tsx`)
+- Ja esta com logo, icones e animacoes -- sem alteracoes pendentes
 
 ---
 
 ## Detalhes Tecnicos
 
-### Migracoes SQL (1 migracao)
+### Novo arquivo
+- `src/components/admin/AdminDashboard.tsx`
 
-1. Adicionar `nome` e `avatar_url` na tabela `profiles`
-2. Criar tabela `audit_logs` com RLS (admin read/insert)
-3. Adicionar coluna `status` em `job_applications` (default 'novo')
-4. Adicionar policy UPDATE em `job_applications` para admins
-5. Criar bucket `avatars` (publico)
-
-### Novos Arquivos
-- `src/components/admin/AdminProfile.tsx` -- pagina de perfil
-- `src/components/admin/AdminAuditLog.tsx` -- pagina de historico
-- `src/hooks/useAuditLog.ts` -- hook para registrar acoes
-
-### Arquivos Modificados
-- `src/pages/Admin.tsx` -- sidebar com perfil, novos links, menu mobile
-- `src/components/admin/AdminApplications.tsx` -- reescrever como Kanban
-- `src/components/admin/AdminMenu.tsx` -- melhorias visuais, previews
-- `src/components/admin/AdminPortfolio.tsx` -- grid com thumbnails grandes
-- `src/components/admin/AdminBeverages.tsx` -- visual refinado
-- `src/components/admin/AdminReservations.tsx` -- icones e badges
-- `src/components/admin/AdminJobs.tsx` -- badges e contador
-- `src/components/admin/AdminSettings.tsx` -- icones por grupo
+### Arquivos modificados
+- `src/pages/Admin.tsx` -- adicionar rota e link do Dashboard, alterar fallback
+- `src/components/admin/AdminPortfolio.tsx` -- adicionar useAuditLog
+- `src/components/admin/AdminMenu.tsx` -- adicionar useAuditLog
+- `src/components/admin/AdminBeverages.tsx` -- adicionar useAuditLog
+- `src/components/admin/AdminUnits.tsx` -- adicionar useAuditLog
+- `src/components/admin/AdminJobs.tsx` -- adicionar useAuditLog
+- `src/components/admin/AdminSettings.tsx` -- adicionar useAuditLog
+- `src/components/admin/AdminProfile.tsx` -- adicionar useAuditLog (se ausente)
 
 ### Dependencias
 Nenhuma nova. Usa Framer Motion, Lucide, Radix UI e Tailwind ja instalados.
+
+### Banco de dados
+Nenhuma migracao necessaria. Todas as tabelas e o hook de auditoria ja existem.
 
