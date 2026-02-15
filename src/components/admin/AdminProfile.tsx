@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Camera, Save, Loader2, User } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminProfile = () => {
   const [nome, setNome] = useState("");
@@ -12,6 +13,7 @@ const AdminProfile = () => {
   const [email, setEmail] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { logAction } = useAuditLog();
 
   useEffect(() => {
     const load = async () => {
@@ -39,6 +41,7 @@ const AdminProfile = () => {
       const url = urlData.publicUrl + "?t=" + Date.now();
       await supabase.from("profiles").update({ avatar_url: url } as any).eq("id", session.user.id);
       setAvatarUrl(url);
+      await logAction("perfil", "editou", "Atualizou foto de perfil");
       toast.success("Foto atualizada!");
     } catch {
       toast.error("Erro no upload.");
@@ -53,6 +56,7 @@ const AdminProfile = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       await supabase.from("profiles").update({ nome } as any).eq("id", session.user.id);
+      await logAction("perfil", "editou", `Atualizou nome para '${nome}'`);
       toast.success("Perfil salvo!");
     } catch {
       toast.error("Erro ao salvar.");

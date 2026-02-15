@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Save, Loader2, Type, MessageSquare, Globe } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface Setting { id: string; chave: string; valor: string; descricao: string; }
 
@@ -22,6 +23,7 @@ const AdminSettings = () => {
   const [edited, setEdited] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { logAction } = useAuditLog();
 
   useEffect(() => {
     const fetch = async () => {
@@ -47,6 +49,7 @@ const AdminSettings = () => {
       }
       setSettings((prev) => prev.map((s) => (edited[s.chave] !== undefined ? { ...s, valor: edited[s.chave] } : s)));
       setEdited({});
+      await logAction("configuracoes", "editou", `Alterou ${changes.length} configuração(ões): ${changes.map(([k]) => k).join(", ")}`);
       toast.success("Configurações salvas com sucesso!");
     } catch { toast.error("Erro ao salvar configurações."); } finally { setSaving(false); }
   };

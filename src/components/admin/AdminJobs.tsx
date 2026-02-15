@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminJobs = () => {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -17,6 +18,7 @@ const AdminJobs = () => {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({ titulo: "", descricao: "", ativa: true, ordem: 0 });
   const [loading, setLoading] = useState(false);
+  const { logAction } = useAuditLog();
 
   const fetchData = async () => {
     const [j, a] = await Promise.all([
@@ -39,13 +41,16 @@ const AdminJobs = () => {
       const payload = { ...form, descricao: form.descricao || null };
       if (editing) { await supabase.from("job_positions").update(payload).eq("id", editing.id); }
       else { await supabase.from("job_positions").insert(payload); }
+      await logAction("vagas", editing ? "editou" : "criou", `${editing ? "Editou" : "Criou"} vaga '${form.titulo}'`);
       toast.success("Salvo!"); setOpen(false); fetchData();
     } catch { toast.error("Erro"); } finally { setLoading(false); }
   };
 
   const del = async (id: string) => {
     if (!confirm("Excluir?")) return;
+    const job = jobs.find(j => j.id === id);
     await supabase.from("job_positions").delete().eq("id", id);
+    await logAction("vagas", "excluiu", `Excluiu vaga '${job?.titulo}'`);
     toast.success("Excluído!"); fetchData();
   };
 
