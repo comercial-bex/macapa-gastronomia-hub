@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, ArrowLeft } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 
 const AdminLogin = () => {
@@ -49,16 +49,18 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
-      {/* Decorative background blobs */}
+      {/* Animated background blobs */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/8 blur-[120px]" />
-        <div className="absolute bottom-[-15%] left-[-10%] w-[40%] h-[40%] rounded-full bg-accent/6 blur-[100px]" />
+        <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] animate-blob" />
+        <div className="absolute bottom-[-15%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/15 blur-[100px] animate-blob animation-delay-2000" />
+        <div className="absolute top-[50%] left-[50%] w-[25%] h-[25%] rounded-full bg-primary/12 blur-[80px] animate-blob animation-delay-4000" />
       </div>
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-sm"
+        className="w-full max-w-sm relative z-10"
       >
         <div className="text-center mb-8">
           <motion.img
@@ -69,9 +71,14 @@ const AdminLogin = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           />
-          <p className="text-muted-foreground text-sm tracking-[0.2em] uppercase font-medium">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-muted-foreground text-sm tracking-[0.2em] uppercase font-medium"
+          >
             Painel Administrativo
-          </p>
+          </motion.p>
         </div>
 
         <motion.div
@@ -81,7 +88,12 @@ const AdminLogin = () => {
           className="glass-effect rounded-xl p-6 shadow-lg shadow-primary/5"
         >
           <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              className="space-y-2"
+            >
               <Label htmlFor="email" className="text-sm font-medium">E-mail</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -95,9 +107,14 @@ const AdminLogin = () => {
                   placeholder="seu@email.com"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="space-y-2"
+            >
               <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -111,16 +128,37 @@ const AdminLogin = () => {
                   placeholder="••••••••"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20"
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
             >
-              {loading ? "Entrando..." : "Entrar"}
-            </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20"
+              >
+                {loading ? "Entrando..." : "Entrar"}
+              </Button>
+            </motion.div>
           </form>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="text-center mt-6"
+        >
+          <Link
+            to="/"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Voltar ao site
+          </Link>
         </motion.div>
       </motion.div>
     </div>
