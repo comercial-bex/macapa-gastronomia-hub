@@ -26,7 +26,7 @@ const AdminReservations = () => {
 
       <div className="space-y-3">
         {reservations.map((r) => (
-          <div key={r.id} className="bg-card border border-border rounded-lg p-4 flex justify-between items-center hover:shadow-sm transition-shadow">
+          <div key={r.id} className="glass-effect rounded-lg p-4 flex justify-between items-center hover:shadow-sm transition-shadow">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Users className="h-4 w-4 text-primary" />
@@ -49,7 +49,7 @@ const AdminReservations = () => {
       </div>
 
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="glass-effect max-w-md">
           <DialogHeader><DialogTitle className="font-display">Reserva</DialogTitle></DialogHeader>
           {selected && (
             <div className="space-y-3 text-sm">

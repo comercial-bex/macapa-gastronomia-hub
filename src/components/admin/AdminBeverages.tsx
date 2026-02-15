@@ -92,7 +92,7 @@ const AdminBeverages = () => {
             </div>
             <div className="space-y-2">
               {catBevs.map((bev) => (
-                <div key={bev.id} className="bg-card border border-border rounded-lg p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
+                <div key={bev.id} className="glass-effect rounded-lg p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
                   <div className="flex items-center gap-3">
                     <span className={`font-medium text-sm ${!bev.ativo ? "text-muted-foreground line-through" : ""}`}>{bev.nome}</span>
                     {bev.volume && <span className="text-muted-foreground text-xs">({bev.volume})</span>}
@@ -117,7 +117,7 @@ const AdminBeverages = () => {
       })}
 
       <Dialog open={catOpen} onOpenChange={setCatOpen}>
-        <DialogContent className="bg-card border-border max-w-sm">
+         <DialogContent className="glass-effect max-w-sm">
           <DialogHeader><DialogTitle className="font-display">{editingCat ? "Editar" : "Nova"} Categoria</DialogTitle></DialogHeader>
           <form onSubmit={saveCat} className="space-y-4">
             <div><Label>Nome</Label><Input value={catForm.nome} onChange={(e) => setCatForm({ ...catForm, nome: e.target.value })} required /></div>
@@ -129,7 +129,7 @@ const AdminBeverages = () => {
       </Dialog>
 
       <Dialog open={bevOpen} onOpenChange={setBevOpen}>
-        <DialogContent className="bg-card border-border max-w-sm">
+        <DialogContent className="glass-effect max-w-sm">
           <DialogHeader><DialogTitle className="font-display">{editingBev ? "Editar" : "Nova"} Bebida</DialogTitle></DialogHeader>
           <form onSubmit={saveBev} className="space-y-4">
             <div><Label>Categoria</Label>

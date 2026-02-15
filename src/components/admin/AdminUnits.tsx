@@ -57,7 +57,7 @@ const AdminUnits = () => {
 
       <div className="space-y-3">
         {units.map((u) => (
-          <div key={u.id} className="bg-card border border-border rounded-lg p-4 flex justify-between items-center">
+          <div key={u.id} className="glass-effect rounded-lg p-4 flex justify-between items-center">
             <div>
               <p className="font-medium">{u.nome} {u.principal && <span className="text-primary text-xs">⭐ Principal</span>}</p>
               <p className="text-xs text-muted-foreground">{u.endereco}</p>
@@ -71,7 +71,7 @@ const AdminUnits = () => {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="glass-effect max-w-md">
           <DialogHeader><DialogTitle className="font-display">{editing ? "Editar" : "Nova"} Unidade</DialogTitle></DialogHeader>
           <form onSubmit={save} className="space-y-4">
             <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required /></div>

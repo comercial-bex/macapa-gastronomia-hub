@@ -86,7 +86,7 @@ const AdminSettings = () => {
                   if (!s) return null;
                   const isLong = longFields.includes(key);
                   return (
-                    <div key={key} className="bg-card border border-border rounded-lg p-4">
+                    <div key={key} className="glass-effect rounded-lg p-4">
                       <Label className="text-sm text-muted-foreground mb-2 block">{s.descricao}</Label>
                       {isLong ? (
                         <Textarea value={getValue(s)} onChange={(e) => handleChange(s.chave, e.target.value)} rows={3} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />

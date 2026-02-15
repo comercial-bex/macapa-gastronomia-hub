@@ -129,9 +129,9 @@ const Admin = () => {
     <div className="min-h-screen bg-background flex relative overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* Decorative background blobs for glassmorphism depth */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary/8 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] rounded-full bg-accent/6 blur-[100px]" />
-        <div className="absolute top-[40%] left-[30%] w-[25%] h-[25%] rounded-full bg-primary/4 blur-[80px]" />
+        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary/8 blur-[120px] animate-blob" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] rounded-full bg-accent/6 blur-[100px] animate-blob animation-delay-2000" />
+        <div className="absolute top-[40%] left-[30%] w-[25%] h-[25%] rounded-full bg-primary/4 blur-[80px] animate-blob animation-delay-4000" />
       </div>
 
       {/* Desktop sidebar */}

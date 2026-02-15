@@ -80,7 +80,7 @@ const AdminPortfolio = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <div key={item.id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+          <div key={item.id} className="glass-effect rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-muted">
               {item.url ? (
@@ -126,7 +126,7 @@ const AdminPortfolio = () => {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="glass-effect max-w-md">
           <DialogHeader><DialogTitle className="font-display">{editing ? "Editar" : "Novo"} Item</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             {editing?.url && (
