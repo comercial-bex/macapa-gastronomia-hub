@@ -230,7 +230,7 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07, duration: 0.35 }}
-            className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow"
+            className="glass-effect rounded-xl p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center gap-3 mb-3">
               <div className={`p-2 rounded-lg bg-muted ${stat.color}`}>
@@ -267,7 +267,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-card border border-border rounded-xl p-5"
+          className="glass-effect rounded-xl p-5"
         >
           <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-primary" /> Reservas
@@ -287,7 +287,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="bg-card border border-border rounded-xl p-5"
+          className="glass-effect rounded-xl p-5"
         >
           <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" /> Candidaturas
@@ -311,7 +311,7 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-card border border-border rounded-xl p-5 mb-10"
+            className="glass-effect rounded-xl p-5 mb-10"
           >
             <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
               <Bell className="h-5 w-5 text-primary" /> Notificações em Tempo Real
@@ -341,7 +341,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-card border border-border rounded-xl p-5 mb-10"
+          className="glass-effect rounded-xl p-5 mb-10"
         >
           <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" /> Candidaturas por Status
@@ -363,7 +363,7 @@ const AdminDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="bg-card border border-border rounded-xl p-5"
+        className="glass-effect rounded-xl p-5"
       >
         <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
           <ClipboardList className="h-5 w-5 text-primary" /> Últimas Alterações
