@@ -91,11 +91,11 @@ const Admin = () => {
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
                   isActive
-                    ? "bg-white/10 text-primary font-medium border-l-2 border-primary shadow-[0_0_12px_rgba(var(--primary),0.15)]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/10 hover:translate-x-1"
+                    ? "bg-white/[0.07] text-primary font-medium border-l-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/[0.06] hover:translate-x-1"
                 }`}
               >
-                <link.icon className="h-4 w-4" />
+                <link.icon className="h-4 w-4 sidebar-icon-glow" />
                 {link.label}
               </Link>
             </motion.div>
