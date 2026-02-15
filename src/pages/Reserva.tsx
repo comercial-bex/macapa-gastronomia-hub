@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { MessageCircle } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Reserva = () => {
+  const { getSetting } = useSiteSettings();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     nome: "", telefone: "", data: "", horario: "", pessoas: "2", observacoes: "",
@@ -95,7 +97,7 @@ const Reserva = () => {
 
               <div className="mt-6 text-center">
                 <p className="text-muted-foreground text-sm mb-3">ou</p>
-                <a href={`https://wa.me/5596981054789?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
+                <a href={`https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2 hover:scale-105 active:scale-95 transition-transform">
                     <MessageCircle className="h-4 w-4" /> Reservar pelo WhatsApp
                   </Button>

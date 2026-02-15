@@ -237,6 +237,27 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          chave: string
+          descricao: string
+          id: string
+          valor: string
+        }
+        Insert: {
+          chave: string
+          descricao?: string
+          id?: string
+          valor?: string
+        }
+        Update: {
+          chave?: string
+          descricao?: string
+          id?: string
+          valor?: string
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           ativo: boolean

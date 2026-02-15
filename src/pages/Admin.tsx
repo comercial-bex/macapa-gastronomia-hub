@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut } from "lucide-react";
+import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings } from "lucide-react";
 import AdminPortfolio from "@/components/admin/AdminPortfolio";
 import AdminBeverages from "@/components/admin/AdminBeverages";
 import AdminMenu from "@/components/admin/AdminMenu";
@@ -10,6 +10,7 @@ import AdminUnits from "@/components/admin/AdminUnits";
 import AdminJobs from "@/components/admin/AdminJobs";
 import AdminApplications from "@/components/admin/AdminApplications";
 import AdminReservations from "@/components/admin/AdminReservations";
+import AdminSettings from "@/components/admin/AdminSettings";
 
 const sidebarLinks = [
   { label: "Portfólio", path: "/admin/portfolio", icon: Image },
@@ -19,6 +20,7 @@ const sidebarLinks = [
   { label: "Vagas", path: "/admin/vagas", icon: Briefcase },
   { label: "Candidaturas", path: "/admin/candidaturas", icon: Users },
   { label: "Reservas", path: "/admin/reservas", icon: BookOpen },
+  { label: "Configurações", path: "/admin/configuracoes", icon: Settings },
 ];
 
 const Admin = () => {
@@ -90,6 +92,7 @@ const Admin = () => {
             <Route path="vagas" element={<AdminJobs />} />
             <Route path="candidaturas" element={<AdminApplications />} />
             <Route path="reservas" element={<AdminReservations />} />
+            <Route path="configuracoes" element={<AdminSettings />} />
             <Route path="*" element={<AdminPortfolio />} />
           </Routes>
         </div>
