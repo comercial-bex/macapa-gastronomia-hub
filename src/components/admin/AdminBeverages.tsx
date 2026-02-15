@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Wine } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminBeverages = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -19,6 +20,7 @@ const AdminBeverages = () => {
   const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true });
   const [bevForm, setBevForm] = useState({ category_id: "", nome: "", volume: "", preco: "", ativo: true, ordem: 0 });
   const [loading, setLoading] = useState(false);
+  const { logAction } = useAuditLog();
 
   const fetchData = async () => {
     const [c, b] = await Promise.all([
@@ -36,6 +38,7 @@ const AdminBeverages = () => {
     try {
       if (editingCat) { await supabase.from("beverage_categories").update(catForm).eq("id", editingCat.id); }
       else { await supabase.from("beverage_categories").insert(catForm); }
+      await logAction("bebidas", editingCat ? "editou" : "criou", `${editingCat ? "Editou" : "Criou"} categoria '${catForm.nome}'`);
       toast.success("Salvo!"); setCatOpen(false); fetchData();
     } catch { toast.error("Erro"); } finally { setLoading(false); }
   };
@@ -46,13 +49,16 @@ const AdminBeverages = () => {
       const payload = { ...bevForm, preco: bevForm.preco ? parseFloat(bevForm.preco) : null, volume: bevForm.volume || null };
       if (editingBev) { await supabase.from("beverages").update(payload).eq("id", editingBev.id); }
       else { await supabase.from("beverages").insert(payload); }
+      await logAction("bebidas", editingBev ? "editou" : "criou", `${editingBev ? "Editou" : "Criou"} bebida '${bevForm.nome}'`);
       toast.success("Salvo!"); setBevOpen(false); fetchData();
     } catch { toast.error("Erro"); } finally { setLoading(false); }
   };
 
   const deleteBev = async (id: string) => {
     if (!confirm("Excluir?")) return;
+    const bev = beverages.find(b => b.id === id);
     await supabase.from("beverages").delete().eq("id", id);
+    await logAction("bebidas", "excluiu", `Excluiu bebida '${bev?.nome}'`);
     toast.success("Excluído!"); fetchData();
   };
 

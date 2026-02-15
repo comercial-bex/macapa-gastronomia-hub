@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminMenu = () => {
   const [days, setDays] = useState<any[]>([]);
@@ -13,6 +14,7 @@ const AdminMenu = () => {
   const [activeDay, setActiveDay] = useState("");
   const [newPrato, setNewPrato] = useState("");
   const [uploading, setUploading] = useState<string | null>(null);
+  const { logAction } = useAuditLog();
 
   const fetchData = async () => {
     const [d, i] = await Promise.all([
@@ -29,6 +31,8 @@ const AdminMenu = () => {
     if (!newPrato.trim() || !activeDay) return;
     const dayItems = items.filter((i) => i.day_id === activeDay);
     await supabase.from("weekly_menu_items").insert({ day_id: activeDay, prato: newPrato.trim(), ordem: dayItems.length, ativo: true });
+    const dayName = days.find(d => d.id === activeDay)?.dia_semana;
+    await logAction("cardapio", "criou", `Adicionou prato '${newPrato.trim()}' em ${dayName}`);
     setNewPrato("");
     toast.success("Adicionado!");
     fetchData();
@@ -40,7 +44,9 @@ const AdminMenu = () => {
   };
 
   const deleteItem = async (id: string) => {
+    const item = items.find(i => i.id === id);
     await supabase.from("weekly_menu_items").delete().eq("id", id);
+    await logAction("cardapio", "excluiu", `Removeu prato '${item?.prato}'`);
     toast.success("Removido!");
     fetchData();
   };
@@ -55,6 +61,8 @@ const AdminMenu = () => {
     if (uploadError) { toast.error("Erro no upload: " + uploadError.message); setUploading(null); return; }
     const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
     await supabase.from("weekly_menu_items").update({ imagem_url: urlData.publicUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", itemId);
+    const item = items.find(i => i.id === itemId);
+    await logAction("cardapio", "editou", `Upload de mídia para '${item?.prato}'`);
     toast.success("Mídia adicionada!");
     setUploading(null);
     fetchData();
@@ -64,6 +72,8 @@ const AdminMenu = () => {
     const parts = url.split("/menu-items/");
     if (parts[1]) await supabase.storage.from("menu-items").remove([parts[1]]);
     await supabase.from("weekly_menu_items").update({ imagem_url: null, tipo_midia: "imagem" }).eq("id", itemId);
+    const item = items.find(i => i.id === itemId);
+    await logAction("cardapio", "editou", `Removeu mídia de '${item?.prato}'`);
     toast.success("Mídia removida!");
     fetchData();
   };

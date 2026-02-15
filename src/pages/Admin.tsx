@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X } from "lucide-react";
+import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import AdminPortfolio from "@/components/admin/AdminPortfolio";
@@ -15,8 +15,10 @@ import AdminReservations from "@/components/admin/AdminReservations";
 import AdminSettings from "@/components/admin/AdminSettings";
 import AdminProfile from "@/components/admin/AdminProfile";
 import AdminAuditLog from "@/components/admin/AdminAuditLog";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 const sidebarLinks = [
+  { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Portfólio", path: "/admin/portfolio", icon: Image },
   { label: "Bebidas", path: "/admin/bebidas", icon: Wine },
   { label: "Cardápio", path: "/admin/cardapio", icon: CalendarDays },
@@ -161,6 +163,7 @@ const Admin = () => {
       <div className="flex-1 overflow-auto lg:pt-0 pt-14">
         <div className="p-6 lg:p-8">
           <Routes>
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="portfolio" element={<AdminPortfolio />} />
             <Route path="bebidas" element={<AdminBeverages />} />
             <Route path="cardapio" element={<AdminMenu />} />
@@ -171,7 +174,7 @@ const Admin = () => {
             <Route path="historico" element={<AdminAuditLog />} />
             <Route path="configuracoes" element={<AdminSettings />} />
             <Route path="perfil" element={<AdminProfile />} />
-            <Route path="*" element={<AdminPortfolio />} />
+            <Route path="*" element={<AdminDashboard />} />
           </Routes>
         </div>
       </div>

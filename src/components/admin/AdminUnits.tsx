@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminUnits = () => {
   const [units, setUnits] = useState<any[]>([]);
@@ -14,6 +15,7 @@ const AdminUnits = () => {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({ nome: "", endereco: "", telefone: "", horarios: "", maps_url: "", principal: false, ativo: true });
   const [loading, setLoading] = useState(false);
+  const { logAction } = useAuditLog();
 
   const fetchData = async () => {
     const { data } = await supabase.from("units").select("*");
@@ -31,13 +33,16 @@ const AdminUnits = () => {
       } else {
         await supabase.from("units").insert(payload);
       }
+      await logAction("unidades", editing ? "editou" : "criou", `${editing ? "Editou" : "Criou"} unidade '${form.nome}'`);
       toast.success("Salvo!"); setOpen(false); fetchData();
     } catch { toast.error("Erro"); } finally { setLoading(false); }
   };
 
   const del = async (id: string) => {
     if (!confirm("Excluir?")) return;
+    const unit = units.find(u => u.id === id);
     await supabase.from("units").delete().eq("id", id);
+    await logAction("unidades", "excluiu", `Excluiu unidade '${unit?.nome}'`);
     toast.success("Excluído!"); fetchData();
   };
 

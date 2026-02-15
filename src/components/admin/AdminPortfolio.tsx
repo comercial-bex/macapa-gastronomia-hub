@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Star, Image as ImageIcon, Video } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface Item {
   id: string; titulo: string; descricao: string | null; categoria: string;
@@ -22,6 +23,7 @@ const AdminPortfolio = () => {
   const [form, setForm] = useState({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: 0 });
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const { logAction } = useAuditLog();
 
   const fetchItems = async () => {
     const { data } = await supabase.from("portfolio_items").select("*").order("ordem");
@@ -53,13 +55,16 @@ const AdminPortfolio = () => {
         const { error } = await supabase.from("portfolio_items").insert(payload);
         if (error) throw error;
       }
+      await logAction("portfolio", editing ? "editou" : "criou", `${editing ? "Editou" : "Criou"} item '${form.titulo}'`);
       toast.success(editing ? "Atualizado!" : "Criado!"); setOpen(false); fetchItems();
     } catch { toast.error("Erro ao salvar."); } finally { setLoading(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir item?")) return;
+    const item = items.find(i => i.id === id);
     await supabase.from("portfolio_items").delete().eq("id", id);
+    await logAction("portfolio", "excluiu", `Excluiu item '${item?.titulo}'`);
     toast.success("Excluído!"); fetchItems();
   };
 
