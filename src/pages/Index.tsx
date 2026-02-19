@@ -110,7 +110,7 @@ const Index = () => {
           className="absolute inset-0 w-full h-full object-cover"
           poster={garcomServindo}
         />
-        <div className="absolute inset-0 bg-black/40 z-10" />
+        <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
