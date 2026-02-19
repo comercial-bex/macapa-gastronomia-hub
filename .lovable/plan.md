@@ -1,59 +1,51 @@
 
 
-# Reserva Inline na Pagina Inicial
+# Video Hero + Header Transparente Moderno
 
 ## Resumo
 
-Substituir a secao CTA final da pagina inicial por uma secao completa de reservas com:
-- Formulario de reserva embutido (sem redirecionar para /reserva)
-- Imagem do salao do restaurante ao lado do formulario
-- Dupla acao: salvar no banco de dados E opcao de enviar via WhatsApp com todos os dados preenchidos
-- Feedback visual apos envio com sucesso
+Duas alteracoes na pagina inicial para um visual mais premium e moderno:
+
+1. **Substituir a imagem do hero por video de fundo** -- o video enviado (0218.mp4) ficara em loop automatico, sem som, ocupando toda a secao hero, com overlay escuro para legibilidade
+2. **Header totalmente transparente no topo** -- quando o usuario esta no topo da pagina, o header fica completamente transparente com textos brancos, sem borda. Ao rolar, transiciona suavemente para o fundo escuro atual
 
 ## O que muda visualmente
 
-A secao final da pagina inicial, que hoje mostra apenas um botao "Fazer Reserva" apontando para `/reserva`, sera substituida por um layout em duas colunas:
+### Hero (antes vs depois)
 
-```text
-+-------------------------------+----------------------------+
-|                               |                            |
-|   Imagem do salao             |   Formulario de Reserva    |
-|   (salao-restaurante.jpeg)    |   - Nome *                 |
-|                               |   - Telefone *             |
-|                               |   - Data * | Horario *     |
-|                               |   - Nro Pessoas *          |
-|                               |   - Observacoes            |
-|                               |                            |
-|                               |   [Enviar Reserva]         |
-|                               |   ou                       |
-|                               |   [Reservar pelo WhatsApp] |
-+-------------------------------+----------------------------+
-```
+- **Antes**: Imagem estatica do garcom servindo com parallax
+- **Depois**: Video em loop silencioso preenchendo toda a secao, com overlay escuro de 60% mantendo a legibilidade dos textos e botoes
 
-Em mobile, a imagem fica em cima e o formulario embaixo.
+### Header (antes vs depois)
 
-## Fluxo de envio melhorado
-
-1. **Botao "Enviar Reserva"**: Salva no banco de dados (tabela `reservations`) e mostra toast de sucesso
-2. **Botao "Reservar pelo WhatsApp"**: Abre o WhatsApp com mensagem pre-preenchida contendo todos os dados do formulario (nome, data, horario, pessoas, observacoes) -- nao salva no banco, apenas redireciona
-3. Apos envio com sucesso pelo formulario, exibir opcao de tambem enviar pelo WhatsApp como confirmacao
-
-## Navegacao
-
-- O botao "Reserva" no Header passara a fazer scroll suave ate a secao `#reserva` na pagina inicial (usando anchor link) em vez de navegar para `/reserva`
-- A rota `/reserva` continuara funcionando como fallback mas redirecionara para `/#reserva`
+- **Antes**: No topo ja era transparente, mas os links usavam `text-foreground/70` (tom claro do tema escuro)
+- **Depois**: No topo, links e icones em branco puro (`text-white/90`) para contraste maximo sobre o video. Ao rolar, transiciona para o estilo atual com fundo escuro e blur
 
 ## Detalhes Tecnicos
 
 | Arquivo | Alteracao |
 |---|---|
-| `src/pages/Index.tsx` | Substituir secao CTA final (linhas 409-425) pelo formulario completo de reserva com imagem lateral, usando a mesma logica de `Reserva.tsx` (estado, submit, whatsapp) |
-| `src/components/Header.tsx` | Alterar link "Reserva" do botao no header de `/reserva` para scroll suave ate `#reserva` na pagina inicial |
-| `src/pages/Reserva.tsx` | Redirecionar para `/#reserva` para manter compatibilidade |
+| `public/videos/hero.mp4` | Copiar o video enviado para a pasta public (videos grandes devem ficar em public, nao em src/assets, para evitar problemas de bundling) |
+| `src/pages/Index.tsx` | Substituir o `motion.img` do hero por um elemento `video` com atributos `autoPlay`, `muted`, `loop`, `playsInline` e poster de fallback. Remover import do `garcomServindo` se nao usado em outro lugar |
+| `src/components/Header.tsx` | Adicionar logica para detectar se esta na pagina inicial (`/`) e no topo (`!scrolled`) -- nesse caso, aplicar classes de texto branco nos links, telefone e icone do menu mobile. O botao "Reserva" mantem o estilo dourado |
 
-### Dependencias
-Nenhuma nova -- ja temos `supabase`, `sonner`, `lucide-react`, `framer-motion` e os componentes de UI necessarios.
+### Video -- por que em public/?
 
-### Imagem utilizada
-`salao-restaurante.jpeg` -- ja importada no Index.tsx como `salaoRestaurante`.
+Videos grandes (>1MB) devem ficar na pasta `public/` em vez de `src/assets/` porque:
+- O Vite nao faz bundle de arquivos em public, servindo-os diretamente
+- Evita aumentar o tamanho do bundle JavaScript
+- Permite streaming nativo do navegador
+
+### Comportamento do video
+
+- `autoPlay` + `muted` + `playsInline`: garante reproducao automatica em todos os navegadores (incluindo mobile)
+- `loop`: repete infinitamente
+- Sem controles visiveis
+- Overlay `bg-black/60` mantido para legibilidade
+- Poster image como fallback enquanto o video carrega
+
+### Header transparente -- estados
+
+1. **Topo da pagina + pagina inicial**: fundo transparente, textos brancos, sem borda
+2. **Apos scroll ou outra pagina**: fundo escuro com blur, textos no tom padrao do tema
 
