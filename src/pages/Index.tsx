@@ -100,7 +100,7 @@ const Index = () => {
   return (
     <Layout>
       {/* Hero with Parallax */}
-      <section ref={heroRef} className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+      <section ref={heroRef} className="relative h-screen -mt-16 flex items-center justify-center overflow-hidden">
         <video
           src="/videos/hero.mp4"
           autoPlay
@@ -110,7 +110,7 @@ const Index = () => {
           className="absolute inset-0 w-full h-full object-cover"
           poster={garcomServindo}
         />
-        <div className="absolute inset-0 bg-black/60 z-10" />
+        <div className="absolute inset-0 bg-black/40 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
