@@ -20,6 +20,9 @@ const Header = () => {
   const location = useLocation();
   const { getSetting } = useSiteSettings();
 
+  const isHome = location.pathname === "/";
+  const isTransparent = isHome && !scrolled;
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -45,7 +48,7 @@ const Header = () => {
               key={link.path}
               to={link.path}
               className={`text-sm font-medium tracking-wide uppercase transition-colors hover:text-primary ${
-                location.pathname === link.path ? "text-primary" : "text-foreground/70"
+                location.pathname === link.path ? "text-primary" : isTransparent ? "text-white/90" : "text-foreground/70"
               }`}
             >
               {link.label}
@@ -58,7 +61,7 @@ const Header = () => {
             href={`https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors"
+            className={`flex items-center gap-2 text-sm transition-colors hover:text-primary ${isTransparent ? "text-white/90" : "text-foreground/70"}`}
           >
             <Phone className="h-4 w-4" />
             <span>{getSetting("telefone_principal", "(96) 98105-4789")}</span>
@@ -81,7 +84,7 @@ const Header = () => {
         </div>
 
         <button
-          className="lg:hidden text-foreground"
+          className={`lg:hidden ${isTransparent ? "text-white" : "text-foreground"}`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >

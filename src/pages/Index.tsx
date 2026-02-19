@@ -101,12 +101,14 @@ const Index = () => {
     <Layout>
       {/* Hero with Parallax */}
       <section ref={heroRef} className="relative h-[90vh] flex items-center justify-center overflow-hidden">
-        <motion.img
-          src={garcomServindo}
-          alt="Restaurante Macapabá"
+        <video
+          src="/videos/hero.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ y: heroY, willChange: "transform" }}
-          fetchPriority="high"
+          poster={garcomServindo}
         />
         <div className="absolute inset-0 bg-black/60 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
