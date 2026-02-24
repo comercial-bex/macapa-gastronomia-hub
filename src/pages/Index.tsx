@@ -435,12 +435,12 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({
-    nome: "", telefone: "", data: "", horario: "", pessoas: "2", observacoes: "",
+    nome: "", telefone: "", data: "", pessoas: "2", observacoes: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nome.trim() || !form.telefone.trim() || !form.data || !form.horario) {
+    if (!form.nome.trim() || !form.telefone.trim() || !form.data) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -450,7 +450,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
         data: form.data,
-        horario: form.horario,
+        horario: "12:00",
         pessoas: parseInt(form.pessoas) || 1,
         observacoes: form.observacoes.trim(),
       });
@@ -465,11 +465,11 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   };
 
   const whatsappUrl = `https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}?text=${encodeURIComponent(
-    `Olá! Gostaria de fazer uma reserva:\nNome: ${form.nome}\nTelefone: ${form.telefone}\nData: ${form.data}\nHorário: ${form.horario}\nPessoas: ${form.pessoas}${form.observacoes ? `\nObs: ${form.observacoes}` : ""}`
+    `Olá! Gostaria de fazer uma reserva:\nNome: ${form.nome}\nTelefone: ${form.telefone}\nData: ${form.data}\nPessoas: ${form.pessoas}\nReserva válida até 12h${form.observacoes ? `\nObs: ${form.observacoes}` : ""}`
   )}`;
 
   const resetForm = () => {
-    setForm({ nome: "", telefone: "", data: "", horario: "", pessoas: "2", observacoes: "" });
+    setForm({ nome: "", telefone: "", data: "", pessoas: "2", observacoes: "" });
     setSent(false);
   };
 
@@ -512,19 +512,19 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                       <Input id="res-telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} required maxLength={20} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="res-data">Data *</Label>
                       <Input id="res-data" type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                     </div>
                     <div>
-                      <Label htmlFor="res-horario">Horário *</Label>
-                      <Input id="res-horario" type="time" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
-                    </div>
-                    <div>
                       <Label htmlFor="res-pessoas">Nº Pessoas *</Label>
                       <Input id="res-pessoas" type="number" min="1" max="50" value={form.pessoas} onChange={(e) => setForm({ ...form, pessoas: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                     </div>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-lg bg-primary/10 border border-primary/20 p-3">
+                    <Calendar className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">A reserva garante sua mesa até as <strong className="text-foreground">12h</strong>. Após esse horário, a mesa será liberada para outros clientes.</p>
                   </div>
                   <div>
                     <Label htmlFor="res-obs">Observações</Label>
