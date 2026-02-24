@@ -48,7 +48,15 @@ const Unidades = () => {
             </div>
           </ScrollReveal>
 
-          <ScrollReveal stagger className="space-y-8">
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.1 } },
+            }}
+            className="space-y-8"
+          >
             {units.map((unit) => (
               <StaggerItem key={unit.id}>
                 <motion.div
@@ -107,7 +115,7 @@ const Unidades = () => {
                 </motion.div>
               </StaggerItem>
             ))}
-          </ScrollReveal>
+          </motion.div>
 
           {units.length === 0 && (
             <p className="text-center text-muted-foreground py-20">Nenhuma unidade cadastrada.</p>

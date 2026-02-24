@@ -96,7 +96,15 @@ const Portfolio = () => {
             </ScrollReveal>
           )}
 
-          <ScrollReveal stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.08 } },
+            }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+          >
             {filtered.map((item) => (
               <StaggerItem key={item.id}>
                 <motion.div
@@ -121,7 +129,7 @@ const Portfolio = () => {
                 </motion.div>
               </StaggerItem>
             ))}
-          </ScrollReveal>
+          </motion.div>
 
           {filtered.length === 0 && (
             <p className="text-center text-muted-foreground py-20">Nenhum item encontrado no portfólio.</p>
