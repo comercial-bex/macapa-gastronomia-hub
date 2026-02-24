@@ -14,7 +14,7 @@ const ScrollReveal = ({ children, className = "", delay = 0, stagger = false }: 
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, margin: "-50px" }}
+        viewport={{ once: true, amount: 0.05 }}
         variants={{
           hidden: {},
           show: { transition: { staggerChildren: 0.08, delayChildren: delay } },
