@@ -158,24 +158,36 @@ export type Database = {
           ativa: boolean
           created_at: string
           descricao: string | null
+          funcoes: string | null
           id: string
           ordem: number
+          requisitos: string | null
+          salario: string | null
+          tipo_contrato: string | null
           titulo: string
         }
         Insert: {
           ativa?: boolean
           created_at?: string
           descricao?: string | null
+          funcoes?: string | null
           id?: string
           ordem?: number
+          requisitos?: string | null
+          salario?: string | null
+          tipo_contrato?: string | null
           titulo: string
         }
         Update: {
           ativa?: boolean
           created_at?: string
           descricao?: string | null
+          funcoes?: string | null
           id?: string
           ordem?: number
+          requisitos?: string | null
+          salario?: string | null
+          tipo_contrato?: string | null
           titulo?: string
         }
         Relationships: []
@@ -303,6 +315,7 @@ export type Database = {
           endereco: string
           horarios: string | null
           id: string
+          imagem_url: string | null
           maps_url: string | null
           nome: string
           principal: boolean
@@ -313,6 +326,7 @@ export type Database = {
           endereco: string
           horarios?: string | null
           id?: string
+          imagem_url?: string | null
           maps_url?: string | null
           nome: string
           principal?: boolean
@@ -323,6 +337,7 @@ export type Database = {
           endereco?: string
           horarios?: string | null
           id?: string
+          imagem_url?: string | null
           maps_url?: string | null
           nome?: string
           principal?: boolean

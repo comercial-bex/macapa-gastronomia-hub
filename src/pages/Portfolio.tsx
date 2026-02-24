@@ -7,6 +7,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 
+import pratoVariado from "@/assets/prato-variado.jpeg";
+import sushi from "@/assets/sushi.jpeg";
+import garcomServindo from "@/assets/garcom-servindo.jpeg";
+import salaoRestaurante from "@/assets/salao-restaurante.jpeg";
+import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
+import foodDemo1 from "@/assets/food-demo-1.jpeg";
+
 interface PortfolioItem {
   id: string;
   titulo: string;
@@ -18,11 +25,21 @@ interface PortfolioItem {
   ordem: number;
 }
 
+const fallbackItems: PortfolioItem[] = [
+  { id: "f1", titulo: "Prato Variado", descricao: "Diversidade de sabores", categoria: "Pratos", tipo: "imagem", url: pratoVariado, destaque: true, ordem: 0 },
+  { id: "f2", titulo: "Sushi Especial", descricao: "Culinária japonesa artesanal", categoria: "Pratos", tipo: "imagem", url: sushi, destaque: false, ordem: 1 },
+  { id: "f3", titulo: "Nosso Atendimento", descricao: "Excelência no serviço", categoria: "Ambiente", tipo: "imagem", url: garcomServindo, destaque: false, ordem: 2 },
+  { id: "f4", titulo: "Salão Principal", descricao: "Ambiente acolhedor e elegante", categoria: "Ambiente", tipo: "imagem", url: salaoRestaurante, destaque: true, ordem: 3 },
+  { id: "f5", titulo: "Nossos Clientes", descricao: "Momentos especiais", categoria: "Ambiente", tipo: "imagem", url: clientesRestaurante, destaque: false, ordem: 4 },
+  { id: "f6", titulo: "Criação Gastronômica", descricao: "Arte na apresentação", categoria: "Pratos", tipo: "imagem", url: foodDemo1, destaque: false, ordem: 5 },
+];
+
 const Portfolio = () => {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState("Todos");
   const [lightbox, setLightbox] = useState<PortfolioItem | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -31,10 +48,15 @@ const Portfolio = () => {
         .select("*")
         .eq("ativo", true)
         .order("ordem");
-      if (data) {
+      if (data && data.length > 0) {
         setItems(data);
         const cats = [...new Set(data.map((item) => item.categoria))];
         setCategories(["Todos", ...cats]);
+      } else {
+        setItems(fallbackItems);
+        const cats = [...new Set(fallbackItems.map((item) => item.categoria))];
+        setCategories(["Todos", ...cats]);
+        setIsFallback(true);
       }
     };
     fetchItems();
@@ -50,6 +72,9 @@ const Portfolio = () => {
             <div className="text-center mb-16">
               <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Galeria</p>
               <h1 className="font-display text-4xl md:text-5xl font-bold">Nosso Portfólio</h1>
+              {isFallback && (
+                <p className="text-muted-foreground text-sm mt-4">Adicione itens pelo painel administrativo para personalizar o portfólio.</p>
+              )}
             </div>
           </ScrollReveal>
 
