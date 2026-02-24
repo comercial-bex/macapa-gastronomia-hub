@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Save, Loader2, Type, MessageSquare, Globe } from "lucide-react";
+import { Save, Loader2, Type, MessageSquare, Globe, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface Setting { id: string; chave: string; valor: string; descricao: string; }
@@ -24,6 +24,11 @@ const AdminSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { logAction } = useAuditLog();
+
+  // New admin form
+  const [newAdmin, setNewAdmin] = useState({ email: "", password: "", nome: "" });
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -54,6 +59,30 @@ const AdminSettings = () => {
     } catch { toast.error("Erro ao salvar configurações."); } finally { setSaving(false); }
   };
 
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdmin.email || !newAdmin.password) { toast.error("Preencha e-mail e senha."); return; }
+    if (newAdmin.password.length < 6) { toast.error("A senha deve ter pelo menos 6 caracteres."); return; }
+    setCreatingAdmin(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Sessão expirada."); return; }
+
+      const res = await supabase.functions.invoke("create-admin-user", {
+        body: { email: newAdmin.email, password: newAdmin.password, nome: newAdmin.nome },
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+
+      await logAction("configuracoes", "criou", `Criou novo admin: ${newAdmin.email}`);
+      toast.success(`Admin ${newAdmin.email} criado com sucesso!`);
+      setNewAdmin({ email: "", password: "", nome: "" });
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar admin.");
+    } finally { setCreatingAdmin(false); }
+  };
+
   if (loading) return <div className="text-muted-foreground py-12 text-center">Carregando configurações...</div>;
 
   const hasChanges = Object.keys(edited).length > 0;
@@ -69,6 +98,44 @@ const AdminSettings = () => {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Salvar Alterações
         </Button>
+      </div>
+
+      {/* Criar Admin */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border">
+          <UserPlus className="h-4 w-4 text-primary" />
+          <h2 className="text-lg font-semibold">Criar Novo Administrador</h2>
+        </div>
+        <form onSubmit={handleCreateAdmin} className="glass-effect rounded-lg p-6 space-y-4 max-w-md">
+          <div>
+            <Label>Nome</Label>
+            <Input value={newAdmin.nome} onChange={(e) => setNewAdmin({ ...newAdmin, nome: e.target.value })} placeholder="Nome do administrador" />
+          </div>
+          <div>
+            <Label>E-mail *</Label>
+            <Input type="email" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} required placeholder="admin@email.com" />
+          </div>
+          <div>
+            <Label>Senha *</Label>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={newAdmin.password}
+                onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                required
+                minLength={6}
+                placeholder="Mínimo 6 caracteres"
+              />
+              <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <Button type="submit" disabled={creatingAdmin} className="gap-2">
+            {creatingAdmin ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+            {creatingAdmin ? "Criando..." : "Criar Admin"}
+          </Button>
+        </form>
       </div>
 
       <div className="space-y-10">

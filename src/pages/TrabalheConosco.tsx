@@ -8,13 +8,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Briefcase, ArrowLeft, Upload } from "lucide-react";
+import { Briefcase, ArrowLeft, Upload, CheckCircle, DollarSign, FileText } from "lucide-react";
 import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 interface Job {
   id: string;
   titulo: string;
   descricao: string | null;
+  requisitos: string | null;
+  funcoes: string | null;
+  tipo_contrato: string | null;
+  salario: string | null;
 }
 
 const TrabalheConosco = () => {
@@ -29,7 +34,7 @@ const TrabalheConosco = () => {
   useEffect(() => {
     const fetch = async () => {
       const { data } = await supabase.from("job_positions").select("*").eq("ativa", true).order("ordem");
-      if (data) setJobs(data);
+      if (data) setJobs(data as any);
     };
     fetch();
   }, []);
@@ -75,6 +80,14 @@ const TrabalheConosco = () => {
     }
   };
 
+  const renderTextLines = (text: string) =>
+    text.split("\n").filter(Boolean).map((line, i) => (
+      <li key={i} className="flex items-start gap-2">
+        <CheckCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+        <span>{line.replace(/^[-•]\s*/, "")}</span>
+      </li>
+    ));
+
   return (
     <Layout>
       <section className="py-24 px-4">
@@ -105,7 +118,15 @@ const TrabalheConosco = () => {
                       <Briefcase className="h-5 w-5 text-primary" />
                       <h3 className="font-display text-xl font-bold group-hover:text-primary transition-colors">{job.titulo}</h3>
                     </div>
-                    {job.descricao && <p className="text-muted-foreground text-sm mt-2 ml-8 relative z-10">{job.descricao}</p>}
+                    <div className="ml-8 relative z-10 mt-2 flex flex-wrap gap-2">
+                      {job.tipo_contrato && <Badge variant="outline" className="text-xs">{job.tipo_contrato}</Badge>}
+                      {job.salario && (
+                        <Badge variant="outline" className="text-xs gap-1">
+                          <DollarSign className="h-3 w-3" /> {job.salario}
+                        </Badge>
+                      )}
+                    </div>
+                    {job.descricao && <p className="text-muted-foreground text-sm mt-3 ml-8 relative z-10">{job.descricao}</p>}
                   </motion.div>
                 </StaggerItem>
               ))}
@@ -125,8 +146,29 @@ const TrabalheConosco = () => {
 
                 <div className="bg-card border border-border rounded-lg p-8">
                   <h3 className="font-display text-2xl font-bold mb-2">{selectedJob.titulo}</h3>
-                  {selectedJob.descricao && <p className="text-muted-foreground text-sm mb-8">{selectedJob.descricao}</p>}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedJob.tipo_contrato && <Badge variant="outline">{selectedJob.tipo_contrato}</Badge>}
+                    {selectedJob.salario && <Badge variant="outline" className="gap-1"><DollarSign className="h-3 w-3" /> {selectedJob.salario}</Badge>}
+                  </div>
+                  {selectedJob.descricao && <p className="text-muted-foreground text-sm mb-6">{selectedJob.descricao}</p>}
 
+                  {selectedJob.requisitos && (
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><FileText className="h-4 w-4 text-primary" /> Requisitos</h4>
+                      <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(selectedJob.requisitos)}</ul>
+                    </div>
+                  )}
+
+                  {selectedJob.funcoes && (
+                    <div className="mb-8">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Briefcase className="h-4 w-4 text-primary" /> Funções</h4>
+                      <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(selectedJob.funcoes)}</ul>
+                    </div>
+                  )}
+
+                  <hr className="border-border mb-8" />
+
+                  <h4 className="font-display text-lg font-bold mb-4">Candidate-se</h4>
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
@@ -149,9 +191,7 @@ const TrabalheConosco = () => {
                     <div>
                       <Label htmlFor="disponibilidade">Disponibilidade</Label>
                       <Select value={form.disponibilidade} onValueChange={(v) => setForm({ ...form, disponibilidade: v })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="integral">Integral</SelectItem>
                           <SelectItem value="meio-periodo">Meio período</SelectItem>
@@ -166,12 +206,7 @@ const TrabalheConosco = () => {
                         <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-primary transition-colors border border-dashed border-border rounded-lg p-4 hover:border-primary">
                           <Upload className="h-4 w-4" />
                           {file ? file.name : "Selecionar arquivo"}
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            className="hidden"
-                            onChange={(e) => setFile(e.target.files?.[0] || null)}
-                          />
+                          <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
                         </label>
                       </div>
                     </div>
