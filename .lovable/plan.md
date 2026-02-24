@@ -1,40 +1,91 @@
 
 
-# Correcao do Header Transparente + Ajuste do Overlay
+# Melhorias Gerais: Painel Admin, Trabalhe Conosco, Unidades e Portfolio
 
-## Problema Identificado
+## Problemas Identificados
 
-O `main` no Layout tem `pt-16` (64px) que empurra todo o conteudo para baixo do header. Isso significa que o video hero comeca **abaixo** do header, nao **atras** dele. O header esta tecnicamente transparente, mas atras dele so aparece o fundo escuro da pagina (cor de background do tema).
+1. **Painel Admin - Criar usuario**: Nao existe funcionalidade para criar novos usuarios admin. O login atual so aceita usuarios ja existentes no banco.
+2. **Trabalhe Conosco (admin)**: O formulario de vagas no admin e basico -- so tem titulo e descricao. Faltam campos como requisitos, funcoes, faixa salarial, etc.
+3. **Unidades**: A pagina publica nao mostra imagens das unidades. O botao "Como chegar" abre um link generico, mas poderia ter integracao direta com Google Maps/Waze.
+4. **Portfolio**: A pagina de portfolio publica busca do banco (`portfolio_items`), mas se nao ha itens cadastrados, fica vazia. As imagens estaticas do home nao aparecem la.
 
-## Solucao
+---
 
-### 1. Layout condicional no `main` (src/components/Layout.tsx)
+## Plano de Implementacao
 
-Na pagina inicial, remover o `pt-16` para que o hero se estenda atras do header fixo. Nas demais paginas, manter o padding para nao quebrar o layout.
+### 1. Criar Usuarios Admin no Painel
 
-- Passar uma prop `fullBleed` ou detectar a rota para aplicar `pt-16` condicionalmente
-- Alternativa mais simples: aplicar margem negativa no hero em `Index.tsx` com `-mt-16` para compensar o padding
+Adicionar uma secao no painel (acessivel apenas para admins existentes) para convidar/criar novos usuarios admin.
 
-**Abordagem escolhida**: Aplicar `-mt-16` diretamente na secao hero do `Index.tsx`, sem alterar o Layout (evita impacto em outras paginas).
+**Abordagem**: Criar uma edge function `create-admin-user` que usa a service role key para criar o usuario via `supabase.auth.admin.createUser()` e em seguida atualizar o perfil para role "admin".
 
-### 2. Ajuste do overlay do video (src/pages/Index.tsx)
+**Arquivos**:
+- `supabase/functions/create-admin-user/index.ts` -- nova edge function
+- `src/components/admin/AdminSettings.tsx` -- adicionar secao "Gerenciar Usuarios" com formulario de email + senha + nome
 
-Oferecer opcao de overlay mais leve. Atualmente esta `bg-black/60` (60% de opacidade). Proposta: reduzir para `bg-black/40` para deixar o video mais visivel e vibrante, mantendo legibilidade do texto.
+### 2. Melhorar Vagas no Admin (Trabalhe Conosco)
 
-### 3. Garantir que o video preenche a tela inteira (src/pages/Index.tsx)
+Adicionar campos mais completos na tabela `job_positions`:
 
-Mudar o hero de `h-[90vh]` para `h-screen` (100vh) para que o video preencha toda a tela, incluindo a area atras do header.
+**Migracao SQL**:
+```text
+ALTER TABLE job_positions ADD COLUMN requisitos text;
+ALTER TABLE job_positions ADD COLUMN funcoes text;
+ALTER TABLE job_positions ADD COLUMN tipo_contrato text DEFAULT 'CLT';
+ALTER TABLE job_positions ADD COLUMN salario text;
+```
 
-## Arquivos Alterados
+**Arquivos**:
+- `src/components/admin/AdminJobs.tsx` -- adicionar campos de requisitos, funcoes, tipo de contrato e salario no formulario
+- `src/pages/TrabalheConosco.tsx` -- exibir os novos campos (requisitos, funcoes) na listagem de vagas para o candidato ver antes de se candidatar
 
-| Arquivo | Alteracao |
+### 3. Melhorar Pagina de Unidades
+
+**3a. Adicionar imagem as unidades**
+
+**Migracao SQL**:
+```text
+ALTER TABLE units ADD COLUMN imagem_url text;
+```
+
+Criar um bucket de storage `units` para upload de fotos das unidades.
+
+**Arquivos**:
+- `src/components/admin/AdminUnits.tsx` -- adicionar upload de imagem no formulario
+- `src/pages/Unidades.tsx` -- exibir a imagem de cada unidade com design mais visual (card com imagem grande)
+
+**3b. Integracao com Google Maps e Waze**
+
+Na pagina de unidades, ao lado do botao "Como chegar" atual, adicionar botoes especificos:
+- **Google Maps**: `https://www.google.com/maps/dir/?api=1&destination={endereco_encoded}`
+- **Waze**: `https://waze.com/ul?q={endereco_encoded}&navigate=yes`
+
+**Arquivos**:
+- `src/pages/Unidades.tsx` -- adicionar botoes de navegacao para Maps e Waze usando o endereco ou `maps_url` da unidade
+
+### 4. Portfolio - Dados Iniciais
+
+O portfolio publica ja funciona corretamente (busca do banco `portfolio_items`). O problema e que nao ha itens cadastrados.
+
+**Solucao**: Inserir as mesmas imagens que aparecem no home (prato variado, sushi, garcom servindo, etc.) como itens iniciais no portfolio via painel admin. Alternativamente, adicionar um fallback na pagina de portfolio que mostra as imagens estaticas caso o banco esteja vazio.
+
+**Abordagem escolhida**: Adicionar fallback com as imagens estaticas quando nao ha itens no banco, com um aviso "Adicione itens pelo painel administrativo".
+
+**Arquivos**:
+- `src/pages/Portfolio.tsx` -- adicionar fallback com imagens estaticas do home quando o banco esta vazio
+
+---
+
+## Resumo de Arquivos
+
+| Arquivo | Acao |
 |---|---|
-| `src/pages/Index.tsx` | Adicionar `-mt-16` na secao hero para subir o conteudo atras do header. Mudar `h-[90vh]` para `h-screen`. Reduzir overlay de `bg-black/60` para `bg-black/40` |
-
-## Resultado Esperado
-
-- O video hero se estende por toda a tela, passando por tras do header transparente
-- O header mostra o video como fundo quando no topo da pagina
-- Ao rolar, o header transiciona para fundo escuro com blur
-- O overlay mais leve deixa o video mais vibrante sem comprometer a leitura dos textos
+| `supabase/functions/create-admin-user/index.ts` | Novo -- edge function para criar usuarios admin |
+| `src/components/admin/AdminSettings.tsx` | Editar -- secao de gerenciamento de usuarios |
+| `src/components/admin/AdminJobs.tsx` | Editar -- novos campos no formulario de vagas |
+| `src/pages/TrabalheConosco.tsx` | Editar -- exibir requisitos e funcoes das vagas |
+| `src/components/admin/AdminUnits.tsx` | Editar -- upload de imagem da unidade |
+| `src/pages/Unidades.tsx` | Editar -- imagem, botoes Maps/Waze |
+| `src/pages/Portfolio.tsx` | Editar -- fallback com imagens estaticas |
+| Migracoes SQL | Novos campos em `job_positions` e `units`, bucket `units` |
 
