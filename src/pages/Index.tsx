@@ -10,6 +10,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionDivider from "@/components/SectionDivider";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
+import { useGsapScrollEffects } from "@/hooks/useGsapScrollEffects";
 import {
   UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat,
   Play, MessageCircle, ChevronDown, Star, Quote, MapPin, Clock,
@@ -90,8 +91,12 @@ const WordReveal = ({ text, className = "", delay = 0 }: { text: string; classNa
 const Index = () => {
   const { getSetting } = useSiteSettings();
   const heroRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+
+  // GSAP scroll effects
+  useGsapScrollEffects(pageRef);
 
   // Cardápio da Semana
   const [menuDays, setMenuDays] = useState<{ id: string; dia_semana: string; ordem: number }[]>([]);
@@ -128,6 +133,7 @@ const Index = () => {
 
   return (
     <Layout>
+      <div ref={pageRef}>
       {/* ═══════════════ HERO ═══════════════ */}
       <section ref={heroRef} className="relative h-screen -mt-16 flex items-center justify-center overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0">
@@ -217,7 +223,7 @@ const Index = () => {
       </section>
 
       {/* ═══════════════ EXPERIENCE ═══════════════ */}
-      <section className="py-28 md:py-36 px-4 relative overflow-hidden">
+      <section className="py-28 md:py-36 px-4 relative overflow-hidden" data-gsap-speed="0.9">
         {/* Background decorative blob */}
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl animate-blob" />
 
@@ -225,14 +231,14 @@ const Index = () => {
           <ScrollReveal>
             <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
               {/* Text side */}
-              <div className="relative">
+              <div className="relative" data-gsap-slide-left>
                 {/* Vertical gold accent line */}
-                <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-primary/20 to-transparent hidden lg:block" />
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-primary/20 to-transparent hidden lg:block" data-gsap-line />
                 <div className="lg:pl-8">
                   <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">
                     {getSetting("historia_subtitulo", "Desde 1998")}
                   </p>
-                  <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
+                  <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight" data-gsap-reveal>
                     {getSetting("historia_titulo", "A História")}
                   </h2>
                   <p className="text-muted-foreground leading-relaxed text-lg mb-10">
@@ -268,8 +274,8 @@ const Index = () => {
               </div>
 
               {/* Image side */}
-              <div className="relative group">
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
+              <div className="relative group" data-gsap-slide-right>
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/30" data-gsap-parallax="0.3">
                   <AnimatedImage
                     src={salaoRestaurante}
                     alt="Salão do Restaurante Macapabá"
@@ -287,12 +293,12 @@ const Index = () => {
       <SectionDivider />
 
       {/* ═══════════════ SPECIALTIES ═══════════════ */}
-      <section className="py-28 md:py-36 px-4">
+      <section className="py-28 md:py-36 px-4" data-gsap-speed="1.05">
         <div className="container mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Especialidades</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Nossos Destaques</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>Nossos Destaques</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 Três pilares que definem a experiência Macapabá
               </p>
@@ -300,7 +306,7 @@ const Index = () => {
           </ScrollReveal>
 
           <ScrollReveal stagger>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-6" data-gsap-stagger>
               {specialties.map((item, i) => (
                 <StaggerItem key={i}>
                   <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group cursor-pointer">
@@ -336,7 +342,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Galeria</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Momentos & Sabores</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>Momentos & Sabores</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 Uma coleção visual dos nossos melhores momentos
               </p>
@@ -345,7 +351,7 @@ const Index = () => {
 
           <ScrollReveal stagger>
             {/* Asymmetric masonry grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[200px] md:auto-rows-[250px]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[200px] md:auto-rows-[250px]" data-gsap-stagger>
               {portfolioImages.map((img, i) => {
                 const spans = [
                   "md:col-span-2 md:row-span-2",
@@ -391,7 +397,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Cardápio</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Cardápio da Semana</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>Cardápio da Semana</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 Descubra os pratos especiais preparados com carinho para cada dia
               </p>
@@ -572,7 +578,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Depoimentos</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">O Que Dizem</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>O Que Dizem</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 A satisfação dos nossos clientes é o nosso maior prêmio
               </p>
@@ -580,7 +586,7 @@ const Index = () => {
           </ScrollReveal>
 
           <ScrollReveal>
-            <div className="relative">
+            <div className="relative" data-gsap-scale>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTestimonial}
@@ -624,6 +630,7 @@ const Index = () => {
 
       {/* ═══════════════ RESERVA ═══════════════ */}
       <ReservaInline getSetting={getSetting} />
+      </div>
     </Layout>
   );
 };
