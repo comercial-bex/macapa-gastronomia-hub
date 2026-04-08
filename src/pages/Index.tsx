@@ -110,7 +110,7 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
   });
 
   return (
-    <section ref={sectionRef} className="relative" style={{ height: `${items.length * 100}vh` }}>
+    <section ref={sectionRef} className="relative" style={{ height: "150vh" }}>
       <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
         <div className="container mx-auto px-4 pt-20 pb-10 flex-shrink-0">
           <div className="flex items-end justify-between">
