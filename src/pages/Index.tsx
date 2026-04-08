@@ -233,7 +233,7 @@ const Index = () => {
               {/* Text side */}
               <div className="relative">
                 {/* Vertical gold accent line */}
-                <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-primary/20 to-transparent hidden lg:block" />
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-primary/20 to-transparent hidden lg:block" data-gsap-line />
                 <div className="lg:pl-8">
                   <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">
                     {getSetting("historia_subtitulo", "Desde 1998")}
