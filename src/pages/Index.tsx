@@ -293,7 +293,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ═══════════════ SPECIALTIES ═══════════════ */}
-      <section className="py-28 md:py-36 px-4">
+      <section className="py-28 md:py-36 px-4" data-gsap-speed="1.05">
         <div className="container mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
