@@ -3,16 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
+import ScrollReveal from "@/components/ScrollReveal";
 import Layout from "@/components/Layout";
-import AnimatedImage from "@/components/AnimatedImage";
 import AnimatedCounter from "@/components/AnimatedCounter";
-import SectionDivider from "@/components/SectionDivider";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import {
   UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat,
-  Play, MessageCircle, ChevronDown, Star, Quote, MapPin, Clock,
+  MessageCircle, ChevronDown, Star, Quote, MapPin, Clock, ArrowRight,
   type LucideIcon
 } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
@@ -46,12 +44,12 @@ const getDishIcon = (name: string): LucideIcon => {
 };
 
 const portfolioImages = [
-  { src: pratoVariado, alt: "Prato variado com sushi, carne e arroz" },
-  { src: sushi, alt: "Sushi variado" },
-  { src: garcomServindo, alt: "Garçom servindo no restaurante" },
-  { src: clientesRestaurante, alt: "Clientes no restaurante" },
-  { src: salaoRestaurante, alt: "Salão do restaurante" },
-  { src: pratoVariado, alt: "Prato especial do Macapabá" },
+  { src: pratoVariado, alt: "Prato variado" },
+  { src: sushi, alt: "Sushi" },
+  { src: garcomServindo, alt: "Atendimento" },
+  { src: clientesRestaurante, alt: "Experiência" },
+  { src: salaoRestaurante, alt: "Ambiente" },
+  { src: pratoVariado, alt: "Especialidade" },
 ];
 
 const specialties = [
@@ -67,31 +65,40 @@ const testimonials = [
   { name: "Carlos Eduardo F.", text: "Levei clientes de São Paulo e ficaram impressionados. O Macapabá honra a gastronomia do Amapá. Nota 10.", rating: 5 },
 ];
 
-/* ── Word-by-word reveal ── */
-const WordReveal = ({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) => {
-  const words = text.split(" ");
+const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 1998  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
+
+/* ── Scroll Progress Bar ── */
+const ScrollProgress = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
   return (
-    <span className={className}>
-      {words.map((word, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: delay + i * 0.08, ease: "easeOut" }}
-          className="inline-block mr-[0.3em]"
-        >
-          {word}
-        </motion.span>
-      ))}
-    </span>
+    <motion.div
+      style={{ scaleX, transformOrigin: "left" }}
+      className="fixed top-0 left-0 right-0 h-[2px] bg-primary z-[60]"
+    />
   );
 };
+
+/* ── Infinite Marquee ── */
+const InfiniteMarquee = () => (
+  <div className="py-8 md:py-12 overflow-hidden border-y border-border/30">
+    <div className="marquee-track">
+      <span className="marquee-content font-display text-2xl md:text-4xl lg:text-5xl font-bold text-primary/20 whitespace-nowrap select-none">
+        {marqueeText}{marqueeText}
+      </span>
+      <span className="marquee-content font-display text-2xl md:text-4xl lg:text-5xl font-bold text-primary/20 whitespace-nowrap select-none" aria-hidden>
+        {marqueeText}{marqueeText}
+      </span>
+    </div>
+  </div>
+);
 
 const Index = () => {
   const { getSetting } = useSiteSettings();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   // Cardápio da Semana
   const [menuDays, setMenuDays] = useState<{ id: string; dia_semana: string; ordem: number }[]>([]);
@@ -128,7 +135,9 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* ═══════════════ HERO ═══════════════ */}
+      <ScrollProgress />
+
+      {/* ═══════════════ HERO — CINEMATIC ═══════════════ */}
       <section ref={heroRef} className="relative h-screen -mt-16 flex items-center justify-center overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0">
           <video
@@ -138,281 +147,251 @@ const Index = () => {
             poster={garcomServindo}
           />
         </motion.div>
-        {/* Sophisticated overlay: radial + linear */}
-        <div className="absolute inset-0 z-10" style={{
-          background: "radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.65) 100%), linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%)"
-        }} />
+        <div className="absolute inset-0 z-10 bg-black/50" />
 
-        <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+        <motion.div style={{ opacity: heroOpacity }} className="relative z-20 text-center px-4 max-w-5xl mx-auto">
+          <motion.img
+            src={logoMacapaba}
+            alt="Macapabá"
+            initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="mb-8"
-          >
-            <img src={logoMacapaba} alt="Macapabá" className="h-20 md:h-32 mx-auto drop-shadow-2xl" />
-          </motion.div>
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="h-14 md:h-20 mx-auto mb-10 drop-shadow-2xl"
+          />
 
-          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-4 text-white">
-            <WordReveal text={`Sabor ${getSetting("hero_titulo", "e tradição em Macapá desde 1998").replace(/^Sabor\s*/, "")}`} delay={0.3} />
-          </h1>
+          <div className="overflow-hidden">
+            <motion.h1
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="text-display font-display font-light text-white leading-[0.95] tracking-tight"
+            >
+              {getSetting("hero_titulo", "Sabor e tradição em Macapá desde 1998")}
+            </motion.h1>
+          </div>
 
-          {/* Decorative gold line */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ duration: 1, delay: 1.2, ease: "easeOut" }}
-            className="h-px w-32 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-6 origin-center"
+            transition={{ duration: 1.2, delay: 1.2, ease: "easeOut" }}
+            className="h-px w-24 bg-primary mx-auto my-8 origin-center"
           />
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1.4 }}
-            className="text-lg md:text-xl text-white/75 mb-10 max-w-2xl mx-auto font-light tracking-wide"
+            transition={{ duration: 0.8, delay: 1.5 }}
+            className="text-base md:text-lg text-white/60 max-w-xl mx-auto font-light tracking-wide"
           >
             {getSetting("hero_subtitulo", "Uma casa feita de encontros, histórias e pratos que viram memória.")}
           </motion.p>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.8 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <a href="#reserva" onClick={(e) => { e.preventDefault(); document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" }); }}>
-              <motion.div
-                animate={{ boxShadow: ["0 0 0 0 hsl(var(--primary) / 0.4)", "0 0 0 12px hsl(var(--primary) / 0)", "0 0 0 0 hsl(var(--primary) / 0)"] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                className="rounded-md inline-block"
-              >
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-8 active:scale-95 transition-transform">
-                  Fazer Reserva
-                </Button>
-              </motion.div>
-            </a>
-            <Link to="/cardapio">
-              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold uppercase tracking-wider px-8 hover:scale-105 active:scale-95 transition-transform">
-                Ver Cardápio
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-
-        {/* Scroll indicator */}
+        {/* Scroll line indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3"
         >
-          <span className="text-white/40 text-xs uppercase tracking-[0.3em] font-light">Explore</span>
+          <span className="text-white/30 text-[10px] uppercase tracking-[0.4em] font-light">Scroll</span>
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <ChevronDown className="h-5 w-5 text-primary/80" />
-          </motion.div>
+            className="w-px h-12 bg-gradient-to-b from-primary/60 to-transparent"
+            animate={{ scaleY: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            style={{ transformOrigin: "top" }}
+          />
         </motion.div>
       </section>
 
-      {/* ═══════════════ EXPERIENCE ═══════════════ */}
-      <section className="py-28 md:py-36 px-4 relative overflow-hidden">
-        {/* Background decorative blob */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl animate-blob" />
+      {/* ═══════════════ MARQUEE ═══════════════ */}
+      <InfiniteMarquee />
 
+      {/* ═══════════════ HISTÓRIA — SPLIT SCREEN ═══════════════ */}
+      <section className="py-32 md:py-44 px-4">
         <div className="container mx-auto">
-          <ScrollReveal>
-            <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
-              {/* Text side */}
-              <div className="relative">
-                {/* Vertical gold accent line */}
-                <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-primary/20 to-transparent hidden lg:block" />
-                <div className="lg:pl-8">
-                  <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">
-                    {getSetting("historia_subtitulo", "Desde 1998")}
-                  </p>
-                  <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
-                    {getSetting("historia_titulo", "A História")}
-                  </h2>
-                  <p className="text-muted-foreground leading-relaxed text-lg mb-10">
-                    {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá para quem busca uma experiência gastronômica completa.")}
-                  </p>
+          <div className="grid lg:grid-cols-2 gap-20 xl:gap-32 items-center">
+            {/* Text side */}
+            <ScrollReveal>
+              <div>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-6"
+                >
+                  {getSetting("historia_subtitulo", "Desde 1998")}
+                </motion.p>
 
-                  {/* Stats with glassmorphism */}
-                  <div className="grid grid-cols-2 gap-4 mb-10">
-                    <div className="glass-card rounded-xl p-6 text-center group hover:border-primary/30 transition-colors duration-500">
-                      <UtensilsCrossed className="h-6 w-6 text-primary mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                      <p className="font-display text-3xl md:text-4xl font-bold">
-                        <AnimatedCounter target={50} suffix="" />
-                        <span className="text-primary">+</span>
-                      </p>
-                      <p className="text-muted-foreground text-sm mt-1">Variedades</p>
-                    </div>
-                    <div className="glass-card rounded-xl p-6 text-center group hover:border-primary/30 transition-colors duration-500">
-                      <Users className="h-6 w-6 text-primary mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                      <p className="font-display text-3xl md:text-4xl font-bold">
-                        <AnimatedCounter target={100} suffix="" />
-                        <span className="text-primary">+</span>
-                      </p>
-                      <p className="text-muted-foreground text-sm mt-1">Capacidade</p>
-                    </div>
+                <h2 className="text-display font-display font-bold leading-[0.95] mb-10">
+                  {getSetting("historia_titulo", "A História")}
+                </h2>
+
+                <p className="text-muted-foreground leading-relaxed text-lg mb-16 max-w-md">
+                  {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá.")}
+                </p>
+
+                {/* Big numbers — display style */}
+                <div className="flex gap-16">
+                  <div>
+                    <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
+                      <AnimatedCounter target={27} suffix="" />
+                    </p>
+                    <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Anos</p>
                   </div>
-
-                  <a href="#reserva" onClick={(e) => { e.preventDefault(); document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" }); }}>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-105 active:scale-95 transition-transform">
-                      Fazer Reserva
-                    </Button>
-                  </a>
+                  <div>
+                    <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
+                      <AnimatedCounter target={50} suffix="" />
+                      <span className="text-primary/60">+</span>
+                    </p>
+                    <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Pratos</p>
+                  </div>
                 </div>
               </div>
+            </ScrollReveal>
 
-              {/* Image side */}
-              <div className="relative group">
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
-                  <AnimatedImage
+            {/* Image side — reveal */}
+            <ScrollReveal>
+              <div className="relative">
+                <motion.div
+                  initial={{ clipPath: "inset(100% 0 0 0)" }}
+                  whileInView={{ clipPath: "inset(0% 0 0 0)" }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden rounded-sm"
+                >
+                  <img
                     src={salaoRestaurante}
                     alt="Salão do Restaurante Macapabá"
-                    className="w-full h-[500px] lg:h-[600px] object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-[500px] lg:h-[650px] object-cover"
                   />
-                </div>
-                {/* Floating accent frame */}
-                <div className="absolute -bottom-4 -right-4 w-full h-full border border-primary/20 rounded-2xl -z-10" />
+                </motion.div>
               </div>
-            </div>
-          </ScrollReveal>
+            </ScrollReveal>
+          </div>
         </div>
       </section>
 
-      <SectionDivider />
-
-      {/* ═══════════════ SPECIALTIES ═══════════════ */}
-      <section className="py-28 md:py-36 px-4">
-        <div className="container mx-auto">
+      {/* ═══════════════ ESPECIALIDADES — HORIZONTAL SCROLL ═══════════════ */}
+      <section className="py-32 md:py-44">
+        <div className="container mx-auto px-4 mb-16">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Especialidades</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Nossos Destaques</h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-                Três pilares que definem a experiência Macapabá
-              </p>
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Especialidades</p>
+                <h2 className="text-display font-display font-bold leading-[0.95]">Nossos<br />Destaques</h2>
+              </div>
+              <Link to="/cardapio" className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+                Ver cardápio <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </ScrollReveal>
+        </div>
 
-          <ScrollReveal stagger>
-            <div className="grid md:grid-cols-3 gap-6">
-              {specialties.map((item, i) => (
-                <StaggerItem key={i}>
-                  <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group cursor-pointer">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-8 z-10">
-                      <h3 className="font-display text-2xl font-bold text-white mb-2">{item.title}</h3>
-                      <p className="text-white/70 text-sm leading-relaxed opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
-                        {item.desc}
-                      </p>
-                    </div>
-                    {/* Gold corner accent */}
-                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-primary/50 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-4 md:gap-6 px-4 md:px-[max(1rem,calc((100vw-1280px)/2+1rem))] snap-x snap-mandatory" style={{ scrollSnapType: "x mandatory" }}>
+            {specialties.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.15 }}
+                className="flex-shrink-0 w-[80vw] md:w-[60vw] lg:w-[40vw] snap-center"
+              >
+                <div className="relative h-[60vh] md:h-[70vh] overflow-hidden rounded-sm group cursor-pointer">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+                    <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">{item.title}</h3>
+                    <p className="text-white/50 text-sm md:text-base max-w-sm leading-relaxed opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+                      {item.desc}
+                    </p>
                   </div>
-                </StaggerItem>
-              ))}
-            </div>
-          </ScrollReveal>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <SectionDivider />
-
-      {/* ═══════════════ GALLERY ═══════════════ */}
-      <section className="py-28 md:py-36 px-4 relative overflow-hidden">
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl animate-blob animation-delay-2000" />
-
+      {/* ═══════════════ GALERIA — CINEMATIC GRID ═══════════════ */}
+      <section className="py-32 md:py-44 px-4">
         <div className="container mx-auto">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Galeria</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Momentos & Sabores</h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-                Uma coleção visual dos nossos melhores momentos
-              </p>
+            <div className="text-center mb-20">
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Galeria</p>
+              <h2 className="text-display font-display font-bold leading-[0.95]">Momentos</h2>
             </div>
           </ScrollReveal>
 
-          <ScrollReveal stagger>
-            {/* Asymmetric masonry grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[200px] md:auto-rows-[250px]">
-              {portfolioImages.map((img, i) => {
-                const spans = [
-                  "md:col-span-2 md:row-span-2",
-                  "",
-                  "",
-                  "md:col-span-2",
-                  "",
-                  "",
-                ];
-                return (
-                  <StaggerItem key={i} className={`${spans[i] || ""} relative rounded-xl overflow-hidden group cursor-pointer`}>
-                    <img
-                      src={img.src}
-                      alt={img.alt}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-500" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                      <p className="text-white text-sm font-medium">{img.alt}</p>
-                    </div>
-                  </StaggerItem>
-                );
-              })}
-            </div>
-          </ScrollReveal>
+          <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-5xl mx-auto">
+            {portfolioImages.map((img, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className={`overflow-hidden rounded-sm group cursor-pointer ${
+                  i % 3 === 0 ? "h-[300px] md:h-[450px]" : "h-[250px] md:h-[350px]"
+                }`}
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-[1.2s] group-hover:scale-105"
+                />
+              </motion.div>
+            ))}
+          </div>
 
-          <div className="text-center mt-12">
-            <Link to="/portfolio">
-              <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold hover:scale-105 active:scale-95 transition-all">
-                Ver Portfólio Completo
-              </Button>
+          <div className="text-center mt-16">
+            <Link to="/portfolio" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+              Ver portfólio completo <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
       </section>
 
-      <SectionDivider />
-
-      {/* ═══════════════ CARDÁPIO DA SEMANA ═══════════════ */}
-      <section className="py-28 md:py-36 px-4">
+      {/* ═══════════════ CARDÁPIO DA SEMANA — MINIMAL ═══════════════ */}
+      <section className="py-32 md:py-44 px-4 bg-card/50">
         <div className="container mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Cardápio</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Cardápio da Semana</h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-                Descubra os pratos especiais preparados com carinho para cada dia
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Cardápio</p>
+              <h2 className="text-display font-display font-bold leading-[0.95] mb-4">Cardápio da Semana</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Pratos especiais preparados com carinho para cada dia
               </p>
             </div>
           </ScrollReveal>
 
-          {/* Elegant underline tabs */}
+          {/* Minimal underline tabs */}
           <ScrollReveal>
-            <div className="flex justify-center mb-14">
-              <div className="inline-flex gap-1 p-1.5 rounded-full glass-card">
+            <div className="flex justify-center mb-16">
+              <div className="inline-flex gap-6 md:gap-8">
                 {menuDays.map((day, i) => (
                   <button
                     key={day.id}
                     onClick={() => setSelectedDayId(day.id)}
-                    className={`relative px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
-                      selectedDayId === day.id
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                        : "text-muted-foreground hover:text-foreground"
+                    className={`relative text-xs font-semibold uppercase tracking-wider pb-3 transition-colors duration-300 ${
+                      selectedDayId === day.id ? "text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground"
                     }`}
                   >
                     {weekDayLabels[i] || day.dia_semana}
+                    {selectedDayId === day.id && (
+                      <motion.div
+                        layoutId="menu-underline"
+                        className="absolute bottom-0 left-0 right-0 h-px bg-primary"
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -432,7 +411,7 @@ const Index = () => {
                 <>
                   {/* Mobile: Media on top */}
                   <div className="md:hidden flex justify-center">
-                    <div className="relative w-full max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/40 border border-primary/10">
+                    <div className="relative w-full max-w-[280px] aspect-[9/16] rounded-sm overflow-hidden bg-black shadow-2xl shadow-black/40">
                       <AnimatePresence mode="wait">
                         <motion.div
                           key={selectedItems[selectedItemIndex]?.id || selectedItemIndex}
@@ -468,75 +447,62 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Left: Dish list */}
+                  {/* Left: Dish list — minimal */}
                   <div className="flex-1 min-w-0">
-                    <div className="space-y-1">
+                    <div className="divide-y divide-border/30">
                       {selectedItems.map((item, index) => {
-                        const DishIcon = getDishIcon(item.prato);
                         const isActive = index === selectedItemIndex;
                         return (
                           <button
                             key={item.id}
                             onClick={() => setSelectedItemIndex(index)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
-                              isActive
-                                ? "glass-card border-l-4 !border-l-primary shadow-sm"
-                                : "hover:bg-secondary/80 border-l-4 border-transparent"
+                            className={`w-full flex items-center justify-between px-2 py-4 text-left transition-all duration-300 group ${
+                              isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                             }`}
                           >
-                            <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors duration-300 ${
-                              isActive ? "bg-primary/20" : "bg-secondary"
-                            }`}>
-                              <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                            </div>
-                            <span className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                              {item.prato}
-                            </span>
+                            <span className="text-sm font-medium">{item.prato}</span>
+                            <ArrowRight className={`h-3 w-3 transition-all duration-300 ${isActive ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-50"}`} />
                           </button>
                         );
                       })}
                     </div>
                   </div>
 
-                  {/* Right: 9:16 Media Viewer (Desktop) with gold frame */}
+                  {/* Right: 9:16 Media Viewer (Desktop) — clean frame */}
                   <div className="hidden md:flex items-start justify-center flex-shrink-0">
-                    <div className="relative">
-                      <div className="relative w-[300px] aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/40 border border-primary/15">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={selectedItems[selectedItemIndex]?.id || selectedItemIndex}
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            transition={{ duration: 0.35, ease: "easeOut" }}
-                            className="absolute inset-0"
-                          >
-                            {(() => {
-                              const item = selectedItems[selectedItemIndex];
-                              if (!item) return null;
-                              const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                              const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
-                              const currentDay = menuDays.find((d) => d.id === selectedDayId);
-                              return (
-                                <>
-                                  {mediaTipo === 'video' ? (
-                                    <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                                  ) : (
-                                    <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
-                                  )}
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
-                                  <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                                    <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
-                                    <h3 className="font-display text-2xl font-bold text-white">{item.prato}</h3>
-                                  </div>
-                                </>
-                              );
-                            })()}
-                          </motion.div>
-                        </AnimatePresence>
-                      </div>
-                      {/* Gold accent frame */}
-                      <div className="absolute -bottom-3 -right-3 w-full h-full border border-primary/15 rounded-2xl -z-10" />
+                    <div className="relative w-[300px] aspect-[9/16] rounded-sm overflow-hidden bg-black shadow-2xl shadow-black/40">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={selectedItems[selectedItemIndex]?.id || selectedItemIndex}
+                          initial={{ opacity: 0, x: 40 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -40 }}
+                          transition={{ duration: 0.35, ease: "easeOut" }}
+                          className="absolute inset-0"
+                        >
+                          {(() => {
+                            const item = selectedItems[selectedItemIndex];
+                            if (!item) return null;
+                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
+                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            return (
+                              <>
+                                {mediaTipo === 'video' ? (
+                                  <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                ) : (
+                                  <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
+                                <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
+                                  <h3 className="font-display text-2xl font-bold text-white">{item.prato}</h3>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </motion.div>
+                      </AnimatePresence>
                     </div>
                   </div>
                 </>
@@ -548,81 +514,71 @@ const Index = () => {
             </motion.div>
           </AnimatePresence>
 
-          <p className="text-center text-muted-foreground text-xs mt-8 italic opacity-60">
+          <p className="text-center text-muted-foreground text-xs mt-12 opacity-40">
             * O cardápio pode sofrer alterações sem aviso prévio
           </p>
 
           <div className="text-center mt-10">
-            <Link to="/cardapio">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider px-8 hover:scale-105 active:scale-95 transition-transform">
-                Ver Cardápio Completo
-              </Button>
+            <Link to="/cardapio" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+              Ver cardápio completo <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
       </section>
 
-      <SectionDivider />
+      {/* ═══════════════ DEPOIMENTOS — FULL WIDTH QUOTE ═══════════════ */}
+      <section className="py-32 md:py-44 px-4 relative overflow-hidden">
+        <div className="container mx-auto max-w-4xl relative">
+          {/* Giant decorative quote */}
+          <div className="absolute -top-10 left-0 text-[180px] md:text-[250px] font-display font-bold text-primary/[0.04] leading-none select-none pointer-events-none">
+            "
+          </div>
 
-      {/* ═══════════════ TESTIMONIALS ═══════════════ */}
-      <section className="py-28 md:py-36 px-4 relative overflow-hidden">
-        <div className="absolute top-20 right-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl animate-blob animation-delay-4000" />
-
-        <div className="container mx-auto max-w-4xl">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Depoimentos</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">O Que Dizem</h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-                A satisfação dos nossos clientes é o nosso maior prêmio
-              </p>
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Depoimentos</p>
             </div>
           </ScrollReveal>
 
-          <ScrollReveal>
-            <div className="relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTestimonial}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="glass-card rounded-2xl p-10 md:p-14 text-center relative"
-                >
-                  <Quote className="h-10 w-10 text-primary/30 mx-auto mb-6" />
-                  <p className="text-lg md:text-xl text-foreground/90 leading-relaxed mb-8 italic font-light">
-                    "{testimonials[activeTestimonial].text}"
-                  </p>
-                  <div className="flex items-center justify-center gap-1 mb-3">
-                    {Array.from({ length: testimonials[activeTestimonial].rating }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 text-primary fill-primary" />
-                    ))}
-                  </div>
-                  <p className="font-display text-lg font-semibold text-foreground">{testimonials[activeTestimonial].name}</p>
-                </motion.div>
-              </AnimatePresence>
+          <div className="relative min-h-[200px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTestimonial}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
+              >
+                <p className="text-2xl md:text-3xl lg:text-4xl text-foreground/90 leading-relaxed mb-10 italic font-display font-light">
+                  "{testimonials[activeTestimonial].text}"
+                </p>
+                <div className="flex items-center justify-center gap-1 mb-4">
+                  {Array.from({ length: testimonials[activeTestimonial].rating }).map((_, i) => (
+                    <Star key={i} className="h-3 w-3 text-primary fill-primary" />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground uppercase tracking-wider">{testimonials[activeTestimonial].name}</p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-              {/* Dots */}
-              <div className="flex justify-center gap-2 mt-8">
-                {testimonials.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveTestimonial(i)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      i === activeTestimonial ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </ScrollReveal>
+          {/* Line dots */}
+          <div className="flex justify-center gap-3 mt-12">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTestimonial(i)}
+                className={`h-px transition-all duration-500 ${
+                  i === activeTestimonial ? "w-10 bg-primary" : "w-5 bg-muted-foreground/20 hover:bg-muted-foreground/40"
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      <SectionDivider />
-
-      {/* ═══════════════ RESERVA ═══════════════ */}
+      {/* ═══════════════ RESERVA — CLEAN FORM ═══════════════ */}
       <ReservaInline getSetting={getSetting} />
     </Layout>
   );
@@ -670,112 +626,130 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   };
 
   return (
-    <section id="reserva" className="py-28 md:py-36 px-4 relative overflow-hidden">
-      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl animate-blob animation-delay-2000" />
-
-      <div className="container mx-auto">
+    <section id="reserva" className="py-32 md:py-44 px-4 bg-card/30">
+      <div className="container mx-auto max-w-2xl">
         <ScrollReveal>
           <div className="text-center mb-16">
-            <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Reserva</p>
-            <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">{getSetting("cta_titulo", "Reserve sua mesa agora")}</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto text-lg">
+            <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Reserva</p>
+            <h2 className="text-display font-display font-bold leading-[0.95] mb-4">
+              {getSetting("cta_titulo", "Reserve sua mesa")}
+            </h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
               {getSetting("cta_subtitulo", "Garanta seu lugar para uma experiência gastronômica inesquecível.")}
             </p>
           </div>
         </ScrollReveal>
 
         <ScrollReveal>
-          <div className="grid lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden glass-card max-w-5xl mx-auto shadow-2xl shadow-black/20">
-            {/* Image with parallax feel */}
-            <div className="relative h-64 lg:h-auto min-h-[400px] overflow-hidden group">
-              <img
-                src={salaoRestaurante}
-                alt="Salão do Restaurante Macapabá"
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/20" />
-              {/* Floating info */}
-              <div className="absolute bottom-6 left-6 z-10 hidden lg:block">
-                <div className="flex items-center gap-2 text-white/80 text-sm">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span>Macapá, AP</span>
+          {!sent ? (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid sm:grid-cols-2 gap-8">
+                <div>
+                  <Label htmlFor="res-nome" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nome *</Label>
+                  <input
+                    id="res-nome"
+                    value={form.nome}
+                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                    required
+                    maxLength={100}
+                    className="input-underline"
+                    placeholder="Seu nome"
+                  />
                 </div>
-                <div className="flex items-center gap-2 text-white/80 text-sm mt-1">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span>Mesa garantida até 12h</span>
+                <div>
+                  <Label htmlFor="res-telefone" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Telefone *</Label>
+                  <input
+                    id="res-telefone"
+                    value={form.telefone}
+                    onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                    required
+                    maxLength={20}
+                    className="input-underline"
+                    placeholder="(00) 00000-0000"
+                  />
                 </div>
               </div>
-            </div>
+              <div className="grid sm:grid-cols-2 gap-8">
+                <div>
+                  <Label htmlFor="res-data" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Data *</Label>
+                  <input
+                    id="res-data"
+                    type="date"
+                    value={form.data}
+                    onChange={(e) => setForm({ ...form, data: e.target.value })}
+                    required
+                    className="input-underline"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="res-pessoas" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nº Pessoas *</Label>
+                  <input
+                    id="res-pessoas"
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={form.pessoas}
+                    onChange={(e) => setForm({ ...form, pessoas: e.target.value })}
+                    required
+                    className="input-underline"
+                  />
+                </div>
+              </div>
 
-            {/* Form */}
-            <div className="p-8 md:p-10">
-              {!sent ? (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="res-nome">Nome *</Label>
-                      <Input id="res-nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required maxLength={100} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
-                    </div>
-                    <div>
-                      <Label htmlFor="res-telefone">Telefone / WhatsApp *</Label>
-                      <Input id="res-telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} required maxLength={20} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
-                    </div>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="res-data">Data *</Label>
-                      <Input id="res-data" type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
-                    </div>
-                    <div>
-                      <Label htmlFor="res-pessoas">Nº Pessoas *</Label>
-                      <Input id="res-pessoas" type="number" min="1" max="50" value={form.pessoas} onChange={(e) => setForm({ ...form, pessoas: e.target.value })} required className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2 rounded-lg bg-primary/10 border border-primary/20 p-3">
-                    <Calendar className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-muted-foreground">A reserva garante sua mesa até as <strong className="text-foreground">12h</strong>. Após esse horário, a mesa será liberada para outros clientes.</p>
-                  </div>
-                  <div>
-                    <Label htmlFor="res-obs">Observações</Label>
-                    <Textarea id="res-obs" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} maxLength={500} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
-                  </div>
-                  <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-[1.02] active:scale-95 transition-transform">
-                    {loading ? "Enviando..." : "Enviar Reserva"}
-                  </Button>
-                  <div className="text-center">
-                    <p className="text-muted-foreground text-sm mb-3">ou</p>
-                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                      <Button type="button" variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2 hover:scale-105 active:scale-95 transition-transform">
-                        <MessageCircle className="h-4 w-4" /> Reservar pelo WhatsApp
-                      </Button>
-                    </a>
-                  </div>
-                </form>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center justify-center h-full text-center py-8 gap-6"
-                >
-                  <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Calendar className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-2xl font-bold mb-2">Reserva Enviada!</h3>
-                    <p className="text-muted-foreground">Entraremos em contato para confirmar. Você também pode confirmar pelo WhatsApp:</p>
-                  </div>
-                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white gap-2 hover:scale-105 active:scale-95 transition-transform">
-                      <MessageCircle className="h-4 w-4" /> Confirmar pelo WhatsApp
-                    </Button>
-                  </a>
-                  <Button variant="ghost" onClick={resetForm} className="text-muted-foreground hover:text-foreground">
-                    Fazer nova reserva
-                  </Button>
-                </motion.div>
-              )}
-            </div>
-          </div>
+              <div className="flex items-start gap-2 py-3 border-b border-primary/20">
+                <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-muted-foreground">A reserva garante sua mesa até as <strong className="text-foreground">12h</strong>.</p>
+              </div>
+
+              <div>
+                <Label htmlFor="res-obs" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Observações</Label>
+                <textarea
+                  id="res-obs"
+                  value={form.observacoes}
+                  onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
+                  rows={3}
+                  maxLength={500}
+                  className="input-underline resize-none"
+                  placeholder="Alguma observação especial?"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-fill-hover w-full"
+              >
+                {loading ? "Enviando..." : "Enviar Reserva"}
+              </button>
+
+              <div className="text-center pt-4">
+                <p className="text-muted-foreground/40 text-xs mb-4">ou</p>
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-green-500 transition-colors">
+                  <MessageCircle className="h-4 w-4" /> Reservar pelo WhatsApp
+                </a>
+              </div>
+            </form>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center text-center py-16 gap-6"
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Calendar className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-display text-2xl font-bold mb-2">Reserva Enviada!</h3>
+                <p className="text-muted-foreground">Entraremos em contato para confirmar.</p>
+              </div>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-green-500 transition-colors">
+                <MessageCircle className="h-4 w-4" /> Confirmar pelo WhatsApp
+              </a>
+              <button onClick={resetForm} className="text-sm text-muted-foreground/50 hover:text-foreground transition-colors">
+                Fazer nova reserva
+              </button>
+            </motion.div>
+          )}
         </ScrollReveal>
       </div>
     </section>
