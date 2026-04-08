@@ -274,7 +274,7 @@ const Index = () => {
               </div>
 
               {/* Image side */}
-              <div className="relative group">
+              <div className="relative group" data-gsap-slide-right>
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
                   <AnimatedImage
                     src={salaoRestaurante}
