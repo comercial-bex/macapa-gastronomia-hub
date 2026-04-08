@@ -586,7 +586,7 @@ const Index = () => {
           </ScrollReveal>
 
           <ScrollReveal>
-            <div className="relative">
+            <div className="relative" data-gsap-scale>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTestimonial}
