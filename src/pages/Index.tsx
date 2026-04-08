@@ -351,7 +351,7 @@ const Index = () => {
 
           <ScrollReveal stagger>
             {/* Asymmetric masonry grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[200px] md:auto-rows-[250px]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[200px] md:auto-rows-[250px]" data-gsap-stagger>
               {portfolioImages.map((img, i) => {
                 const spans = [
                   "md:col-span-2 md:row-span-2",
