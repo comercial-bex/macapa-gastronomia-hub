@@ -306,7 +306,7 @@ const Index = () => {
           </ScrollReveal>
 
           <ScrollReveal stagger>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-6" data-gsap-stagger>
               {specialties.map((item, i) => (
                 <StaggerItem key={i}>
                   <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group cursor-pointer">
