@@ -275,12 +275,10 @@ const Index = () => {
 
               {/* Image side */}
               <div className="relative group" data-gsap-slide-right>
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/30" data-gsap-parallax="0.3">
                   <AnimatedImage
                     src={salaoRestaurante}
                     alt="Salão do Restaurante Macapabá"
-                    className="w-full h-[500px] lg:h-[600px] object-cover group-hover:scale-105 transition-transform duration-700"
-                    data-gsap-parallax="0.4"
                     className="w-full h-[500px] lg:h-[600px] object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 </div>
