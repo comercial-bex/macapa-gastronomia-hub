@@ -128,7 +128,6 @@ const Index = () => {
 
   return (
     <Layout>
-      <div ref={pageRef}>
       {/* ═══════════════ HERO ═══════════════ */}
       <section ref={heroRef} className="relative h-screen -mt-16 flex items-center justify-center overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0">
