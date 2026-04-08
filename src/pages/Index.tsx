@@ -223,7 +223,7 @@ const Index = () => {
       </section>
 
       {/* ═══════════════ EXPERIENCE ═══════════════ */}
-      <section className="py-28 md:py-36 px-4 relative overflow-hidden">
+      <section className="py-28 md:py-36 px-4 relative overflow-hidden" data-gsap-speed="0.9">
         {/* Background decorative blob */}
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl animate-blob" />
 
