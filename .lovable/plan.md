@@ -1,57 +1,95 @@
 
 
-# Ajuste da Regra de Negocio da Reserva
+# Redesign Premium da Página Inicial — Layout Restaurante Internacional
 
-## Regra Atual
-O formulario de reserva permite escolher qualquer horario livremente (campo `type="time"` sem restricoes).
+**Skill atuante: Pax (Frontend) com direção de Aria (Arquitetura) e validação de Quinn (QA)**
 
-## Nova Regra
-- A reserva so pode ser utilizada ate **meio-dia (12:00)**
-- Sem tolerancia -- o cliente deve chegar ate as 12:00
-- Nao ha cobranca de taxa
-- A reserva e um complemento, nao uma obrigacao
+---
 
-## Implementacao
+## Visão Geral
 
-### Arquivo: `src/pages/Index.tsx` (componente ReservaInline)
+Recriar o layout da página inicial com estética de restaurante internacional premium, mantendo o vídeo hero e toda a lógica existente (cardápio da semana, reserva inline). O foco é em efeitos visuais sofisticados, tipografia elegante, espaçamento generoso e micro-interações refinadas.
 
-1. **Remover o campo de horario** do formulario, ja que a reserva so vale ate meio-dia. Nao faz sentido o usuario escolher horario se a regra e fixa. O campo sera substituido por um aviso informativo.
+---
 
-2. **Adicionar aviso claro** sobre a regra: exibir um texto informativo no formulario, algo como:
-   - "A reserva garante sua mesa ate as 12h. Apos esse horario, a mesa pode ser liberada para outros clientes."
+## Seções do Novo Layout
 
-3. **Ajustar o valor enviado ao banco**: o campo `horario` sera preenchido automaticamente com "12:00" (valor fixo), ja que a reserva sempre vale ate meio-dia.
+### 1. Hero (mantido com melhorias)
+- Vídeo background preservado com overlay gradiente mais sofisticado (gradiente radial + linear)
+- Texto hero com animação de reveal por letra/palavra (typewriter premium)
+- Linha decorativa dourada animada abaixo do subtítulo
+- Scroll indicator animado (chevron pulsante) no rodapé do hero
 
-4. **Ajustar a mensagem do WhatsApp**: remover a referencia ao horario escolhido e substituir pela regra fixa ("Reserva valida ate 12h").
+### 2. Seção "Experiência" (substitui "Desde 1998")
+- Layout assimétrico: imagem grande à direita com bordas arredondadas e sombra premium, texto à esquerda
+- Números animados em cards com efeito glassmorphism e ícones dourados
+- Linha vertical dourada decorativa ao lado do texto
+- Hover parallax sutil na imagem
 
-### Detalhes Tecnicos
+### 3. Seção "Especialidades" (nova — destaques do menu)
+- 3 cards horizontais com imagem de fundo, overlay gradiente e texto sobreposto
+- Efeito hover: zoom na imagem + reveal de descrição
+- Cada card representa uma categoria (Amazônica, Grelhados, Sushi)
+- Animação staggered na entrada
 
-| Alteracao | Detalhe |
+### 4. Seção "Galeria / Portfólio" (redesenhada)
+- Layout masonry/grid assimétrico com imagens de tamanhos variados
+- Efeito hover: scale + overlay com nome da imagem
+- Transição suave com framer-motion stagger
+
+### 5. Seção "Cardápio da Semana" (mantido com melhorias visuais)
+- Tabs dos dias com design mais elegante (underline animada em vez de background)
+- Card do prato com efeito glassmorphism
+- Viewer 9:16 mantido mas com moldura premium (borda dourada sutil)
+
+### 6. Seção "Depoimentos" (nova)
+- Citações de clientes em cards com aspas decorativas douradas
+- Carousel automático com dots indicator
+- Dados estáticos iniciais (pode ser conectado ao banco depois)
+
+### 7. Seção "Reserva" (mantida com polish visual)
+- Glassmorphism no card do formulário
+- Imagem com parallax sutil
+- Botões com efeitos hover mais refinados
+
+---
+
+## Efeitos Premium Implementados
+
+| Efeito | Onde |
 |---|---|
-| Campo `horario` no formulario | Removido do formulario visivel. Valor fixo "12:00" enviado ao banco |
-| Aviso ao usuario | Texto informativo sobre a regra de uso ate 12h, sem tolerancia |
-| Mensagem WhatsApp | Ajustada para refletir a regra fixa |
-| Estado do formulario | `horario` removido do state ou mantido como valor fixo |
-| Banco de dados | Nenhuma alteracao necessaria -- a coluna `horario` continua existindo, so recebe valor fixo |
+| Parallax scroll | Hero, imagem da história, imagem da reserva |
+| Glassmorphism | Cards de números, card do cardápio, depoimentos |
+| Reveal animations | Textos entrando com fade+slide staggered |
+| Hover zoom | Galeria, cards de especialidades |
+| Gradient overlays | Hero (radial), cards, galeria |
+| Decorative elements | Linhas douradas, aspas decorativas, ornamentos |
+| Scroll indicator | Chevron animado no hero |
+| Underline tabs | Cardápio da semana |
+| Smooth transitions | Todas as seções com ScrollReveal refinado |
 
-### Layout do Formulario Atualizado
+---
 
-```text
-+----------------------------------+
-| Nome *          | Telefone *     |
-+----------------------------------+
-| Data *          | N Pessoas *    |
-+----------------------------------+
-| Observacoes                      |
-+----------------------------------+
-| (i) A reserva garante sua mesa   |
-|     ate as 12h. Apos esse        |
-|     horario, a mesa sera         |
-|     liberada.                    |
-+----------------------------------+
-| [ Enviar Reserva ]              |
-| ou Reservar pelo WhatsApp       |
-+----------------------------------+
-```
+## Arquivos Modificados
 
-O grid de 3 colunas (data, horario, pessoas) passara a 2 colunas (data, pessoas), com o aviso abaixo.
+| Arquivo | Ação |
+|---|---|
+| `src/pages/Index.tsx` | Reescrita completa do layout com todas as seções premium |
+| `src/components/SectionDivider.tsx` | Redesign com ornamento dourado mais elaborado |
+| `src/index.css` | Adicionar utilitários CSS para glassmorphism refinado e gradientes |
+
+## Arquivos Preservados
+- Toda a lógica de cardápio da semana (fetch, tabs, seleção)
+- Toda a lógica de reserva inline (formulário, submit, WhatsApp)
+- Header, Footer, Layout inalterados
+- Imports de imagens e assets existentes
+
+---
+
+## Detalhes Técnicos
+
+- Componentes extraídos: `HeroSection`, `ExperienceSection`, `SpecialtiesSection`, `GallerySection`, `TestimonialsSection` — todos dentro do mesmo arquivo Index.tsx para simplicidade
+- Animações via `framer-motion` (já instalado)
+- Tokens de cor via variáveis CSS existentes (primary, background, etc.)
+- Mobile-first: todas as seções responsivas com breakpoints 360px / 768px / 1280px+
+
