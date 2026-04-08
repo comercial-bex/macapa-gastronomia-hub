@@ -280,6 +280,8 @@ const Index = () => {
                     src={salaoRestaurante}
                     alt="Salão do Restaurante Macapabá"
                     className="w-full h-[500px] lg:h-[600px] object-cover group-hover:scale-105 transition-transform duration-700"
+                    data-gsap-parallax="0.4"
+                    className="w-full h-[500px] lg:h-[600px] object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 </div>
                 {/* Floating accent frame */}
