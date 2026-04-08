@@ -342,7 +342,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Galeria</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Momentos & Sabores</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>Momentos & Sabores</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 Uma coleção visual dos nossos melhores momentos
               </p>
