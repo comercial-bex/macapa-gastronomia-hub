@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap');
 
 html.lenis, html.lenis body {
   height: auto;
@@ -80,10 +80,17 @@ html.lenis, html.lenis body {
 }
 
 @layer utilities {
+  /* ── Display typography ── */
+  .text-display {
+    font-size: clamp(2.5rem, 7vw, 6rem);
+  }
+
+  /* ── Text gradient ── */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-amber-300;
   }
 
+  /* ── Glass effects ── */
   .glass-effect {
     @apply backdrop-blur-xl bg-white/[0.06] border border-white/[0.10];
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -95,6 +102,7 @@ html.lenis, html.lenis body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
+  /* ── Sidebar icon glow ── */
   .sidebar-icon-glow {
     @apply transition-all duration-300;
   }
@@ -103,6 +111,16 @@ html.lenis, html.lenis body {
     @apply text-primary;
   }
 
+  /* ── Hide scrollbar ── */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Blob animation ── */
   @keyframes blob {
     0%, 100% { transform: translate(0, 0) scale(1); }
     25% { transform: translate(30px, -20px) scale(1.05); }
@@ -121,4 +139,94 @@ html.lenis, html.lenis body {
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+}
+
+/* ── Marquee infinite scroll ── */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: fit-content;
+  animation: marquee-scroll 30s linear infinite;
+}
+
+.marquee-content {
+  flex-shrink: 0;
+  padding-right: 2rem;
+}
+
+/* ── Input underline style ── */
+.input-underline {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input-underline::placeholder {
+  color: hsl(var(--muted-foreground) / 0.5);
+}
+
+.input-underline:focus {
+  border-bottom-color: hsl(var(--primary));
+}
+
+/* ── Button fill hover ── */
+.btn-fill-hover {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.875rem 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition: color 0.4s ease, border-color 0.4s ease;
+}
+
+.btn-fill-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: hsl(var(--primary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
+}
+
+.btn-fill-hover:hover {
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.btn-fill-hover:hover::before {
+  transform: scaleX(1);
+}
+
+.btn-fill-hover:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-fill-hover:disabled:hover::before {
+  transform: scaleX(0);
 }
