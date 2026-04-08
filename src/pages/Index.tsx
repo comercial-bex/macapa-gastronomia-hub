@@ -10,7 +10,6 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionDivider from "@/components/SectionDivider";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import { useGsapScrollEffects } from "@/hooks/useGsapScrollEffects";
 import {
   UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat,
   Play, MessageCircle, ChevronDown, Star, Quote, MapPin, Clock,
