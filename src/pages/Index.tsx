@@ -96,12 +96,21 @@ const InfiniteMarquee = () => (
 /* ── Pinned Horizontal Scroll for Specialties ── */
 const HorizontalScrollSection = ({ specialties: items }: { specialties: { title: string; desc: string; image: string }[] }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const cardCount = items.length;
-  const x = useTransform(scrollYProgress, [0, 1], ["0%", `-${(cardCount - 1) * 100}%`]);
+
+  // Use useTransform with a function so it always reads the latest scrollWidth
+  const x = useTransform(scrollYProgress, (progress) => {
+    if (!trackRef.current) return 0;
+    const scrollWidth = trackRef.current.scrollWidth;
+    const containerWidth = trackRef.current.parentElement?.clientWidth || window.innerWidth;
+    const maxScroll = Math.max(0, scrollWidth - containerWidth);
+    return -progress * maxScroll;
+  });
 
   return (
-    <section ref={sectionRef} style={{ height: `${cardCount * 100}vh` }}>
+    <section ref={sectionRef} className="relative" style={{ height: `${items.length * 100}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
         <div className="container mx-auto px-4 pt-20 pb-10 flex-shrink-0">
           <div className="flex items-end justify-between">
@@ -115,7 +124,7 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
           </div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <motion.div style={{ x }} className="flex h-full gap-6 px-4">
+          <motion.div ref={trackRef} style={{ x }} className="flex h-full gap-6 px-4">
             {items.map((item, i) => (
               <div key={i} className="flex-shrink-0 w-[80vw] md:w-[60vw] lg:w-[45vw] h-full pb-8">
                 <div className="relative h-full overflow-hidden rounded-sm group cursor-pointer">
