@@ -298,7 +298,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Especialidades</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Nossos Destaques</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>Nossos Destaques</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 Três pilares que definem a experiência Macapabá
               </p>
