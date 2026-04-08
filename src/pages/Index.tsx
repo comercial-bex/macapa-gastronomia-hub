@@ -578,7 +578,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="text-center mb-16">
               <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">Depoimentos</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">O Que Dizem</h2>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4" data-gsap-reveal>O Que Dizem</h2>
               <p className="text-muted-foreground max-w-lg mx-auto text-lg">
                 A satisfação dos nossos clientes é o nosso maior prêmio
               </p>
