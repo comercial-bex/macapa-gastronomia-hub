@@ -624,7 +624,6 @@ const Index = () => {
 
       {/* ═══════════════ RESERVA ═══════════════ */}
       <ReservaInline getSetting={getSetting} />
-      </div>
     </Layout>
   );
 };
