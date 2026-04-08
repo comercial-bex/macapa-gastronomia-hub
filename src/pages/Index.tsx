@@ -238,7 +238,7 @@ const Index = () => {
                   <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em] mb-4">
                     {getSetting("historia_subtitulo", "Desde 1998")}
                   </p>
-                  <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
+                  <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight" data-gsap-reveal>
                     {getSetting("historia_titulo", "A História")}
                   </h2>
                   <p className="text-muted-foreground leading-relaxed text-lg mb-10">
