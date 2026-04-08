@@ -91,8 +91,12 @@ const WordReveal = ({ text, className = "", delay = 0 }: { text: string; classNa
 const Index = () => {
   const { getSetting } = useSiteSettings();
   const heroRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+
+  // GSAP scroll effects
+  useGsapScrollEffects(pageRef);
 
   // Cardápio da Semana
   const [menuDays, setMenuDays] = useState<{ id: string; dia_semana: string; ordem: number }[]>([]);
