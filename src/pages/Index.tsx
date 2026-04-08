@@ -272,52 +272,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ═══════════════ ESPECIALIDADES — HORIZONTAL SCROLL ═══════════════ */}
-      <section className="py-32 md:py-44">
-        <div className="container mx-auto px-4 mb-16">
-          <ScrollReveal>
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Especialidades</p>
-                <h2 className="text-display font-display font-bold leading-[0.95]">Nossos<br />Destaques</h2>
-              </div>
-              <Link to="/cardapio" className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
-                Ver cardápio <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </ScrollReveal>
-        </div>
-
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex gap-4 md:gap-6 px-4 md:px-[max(1rem,calc((100vw-1280px)/2+1rem))] snap-x snap-mandatory" style={{ scrollSnapType: "x mandatory" }}>
-            {specialties.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.15 }}
-                className="flex-shrink-0 w-[80vw] md:w-[60vw] lg:w-[40vw] snap-center"
-              >
-                <div className="relative h-[60vh] md:h-[70vh] overflow-hidden rounded-sm group cursor-pointer">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
-                    <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">{item.title}</h3>
-                    <p className="text-white/50 text-sm md:text-base max-w-sm leading-relaxed opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ═══════════════ ESPECIALIDADES — PINNED HORIZONTAL SCROLL ═══════════════ */}
+      <HorizontalScrollSection specialties={specialties} />
 
       {/* ═══════════════ GALERIA — CINEMATIC GRID ═══════════════ */}
       <section className="py-32 md:py-44 px-4">
