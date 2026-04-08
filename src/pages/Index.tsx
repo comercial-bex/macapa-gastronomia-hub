@@ -231,7 +231,7 @@ const Index = () => {
           <ScrollReveal>
             <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
               {/* Text side */}
-              <div className="relative">
+              <div className="relative" data-gsap-slide-left>
                 {/* Vertical gold accent line */}
                 <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/60 via-primary/20 to-transparent hidden lg:block" data-gsap-line />
                 <div className="lg:pl-8">
