@@ -93,6 +93,54 @@ const InfiniteMarquee = () => (
   </div>
 );
 
+/* ── Pinned Horizontal Scroll for Specialties ── */
+const HorizontalScrollSection = ({ specialties: items }: { specialties: { title: string; desc: string; image: string }[] }) => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  const cardCount = items.length;
+  const x = useTransform(scrollYProgress, [0, 1], ["0%", `-${(cardCount - 1) * 100}%`]);
+
+  return (
+    <section ref={sectionRef} style={{ height: `${cardCount * 100}vh` }}>
+      <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
+        <div className="container mx-auto px-4 pt-20 pb-10 flex-shrink-0">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Especialidades</p>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[0.95]">Nossos<br />Destaques</h2>
+            </div>
+            <Link to="/cardapio" className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+              Ver cardápio <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <motion.div style={{ x }} className="flex h-full gap-6 px-4">
+            {items.map((item, i) => (
+              <div key={i} className="flex-shrink-0 w-[80vw] md:w-[60vw] lg:w-[45vw] h-full pb-8">
+                <div className="relative h-full overflow-hidden rounded-sm group cursor-pointer">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+                    <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">{item.title}</h3>
+                    <p className="text-white/50 text-sm md:text-base max-w-sm leading-relaxed opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const Index = () => {
   const { getSetting } = useSiteSettings();
   const heroRef = useRef<HTMLDivElement>(null);
