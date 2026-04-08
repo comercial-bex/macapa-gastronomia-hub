@@ -97,23 +97,17 @@ const InfiniteMarquee = () => (
 const HorizontalScrollSection = ({ specialties: items }: { specialties: { title: string; desc: string; image: string }[] }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const [maxScroll, setMaxScroll] = useState(0);
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const x = useTransform(scrollYProgress, [0, 1], [0, -maxScroll]);
 
-  useEffect(() => {
-    const measure = () => {
-      if (trackRef.current) {
-        const scrollWidth = trackRef.current.scrollWidth;
-        const clientWidth = trackRef.current.parentElement?.clientWidth || window.innerWidth;
-        setMaxScroll(Math.max(0, scrollWidth - clientWidth));
-      }
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
+  // Use useTransform with a function so it always reads the latest scrollWidth
+  const x = useTransform(scrollYProgress, (progress) => {
+    if (!trackRef.current) return 0;
+    const scrollWidth = trackRef.current.scrollWidth;
+    const containerWidth = trackRef.current.parentElement?.clientWidth || window.innerWidth;
+    const maxScroll = Math.max(0, scrollWidth - containerWidth);
+    return -progress * maxScroll;
+  });
 
   return (
     <section ref={sectionRef} className="relative" style={{ height: `${items.length * 100}vh` }}>
