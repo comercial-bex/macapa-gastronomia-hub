@@ -60,9 +60,9 @@ const specialties = [
 
 const testimonials = [
   { name: "Ana Carolina M.", text: "Uma experiência gastronômica incomparável. O peixe amazônico é simplesmente divino. Ambiente elegante e atendimento impecável.", rating: 5 },
-  { name: "Roberto S.", text: "Frequento o Macapabá desde a inauguração. Quase 30 anos de qualidade consistente — isso é raro. Minha família adora.", rating: 5 },
+   { name: "Roberto S.", text: "Frequento o Macapaba desde a inauguração. Quase 30 anos de qualidade consistente — isso é raro. Minha família adora.", rating: 5 },
   { name: "Juliana P.", text: "O melhor restaurante de Macapá, sem dúvida. O buffet é variado, tudo fresco, e o sushi é espetacular. Recomendo demais!", rating: 5 },
-  { name: "Carlos Eduardo F.", text: "Levei clientes de São Paulo e ficaram impressionados. O Macapabá honra a gastronomia do Amapá. Nota 10.", rating: 5 },
+   { name: "Carlos Eduardo F.", text: "Levei clientes de São Paulo e ficaram impressionados. O Macapaba honra a gastronomia do Amapá. Nota 10.", rating: 5 },
 ];
 
 const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 1998  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
@@ -209,7 +209,7 @@ const Index = () => {
         <motion.div style={{ opacity: heroOpacity }} className="relative z-20 text-center px-4 max-w-5xl mx-auto">
           <motion.img
             src={logoMacapaba}
-            alt="Macapabá"
+             alt="Macapaba"
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
@@ -285,7 +285,7 @@ const Index = () => {
                 </h2>
 
                 <p className="text-muted-foreground leading-relaxed text-lg mb-16 max-w-md">
-                  {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapabá carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá.")}
+                   {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapaba carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá.")}
                 </p>
 
                 {/* Big numbers — display style */}
@@ -319,7 +319,7 @@ const Index = () => {
                 >
                   <img
                     src={salaoRestaurante}
-                    alt="Salão do Restaurante Macapabá"
+                     alt="Salão do Restaurante Macapaba"
                     className="w-full h-[500px] lg:h-[650px] object-cover"
                   />
                 </motion.div>

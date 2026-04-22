@@ -39,7 +39,7 @@ const Header = () => {
     >
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/">
-          <img src={logoMacapaba} alt="Macapabá" className="h-10" />
+           <img src={logoMacapaba} alt="Macapaba" className="h-10" />
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8">
