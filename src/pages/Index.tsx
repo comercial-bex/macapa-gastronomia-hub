@@ -629,7 +629,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
     }
   };
 
-  const whatsappUrl = `https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}?text=${encodeURIComponent(
+  const whatsappUrl = `https://wa.me/${getSetting("whatsapp_numero", "5596991832460")}?text=${encodeURIComponent(
     `Olá! Gostaria de fazer uma reserva:\nNome: ${form.nome}\nTelefone: ${form.telefone}\nData: ${form.data}\nPessoas: ${form.pessoas}\nReserva válida até 12h${form.observacoes ? `\nObs: ${form.observacoes}` : ""}`
   )}`;
 
