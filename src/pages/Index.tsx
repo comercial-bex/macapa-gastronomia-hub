@@ -18,10 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 
-import pratoVariado from "@/assets/prato-variado.jpeg";
-import sushi from "@/assets/sushi.jpeg";
-import garcomServindo from "@/assets/garcom-servindo.jpeg";
-import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
+ import pratoVariado from "@/assets/prato-variado.jpg";
+ import sushi from "@/assets/sushi.jpg";
+ import garcomServindo from "@/assets/garcom-servindo.jpg";
+ import clientesRestaurante from "@/assets/clientes-restaurante.jpg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpg";
 
 import foodDemo1 from "@/assets/food-demo-1.jpeg";
