@@ -65,7 +65,7 @@ const testimonials = [
    { name: "Carlos Eduardo F.", text: "Levei clientes de São Paulo e ficaram impressionados. O Macapaba honra a gastronomia do Amapá. Nota 10.", rating: 5 },
 ];
 
-const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 1998  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
+const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 2018  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
 
 /* ── Scroll Progress Bar ── */
 const ScrollProgress = () => {
@@ -277,7 +277,7 @@ const Index = () => {
                   viewport={{ once: true }}
                   className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-6"
                 >
-                  {getSetting("historia_subtitulo", "Desde 1998")}
+                  {getSetting("historia_subtitulo", "Desde 2018")}
                 </motion.p>
 
                 <h2 className="text-display font-display font-bold leading-[0.95] mb-10">
@@ -285,14 +285,14 @@ const Index = () => {
                 </h2>
 
                 <p className="text-muted-foreground leading-relaxed text-lg mb-16 max-w-md">
-                   {getSetting("historia_texto", "Inaugurado em abril de 1998, o Restaurante Macapaba carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá.")}
+                    {getSetting("historia_texto", "Inaugurado em abril de 2018, o Restaurante Macapaba carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá.")}
                 </p>
 
                 {/* Big numbers — display style */}
                 <div className="flex gap-16">
                   <div>
                     <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
-                      <AnimatedCounter target={27} suffix="" />
+                      <AnimatedCounter target={7} suffix="" />
                     </p>
                     <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Anos</p>
                   </div>
