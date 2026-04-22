@@ -22,7 +22,7 @@ import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
 import garcomServindo from "@/assets/garcom-servindo.jpeg";
 import clientesRestaurante from "@/assets/clientes-restaurante.jpeg";
-import salaoRestaurante from "@/assets/salao-restaurante.jpeg";
+import salaoRestaurante from "@/assets/salao-restaurante.jpg";
 
 import foodDemo1 from "@/assets/food-demo-1.jpeg";
 import foodDemo2 from "@/assets/food-demo-2.jpeg";
