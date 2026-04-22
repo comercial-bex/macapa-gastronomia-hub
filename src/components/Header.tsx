@@ -58,13 +58,13 @@ const Header = () => {
 
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href={`https://wa.me/${getSetting("whatsapp_numero", "5596981054789")}`}
+            href={`https://wa.me/${getSetting("whatsapp_numero", "5596991832460")}`}
             target="_blank"
             rel="noopener noreferrer"
             className={`flex items-center gap-2 text-sm transition-colors hover:text-primary ${isTransparent ? "text-white/90" : "text-foreground/70"}`}
           >
             <Phone className="h-4 w-4" />
-            <span>{getSetting("telefone_principal", "(96) 98105-4789")}</span>
+            <span>{getSetting("telefone_principal", "(96) 99183-2460")}</span>
           </a>
           <a
             href="/#reserva"
