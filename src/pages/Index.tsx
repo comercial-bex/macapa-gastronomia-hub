@@ -223,7 +223,7 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="text-display font-display font-light text-white leading-[0.95] tracking-tight"
             >
-              {getSetting("hero_titulo", "Sabor e tradição em Macapá desde 1998")}
+               {getSetting("hero_titulo", "Sabor e tradição em Macapá desde 2018")}
             </motion.h1>
           </div>
 
