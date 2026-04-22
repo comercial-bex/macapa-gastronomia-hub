@@ -285,7 +285,7 @@ const Index = () => {
                 </h2>
 
                 <p className="text-muted-foreground leading-relaxed text-lg mb-16 max-w-md">
-                    {getSetting("historia_texto", "Inaugurado em abril de 2018, o Restaurante Macapaba carrega uma história de dedicação à gastronomia regional. Com pratos que misturam sabores amazônicos e culinária nacional, nos tornamos referência em Macapá.")}
+                  {getSetting("historia_texto", "Inaugurado em abril de 2018, o Restaurante Macapaba nasceu do sonho de oferecer aos macapaenses uma experiência gastronômica única. Ao longo de mais de 25 anos, nos tornamos referência em culinária regional, combinando sabores amazônicos com técnicas contemporâneas. Nosso compromisso com a qualidade e o atendimento nos consolidou como um dos restaurantes mais tradicionais e queridos de Macapá.")}
                 </p>
 
                 {/* Big numbers — display style */}
