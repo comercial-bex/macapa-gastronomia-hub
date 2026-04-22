@@ -68,7 +68,7 @@ const Admin = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <img src={logoMacapaba} alt="Macapabá" className="h-12 animate-pulse" />
+         <img src={logoMacapaba} alt="Macapaba" className="h-12 animate-pulse" />
         <p className="text-muted-foreground text-sm" style={{ fontFamily: "'Poppins', sans-serif" }}>Carregando...</p>
       </div>
     );
@@ -76,10 +76,10 @@ const Admin = () => {
 
   const SidebarContent = () => (
     <>
-      <div className="p-6 border-b border-white/10">
-        <Link to="/"><img src={logoMacapaba} alt="Macapabá" className="h-10 transition-transform duration-200 hover:scale-105" /></Link>
-        <p className="text-xs text-muted-foreground mt-2 tracking-[0.15em] uppercase font-medium">Painel Admin</p>
-      </div>
+       <div className="p-6 border-b border-white/10">
+         <Link to="/"><img src={logoMacapaba} alt="Macapaba" className="h-10 transition-transform duration-200 hover:scale-105" /></Link>
+         <p className="text-xs text-muted-foreground mt-2 tracking-[0.15em] uppercase font-medium">Painel Admin</p>
+       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {sidebarLinks.map((link, i) => {
@@ -143,12 +143,12 @@ const Admin = () => {
       </aside>
 
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 glass-effect border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <Link to="/"><img src={logoMacapaba} alt="Macapabá" className="h-8" /></Link>
-        <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </div>
+       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 glass-effect border-b border-white/10 px-4 py-3 flex items-center justify-between">
+         <Link to="/"><img src={logoMacapaba} alt="Macapaba" className="h-8" /></Link>
+         <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
+           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+         </Button>
+       </div>
 
       {/* Mobile sidebar overlay */}
       <AnimatePresence>

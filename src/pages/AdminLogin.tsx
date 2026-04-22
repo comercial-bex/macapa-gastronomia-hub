@@ -63,10 +63,10 @@ const AdminLogin = () => {
         className="w-full max-w-sm relative z-10"
       >
         <div className="text-center mb-8">
-          <motion.img
-            src={logoMacapaba}
-            alt="Macapabá"
-            className="h-14 mx-auto mb-4"
+           <motion.img
+             src={logoMacapaba}
+             alt="Macapaba"
+             className="h-14 mx-auto mb-4"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}

@@ -12,7 +12,7 @@ const Footer = () => {
         {/* Single horizontal row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           {/* Logo */}
-          <img src={logoMacapaba} alt="Macapabá" className="h-8" />
+           <img src={logoMacapaba} alt="Macapaba" className="h-8" />
 
           {/* Links */}
           <nav className="flex flex-wrap items-center justify-center gap-6">
@@ -46,7 +46,7 @@ const Footer = () => {
 
       {/* Bottom bar */}
       <div className="border-t border-border/20 py-5 text-center text-[10px] text-muted-foreground/30 flex items-center justify-center gap-4 uppercase tracking-wider">
-        <span>© {new Date().getFullYear()} Restaurante Macapabá</span>
+         <span>© {new Date().getFullYear()} Restaurante Macapaba</span>
         <Link to="/admin/login" className="hover:text-muted-foreground/50 transition-colors">
           Admin
         </Link>
