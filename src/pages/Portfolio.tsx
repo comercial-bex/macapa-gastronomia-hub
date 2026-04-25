@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 
 import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
@@ -66,6 +67,10 @@ const Portfolio = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Portfólio — Restaurante Macapaba | Restaurante em Macapá"
+        description="Conheça o portfólio do Restaurante Macapaba: pratos da culinária amazônica, ambiente acolhedor e momentos especiais em Macapá-AP."
+      />
       <section className="py-24 px-4">
         <div className="container mx-auto">
           <ScrollReveal>

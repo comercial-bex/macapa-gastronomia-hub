@@ -17,6 +17,9 @@ import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
+import { z } from "zod";
+import { Award, Leaf, Heart } from "lucide-react";
 
  import pratoVariado from "@/assets/prato-variado.jpg";
  import sushi from "@/assets/sushi.jpg";
@@ -192,6 +195,10 @@ const Index = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Restaurante Macapaba — Gastronomia Amazônica em Macapá"
+        description="Restaurante em Macapá desde 2018. Culinária amazônica autoral, peixes regionais, sushi e ambiente acolhedor. Reserve sua mesa no Macapaba."
+      />
       <ScrollProgress />
 
       {/* ═══════════════ HERO — CINEMATIC ═══════════════ */}
@@ -289,7 +296,7 @@ const Index = () => {
                 </p>
 
                 {/* Big numbers — display style */}
-                <div className="flex gap-16">
+                <div className="flex gap-16 mb-12">
                   <div>
                     <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
                       <AnimatedCounter target={7} suffix="" />
@@ -302,6 +309,31 @@ const Index = () => {
                       <span className="text-primary/60">+</span>
                     </p>
                     <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Pratos</p>
+                  </div>
+                </div>
+
+                {/* Highlights — diferenciais */}
+                <div className="grid sm:grid-cols-3 gap-6 pt-10 border-t border-border/40">
+                  <div className="flex items-start gap-3">
+                    <Award className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Desde 2018</p>
+                      <p className="text-muted-foreground text-xs mt-1">Tradição construída em Macapá</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Leaf className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Amazônia/AP</p>
+                      <p className="text-muted-foreground text-xs mt-1">Ingredientes regionais selecionados</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Heart className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Feito à mão</p>
+                      <p className="text-muted-foreground text-xs mt-1">Atendimento próximo e acolhedor</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -602,25 +634,61 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ nome: "", telefone: "", data: "", pessoas: "2", observacoes: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const reservaSchema = z.object({
+    nome: z
+      .string()
+      .trim()
+      .min(2, { message: "Informe seu nome completo." })
+      .max(100, { message: "Nome deve ter no máximo 100 caracteres." }),
+    telefone: z
+      .string()
+      .trim()
+      .regex(/^\(?\d{2}\)?\s?9?\d{4}-?\d{4}$/, {
+        message: "Telefone inválido. Use o formato (96) 99999-9999.",
+      }),
+    data: z
+      .string()
+      .min(1, { message: "Selecione uma data." })
+      .refine((v) => v >= today, { message: "A data não pode ser no passado." }),
+    pessoas: z
+      .string()
+      .refine((v) => {
+        const n = parseInt(v);
+        return !isNaN(n) && n >= 1 && n <= 50;
+      }, { message: "Informe entre 1 e 50 pessoas." }),
+    observacoes: z.string().max(500).optional(),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nome.trim() || !form.telefone.trim() || !form.data) {
-      toast.error("Preencha todos os campos obrigatórios.");
+    const result = reservaSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        const key = issue.path[0] as string;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      });
+      setErrors(fieldErrors);
+      toast.error("Verifique os campos destacados.");
       return;
     }
+    setErrors({});
     setLoading(true);
     try {
       const { error } = await supabase.from("reservations").insert({
-        nome: form.nome.trim(),
-        telefone: form.telefone.trim(),
-        data: form.data,
+        nome: result.data.nome,
+        telefone: result.data.telefone,
+        data: result.data.data,
         horario: "12:00",
-        pessoas: parseInt(form.pessoas) || 1,
-        observacoes: form.observacoes.trim(),
+        pessoas: parseInt(result.data.pessoas) || 1,
+        observacoes: (result.data.observacoes ?? "").trim(),
       });
       if (error) throw error;
-      toast.success("Reserva enviada com sucesso! Entraremos em contato.");
+      toast.success("Reserva enviada! Entraremos em contato em breve.");
       setSent(true);
     } catch {
       toast.error("Erro ao enviar reserva. Tente novamente.");
@@ -641,14 +709,18 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   return (
     <section id="reserva" className="py-32 md:py-44 px-4 bg-card/30">
       <div className="container mx-auto max-w-2xl">
+        <SEO
+          title="Reserva — Restaurante Macapaba | Macapá-AP"
+          description="Reserve sua mesa no Restaurante Macapaba em Macapá. Gastronomia amazônica, ambiente acolhedor e atendimento personalizado."
+        />
         <ScrollReveal>
           <div className="text-center mb-16">
             <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Reserva</p>
             <h2 className="text-display font-display font-bold leading-[0.95] mb-4">
-              {getSetting("cta_titulo", "Reserve sua mesa")}
+              {getSetting("cta_titulo", "Sua mesa espera por você")}
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {getSetting("cta_subtitulo", "Garanta seu lugar para uma experiência gastronômica inesquecível.")}
+              {getSetting("cta_subtitulo", "Reserve em segundos e viva uma experiência inesquecível em Macapá.")}
             </p>
           </div>
         </ScrollReveal>
@@ -668,18 +740,22 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     className="input-underline"
                     placeholder="Seu nome"
                   />
+                  {errors.nome && <p className="text-destructive text-xs mt-2">{errors.nome}</p>}
                 </div>
                 <div>
                   <Label htmlFor="res-telefone" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Telefone *</Label>
                   <input
                     id="res-telefone"
+                    type="tel"
+                    inputMode="tel"
                     value={form.telefone}
                     onChange={(e) => setForm({ ...form, telefone: e.target.value })}
                     required
                     maxLength={20}
                     className="input-underline"
-                    placeholder="(00) 00000-0000"
+                    placeholder="(96) 99999-9999"
                   />
+                  {errors.telefone && <p className="text-destructive text-xs mt-2">{errors.telefone}</p>}
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-8">
@@ -688,11 +764,13 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   <input
                     id="res-data"
                     type="date"
+                    min={today}
                     value={form.data}
                     onChange={(e) => setForm({ ...form, data: e.target.value })}
                     required
                     className="input-underline"
                   />
+                  {errors.data && <p className="text-destructive text-xs mt-2">{errors.data}</p>}
                 </div>
                 <div>
                   <Label htmlFor="res-pessoas" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nº Pessoas *</Label>
@@ -706,6 +784,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     required
                     className="input-underline"
                   />
+                  {errors.pessoas && <p className="text-destructive text-xs mt-2">{errors.pessoas}</p>}
                 </div>
               </div>
 
@@ -732,7 +811,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 disabled={loading}
                 className="btn-fill-hover w-full"
               >
-                {loading ? "Enviando..." : "Enviar Reserva"}
+                {loading ? "Enviando..." : "Garantir minha mesa"}
               </button>
 
               <div className="text-center pt-4">
@@ -752,8 +831,11 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-display text-2xl font-bold mb-2">Reserva Enviada!</h3>
-                <p className="text-muted-foreground">Entraremos em contato para confirmar.</p>
+                <h3 className="font-display text-2xl font-bold mb-2">Reserva recebida!</h3>
+                <p className="text-muted-foreground">
+                  Recebemos seu pedido e entraremos em contato em breve para confirmar.
+                  Para agilizar, confirme também pelo WhatsApp.
+                </p>
               </div>
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-green-500 transition-colors">
                 <MessageCircle className="h-4 w-4" /> Confirmar pelo WhatsApp
