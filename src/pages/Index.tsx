@@ -634,25 +634,61 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ nome: "", telefone: "", data: "", pessoas: "2", observacoes: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const reservaSchema = z.object({
+    nome: z
+      .string()
+      .trim()
+      .min(2, { message: "Informe seu nome completo." })
+      .max(100, { message: "Nome deve ter no máximo 100 caracteres." }),
+    telefone: z
+      .string()
+      .trim()
+      .regex(/^\(?\d{2}\)?\s?9?\d{4}-?\d{4}$/, {
+        message: "Telefone inválido. Use o formato (96) 99999-9999.",
+      }),
+    data: z
+      .string()
+      .min(1, { message: "Selecione uma data." })
+      .refine((v) => v >= today, { message: "A data não pode ser no passado." }),
+    pessoas: z
+      .string()
+      .refine((v) => {
+        const n = parseInt(v);
+        return !isNaN(n) && n >= 1 && n <= 50;
+      }, { message: "Informe entre 1 e 50 pessoas." }),
+    observacoes: z.string().max(500).optional(),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nome.trim() || !form.telefone.trim() || !form.data) {
-      toast.error("Preencha todos os campos obrigatórios.");
+    const result = reservaSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        const key = issue.path[0] as string;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      });
+      setErrors(fieldErrors);
+      toast.error("Verifique os campos destacados.");
       return;
     }
+    setErrors({});
     setLoading(true);
     try {
       const { error } = await supabase.from("reservations").insert({
-        nome: form.nome.trim(),
-        telefone: form.telefone.trim(),
-        data: form.data,
+        nome: result.data.nome,
+        telefone: result.data.telefone,
+        data: result.data.data,
         horario: "12:00",
-        pessoas: parseInt(form.pessoas) || 1,
-        observacoes: form.observacoes.trim(),
+        pessoas: parseInt(result.data.pessoas) || 1,
+        observacoes: (result.data.observacoes ?? "").trim(),
       });
       if (error) throw error;
-      toast.success("Reserva enviada com sucesso! Entraremos em contato.");
+      toast.success("Reserva enviada! Entraremos em contato em breve.");
       setSent(true);
     } catch {
       toast.error("Erro ao enviar reserva. Tente novamente.");
@@ -673,6 +709,10 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   return (
     <section id="reserva" className="py-32 md:py-44 px-4 bg-card/30">
       <div className="container mx-auto max-w-2xl">
+        <SEO
+          title="Reserva — Restaurante Macapaba | Macapá-AP"
+          description="Reserve sua mesa no Restaurante Macapaba em Macapá. Gastronomia amazônica, ambiente acolhedor e atendimento personalizado."
+        />
         <ScrollReveal>
           <div className="text-center mb-16">
             <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Reserva</p>
