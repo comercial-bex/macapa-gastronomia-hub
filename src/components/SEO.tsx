@@ -4,13 +4,16 @@ interface SEOProps {
   title: string;
   description: string;
   canonical?: string;
+  image?: string;
 }
 
 /**
  * Lightweight SEO helper. Updates document.title and the relevant meta /
  * OpenGraph / Twitter / canonical tags on mount and whenever props change.
  */
-const SEO = ({ title, description, canonical }: SEOProps) => {
+const DEFAULT_OG_IMAGE = "https://restaurantemacapaba.com.br/og-image.jpg";
+
+const SEO = ({ title, description, canonical, image }: SEOProps) => {
   useEffect(() => {
     document.title = title;
 
@@ -33,8 +36,12 @@ const SEO = ({ title, description, canonical }: SEOProps) => {
     setMeta("name", "description", description);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", description);
+    setMeta("property", "og:image", image ?? DEFAULT_OG_IMAGE);
+    setMeta("property", "og:type", "website");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:image", image ?? DEFAULT_OG_IMAGE);
 
     const href =
       canonical ??
