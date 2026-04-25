@@ -758,6 +758,36 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
         <ScrollReveal>
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-8">
+              {Object.keys(errors).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  role="alert"
+                  aria-live="polite"
+                  className="border border-destructive/40 bg-destructive/10 rounded-sm p-4 flex items-start gap-3"
+                >
+                  <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-destructive mb-2">
+                      Corrija {Object.keys(errors).length === 1 ? "o campo abaixo" : `os ${Object.keys(errors).length} campos abaixo`} para continuar:
+                    </p>
+                    <ul className="text-xs text-destructive/90 space-y-1 list-disc list-inside">
+                      {Object.entries(errors).map(([field, msg]) => (
+                        <li key={field}>
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById(`res-${field}`)?.focus()}
+                            className="underline-offset-2 hover:underline"
+                          >
+                            <strong>{fieldLabels[field] ?? field}:</strong> {msg}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              )}
+
               <div className="grid sm:grid-cols-2 gap-8">
                 <div>
                   <Label htmlFor="res-nome" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nome *</Label>
