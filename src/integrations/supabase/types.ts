@@ -346,6 +346,7 @@ export type Database = {
       units: {
         Row: {
           ativo: boolean
+          capacidade_por_horario: number | null
           endereco: string
           horarios: string | null
           id: string
@@ -357,6 +358,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          capacidade_por_horario?: number | null
           endereco: string
           horarios?: string | null
           id?: string
@@ -368,6 +370,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          capacidade_por_horario?: number | null
           endereco?: string
           horarios?: string | null
           id?: string
@@ -480,6 +483,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_reserved_seats: {
+        Args: { _data: string; _horario: string; _unit_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
