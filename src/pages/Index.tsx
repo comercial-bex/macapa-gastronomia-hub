@@ -633,7 +633,7 @@ const Index = () => {
 const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ nome: "", telefone: "", data: "", pessoas: "2", observacoes: "" });
+  const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const today = new Date().toISOString().split("T")[0];
@@ -654,6 +654,9 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
       .string()
       .min(1, { message: "Selecione uma data." })
       .refine((v) => v >= today, { message: "A data não pode ser no passado." }),
+    horario: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/, { message: "Selecione um horário válido." }),
     pessoas: z
       .string()
       .refine((v) => {
@@ -662,6 +665,15 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
       }, { message: "Informe entre 1 e 50 pessoas." }),
     observacoes: z.string().max(500).optional(),
   });
+
+  const fieldLabels: Record<string, string> = {
+    nome: "Nome",
+    telefone: "Telefone",
+    data: "Data",
+    horario: "Horário",
+    pessoas: "Nº de pessoas",
+    observacoes: "Observações",
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -683,7 +695,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
         nome: result.data.nome,
         telefone: result.data.telefone,
         data: result.data.data,
-        horario: "12:00",
+        horario: result.data.horario,
         pessoas: parseInt(result.data.pessoas) || 1,
         observacoes: (result.data.observacoes ?? "").trim(),
       });
@@ -697,12 +709,30 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
     }
   };
 
-  const whatsappUrl = `https://wa.me/${getSetting("whatsapp_numero", "5596991832460")}?text=${encodeURIComponent(
-    `Olá! Gostaria de fazer uma reserva:\nNome: ${form.nome}\nTelefone: ${form.telefone}\nData: ${form.data}\nPessoas: ${form.pessoas}\nReserva válida até 12h${form.observacoes ? `\nObs: ${form.observacoes}` : ""}`
-  )}`;
+  const formatDateBR = (iso: string) => {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    return y && m && d ? `${d}/${m}/${y}` : iso;
+  };
+
+  const whatsappMessage =
+    `Olá, Restaurante Macapaba! 👋\nGostaria de fazer uma *reserva* com os seguintes dados:\n\n` +
+    `• *Nome:* ${form.nome || "-"}\n` +
+    `• *Telefone:* ${form.telefone || "-"}\n` +
+    `• *Data:* ${formatDateBR(form.data) || "-"}\n` +
+    `• *Horário:* ${form.horario || "-"}\n` +
+    `• *Pessoas:* ${form.pessoas || "-"}` +
+    (form.observacoes ? `\n• *Observações:* ${form.observacoes}` : "") +
+    `\n\nAguardo a confirmação. Obrigado!`;
+
+  const whatsappUrl = `https://wa.me/${getSetting(
+    "whatsapp_numero",
+    "5596991832460",
+  )}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const resetForm = () => {
-    setForm({ nome: "", telefone: "", data: "", pessoas: "2", observacoes: "" });
+    setForm({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "" });
+    setErrors({});
     setSent(false);
   };
 
