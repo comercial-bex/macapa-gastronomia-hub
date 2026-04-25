@@ -7,6 +7,7 @@ import { format, subMonths, subWeeks, startOfMonth, startOfWeek, eachMonthOfInte
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
+import SiteHealth from "./SiteHealth";
 
 interface StatCard {
   label: string;
@@ -243,6 +244,9 @@ const AdminDashboard = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Site Health */}
+      <SiteHealth />
 
       {/* Period filter + Charts */}
       <div className="flex items-center gap-2 mb-4">
