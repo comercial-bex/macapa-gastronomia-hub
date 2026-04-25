@@ -831,8 +831,11 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-display text-2xl font-bold mb-2">Reserva Enviada!</h3>
-                <p className="text-muted-foreground">Entraremos em contato para confirmar.</p>
+                <h3 className="font-display text-2xl font-bold mb-2">Reserva recebida!</h3>
+                <p className="text-muted-foreground">
+                  Recebemos seu pedido e entraremos em contato em breve para confirmar.
+                  Para agilizar, confirme também pelo WhatsApp.
+                </p>
               </div>
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-green-500 transition-colors">
                 <MessageCircle className="h-4 w-4" /> Confirmar pelo WhatsApp
