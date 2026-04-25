@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag } from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuditLog } from "@/hooks/useAuditLog";
 
 const CATEGORIAS = ["entrada", "principal", "acompanhamento", "sobremesa"] as const;
+const DIET_TAGS = [
+  { key: "vegano", label: "Vegano", icon: Leaf, color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
+  { key: "vegetariano", label: "Vegetariano", icon: Sprout, color: "bg-green-500/15 text-green-600 border-green-500/30" },
+  { key: "sem-gluten", label: "Sem glúten", icon: WheatOff, color: "bg-amber-500/15 text-amber-600 border-amber-500/30" },
+  { key: "picante", label: "Picante", icon: Flame, color: "bg-red-500/15 text-red-600 border-red-500/30" },
+] as const;
 
 const AdminMenu = () => {
   const [days, setDays] = useState<any[]>([]);
@@ -19,6 +25,9 @@ const AdminMenu = () => {
   const [newCategoria, setNewCategoria] = useState<string>("principal");
   const [newUnitId, setNewUnitId] = useState<string>("");
   const [uploading, setUploading] = useState<string | null>(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
+  const bulkInputRef = useRef<HTMLInputElement>(null);
   const { logAction } = useAuditLog();
 
   const fetchData = async () => {
@@ -62,6 +71,13 @@ const AdminMenu = () => {
     fetchData();
   };
 
+  const toggleTag = async (item: any, tagKey: string) => {
+    const current: string[] = item.tags || [];
+    const next = current.includes(tagKey) ? current.filter((t) => t !== tagKey) : [...current, tagKey];
+    await supabase.from("weekly_menu_items").update({ tags: next } as any).eq("id", item.id);
+    fetchData();
+  };
+
   const toggleActive = async (id: string, ativo: boolean) => {
     await supabase.from("weekly_menu_items").update({ ativo: !ativo }).eq("id", id);
     fetchData();
@@ -102,6 +118,57 @@ const AdminMenu = () => {
     fetchData();
   };
 
+  // Bulk upload: tries to match each filename (without extension) to a dish name on the active day.
+  // Unmatched files are skipped with a warning. Useful for feeding 10-20 photos at once.
+  const handleBulkUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const dayItemsLocal = items.filter((i) => i.day_id === activeDay);
+    if (dayItemsLocal.length === 0) {
+      toast.error("Cadastre os pratos primeiro, depois faça o upload em massa.");
+      return;
+    }
+
+    setBulkUploading(true);
+    setBulkProgress({ done: 0, total: files.length });
+
+    const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    let matched = 0;
+    let skipped = 0;
+
+    for (let idx = 0; idx < files.length; idx++) {
+      const file = files[idx];
+      const base = file.name.replace(/\.[^.]+$/, "");
+      const baseNorm = norm(base);
+      // best match: longest prato name contained in filename (or vice-versa)
+      const candidate = dayItemsLocal
+        .map((it) => ({ it, score: norm(it.prato) }))
+        .filter(({ score }) => baseNorm.includes(score) || score.includes(baseNorm))
+        .sort((a, b) => b.score.length - a.score.length)[0];
+
+      if (!candidate) { skipped++; setBulkProgress({ done: idx + 1, total: files.length }); continue; }
+      const target = candidate.it;
+      const isVideo = file.type.startsWith("video/");
+      const ext = file.name.split(".").pop();
+      const path = `${target.id}.${ext}`;
+      await supabase.storage.from("menu-items").remove([path]);
+      const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
+      if (!upErr) {
+        const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
+        await supabase.from("weekly_menu_items").update({ imagem_url: urlData.publicUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", target.id);
+        matched++;
+      } else {
+        skipped++;
+      }
+      setBulkProgress({ done: idx + 1, total: files.length });
+    }
+
+    await logAction("cardapio", "editou", `Upload em massa: ${matched} mídias atribuídas, ${skipped} ignoradas`);
+    toast.success(`Upload concluído: ${matched} atribuídas${skipped ? `, ${skipped} sem correspondência` : ""}.`);
+    setBulkUploading(false);
+    if (bulkInputRef.current) bulkInputRef.current.value = "";
+    fetchData();
+  };
+
   const dayItems = items.filter((i) => i.day_id === activeDay);
   const activeDayName = days.find((d) => d.id === activeDay)?.dia_semana;
   const semFoto = items.filter((i) => !i.imagem_url).length;
@@ -109,7 +176,12 @@ const AdminMenu = () => {
   return (
     <div>
       <h2 className="font-display text-2xl font-bold mb-2">Cardápio da Semana</h2>
-      <p className="text-muted-foreground text-sm mb-3">Gerencie os pratos, fotos, categoria e unidade de cada dia.</p>
+      <p className="text-muted-foreground text-sm mb-3 flex items-center gap-1.5">
+        Gerencie os pratos, fotos, categoria, unidade e tags dietéticas de cada dia.
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70" title="Dica: para o upload em massa, nomeie os arquivos com o nome do prato (ex: 'maniçoba.jpg').">
+          <HelpCircle className="h-3 w-3" />
+        </span>
+      </p>
 
       {semFoto > 0 && (
         <div className="mb-6 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm flex items-center gap-2">
@@ -151,6 +223,37 @@ const AdminMenu = () => {
               {units.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
             </select>
             <Button onClick={addItem} className="gap-2"><Plus className="h-4 w-4" /> Adicionar</Button>
+          </div>
+
+          {/* Bulk upload */}
+          <div className="mb-6 p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex-1">
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <Images className="h-4 w-4 text-primary" /> Upload em massa de fotos
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Selecione várias fotos e elas serão atribuídas automaticamente ao prato cujo nome aparece no arquivo. Ex: <code className="px-1 rounded bg-muted">maniçoba.jpg</code>.
+                </p>
+              </div>
+              <Button
+                onClick={() => bulkInputRef.current?.click()}
+                disabled={bulkUploading || dayItems.length === 0}
+                variant="outline"
+                className="gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {bulkUploading ? `Enviando ${bulkProgress.done}/${bulkProgress.total}...` : "Selecionar fotos"}
+              </Button>
+              <input
+                ref={bulkInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleBulkUpload(e.target.files)}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -210,6 +313,28 @@ const AdminMenu = () => {
                       <option value="">Todas</option>
                       {units.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
                     </select>
+                  </div>
+
+                  {/* Diet tags */}
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {DIET_TAGS.map((t) => {
+                      const active = (item.tags || []).includes(t.key);
+                      const Icon = t.icon;
+                      return (
+                        <button
+                          key={t.key}
+                          type="button"
+                          onClick={() => toggleTag(item, t.key)}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border transition-all ${
+                            active ? t.color : "bg-muted/40 text-muted-foreground border-transparent hover:bg-muted"
+                          }`}
+                          title={`${active ? "Remover" : "Marcar como"} ${t.label}`}
+                        >
+                          <Icon className="h-2.5 w-2.5" />
+                          {t.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
