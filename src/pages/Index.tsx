@@ -195,6 +195,10 @@ const Index = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Restaurante Macapaba — Gastronomia Amazônica em Macapá"
+        description="Restaurante em Macapá desde 2018. Culinária amazônica autoral, peixes regionais, sushi e ambiente acolhedor. Reserve sua mesa no Macapaba."
+      />
       <ScrollProgress />
 
       {/* ═══════════════ HERO — CINEMATIC ═══════════════ */}
