@@ -677,10 +677,10 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
           <div className="text-center mb-16">
             <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Reserva</p>
             <h2 className="text-display font-display font-bold leading-[0.95] mb-4">
-              {getSetting("cta_titulo", "Reserve sua mesa")}
+              {getSetting("cta_titulo", "Sua mesa espera por você")}
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {getSetting("cta_subtitulo", "Garanta seu lugar para uma experiência gastronômica inesquecível.")}
+              {getSetting("cta_subtitulo", "Reserve em segundos e viva uma experiência inesquecível em Macapá.")}
             </p>
           </div>
         </ScrollReveal>
