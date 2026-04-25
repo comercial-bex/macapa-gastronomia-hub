@@ -14,26 +14,32 @@ import { useAuditLog } from "@/hooks/useAuditLog";
 interface Item {
   id: string; titulo: string; descricao: string | null; categoria: string;
   tipo: string; url: string | null; destaque: boolean; ordem: number; ativo: boolean;
+  unit_id: string | null;
 }
 
 const AdminPortfolio = () => {
   const [items, setItems] = useState<Item[]>([]);
+  const [units, setUnits] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
-  const [form, setForm] = useState({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: 0 });
+  const [form, setForm] = useState({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: 0, unit_id: "" });
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const { logAction } = useAuditLog();
 
   const fetchItems = async () => {
-    const { data } = await supabase.from("portfolio_items").select("*").order("ordem");
-    if (data) setItems(data);
+    const [p, u] = await Promise.all([
+      supabase.from("portfolio_items").select("*").order("ordem"),
+      supabase.from("units").select("id, nome").eq("ativo", true),
+    ]);
+    if (p.data) setItems(p.data as any);
+    if (u.data) setUnits(u.data);
   };
 
   useEffect(() => { fetchItems(); }, []);
 
-  const openNew = () => { setEditing(null); setForm({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: items.length }); setFile(null); setOpen(true); };
-  const openEdit = (item: Item) => { setEditing(item); setForm({ titulo: item.titulo, descricao: item.descricao || "", categoria: item.categoria, tipo: item.tipo, destaque: item.destaque, ativo: item.ativo, ordem: item.ordem }); setFile(null); setOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: items.length, unit_id: "" }); setFile(null); setOpen(true); };
+  const openEdit = (item: Item) => { setEditing(item); setForm({ titulo: item.titulo, descricao: item.descricao || "", categoria: item.categoria, tipo: item.tipo, destaque: item.destaque, ativo: item.ativo, ordem: item.ordem, unit_id: item.unit_id || "" }); setFile(null); setOpen(true); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
@@ -47,7 +53,7 @@ const AdminPortfolio = () => {
         const { data: urlData } = supabase.storage.from("portfolio").getPublicUrl(path);
         url = urlData.publicUrl;
       }
-      const payload = { titulo: form.titulo, descricao: form.descricao || null, categoria: form.categoria, tipo: form.tipo, destaque: form.destaque, ativo: form.ativo, ordem: form.ordem, url };
+      const payload = { titulo: form.titulo, descricao: form.descricao || null, categoria: form.categoria, tipo: form.tipo, destaque: form.destaque, ativo: form.ativo, ordem: form.ordem, url, unit_id: form.unit_id || null };
       if (editing) {
         const { error } = await supabase.from("portfolio_items").update(payload).eq("id", editing.id);
         if (error) throw error;
@@ -149,7 +155,15 @@ const AdminPortfolio = () => {
               </div>
             </div>
             <div><Label>Mídia</Label><Input type="file" accept="image/*,video/*" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
-            <div><Label>Ordem</Label><Input type="number" value={form.ordem} onChange={(e) => setForm({ ...form, ordem: parseInt(e.target.value) || 0 })} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Ordem</Label><Input type="number" value={form.ordem} onChange={(e) => setForm({ ...form, ordem: parseInt(e.target.value) || 0 })} /></div>
+              <div><Label>Unidade</Label>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={form.unit_id} onChange={(e) => setForm({ ...form, unit_id: e.target.value })}>
+                  <option value="">Todas</option>
+                  {units.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
+                </select>
+              </div>
+            </div>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm"><Switch checked={form.destaque} onCheckedChange={(v) => setForm({ ...form, destaque: v })} /> Destaque</label>
               <label className="flex items-center gap-2 text-sm"><Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} /> Ativo</label>
