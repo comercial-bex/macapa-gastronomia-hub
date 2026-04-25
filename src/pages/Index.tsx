@@ -702,8 +702,16 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
       if (error) throw error;
       toast.success("Reserva enviada! Entraremos em contato em breve.");
       setSent(true);
-    } catch {
-      toast.error("Erro ao enviar reserva. Tente novamente.");
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (msg.includes("Horário sem disponibilidade") || msg.toLowerCase().includes("capacidade")) {
+        toast.error("Horário lotado", {
+          description: "Este horário já atingiu a capacidade. Tente outro horário ou data.",
+        });
+        setErrors({ horario: "Este horário não tem mais vagas. Escolha outro." });
+      } else {
+        toast.error("Erro ao enviar reserva. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
