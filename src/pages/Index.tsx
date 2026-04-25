@@ -17,6 +17,9 @@ import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
+import { z } from "zod";
+import { Award, Leaf, Heart } from "lucide-react";
 
  import pratoVariado from "@/assets/prato-variado.jpg";
  import sushi from "@/assets/sushi.jpg";
