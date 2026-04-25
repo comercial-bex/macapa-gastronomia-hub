@@ -19,7 +19,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
 import { z } from "zod";
-import { Award, Leaf, Heart } from "lucide-react";
+import { Award, Leaf, Heart, AlertCircle } from "lucide-react";
 
  import pratoVariado from "@/assets/prato-variado.jpg";
  import sushi from "@/assets/sushi.jpg";
