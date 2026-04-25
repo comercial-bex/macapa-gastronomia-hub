@@ -6,14 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, Users } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminUnits = () => {
   const [units, setUnits] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: "", endereco: "", telefone: "", horarios: "", maps_url: "", principal: false, ativo: true, imagem_url: "" });
+  const [form, setForm] = useState({ nome: "", endereco: "", telefone: "", horarios: "", maps_url: "", principal: false, ativo: true, imagem_url: "", capacidade_por_horario: "" });
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -59,6 +59,7 @@ const AdminUnits = () => {
         principal: form.principal,
         ativo: form.ativo,
         imagem_url: imagem_url || null,
+        capacidade_por_horario: form.capacidade_por_horario ? parseInt(form.capacidade_por_horario) : null,
       };
 
       if (editing) {
@@ -81,7 +82,7 @@ const AdminUnits = () => {
 
   const openEdit = (u: any) => {
     setEditing(u);
-    setForm({ nome: u.nome, endereco: u.endereco, telefone: u.telefone || "", horarios: u.horarios || "", maps_url: u.maps_url || "", principal: u.principal, ativo: u.ativo, imagem_url: u.imagem_url || "" });
+    setForm({ nome: u.nome, endereco: u.endereco, telefone: u.telefone || "", horarios: u.horarios || "", maps_url: u.maps_url || "", principal: u.principal, ativo: u.ativo, imagem_url: u.imagem_url || "", capacidade_por_horario: u.capacidade_por_horario?.toString() || "" });
     setImagePreview(u.imagem_url || "");
     setImageFile(null);
     setOpen(true);
@@ -89,7 +90,7 @@ const AdminUnits = () => {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ nome: "", endereco: "", telefone: "", horarios: "", maps_url: "", principal: false, ativo: true, imagem_url: "" });
+    setForm({ nome: "", endereco: "", telefone: "", horarios: "", maps_url: "", principal: false, ativo: true, imagem_url: "", capacidade_por_horario: "40" });
     setImagePreview("");
     setImageFile(null);
     setOpen(true);
@@ -135,6 +136,19 @@ const AdminUnits = () => {
               <div><Label>Horários</Label><Input value={form.horarios} onChange={(e) => setForm({ ...form, horarios: e.target.value })} /></div>
             </div>
             <div><Label>Link Google Maps</Label><Input value={form.maps_url} onChange={(e) => setForm({ ...form, maps_url: e.target.value })} /></div>
+
+            <div>
+              <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Capacidade por horário</Label>
+              <Input
+                type="number"
+                min="1"
+                max="500"
+                placeholder="Ex: 40 (deixe vazio para ilimitado)"
+                value={form.capacidade_por_horario}
+                onChange={(e) => setForm({ ...form, capacidade_por_horario: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Total de pessoas que podem reservar o mesmo horário. O sistema bloqueará novas reservas que ultrapassem este limite.</p>
+            </div>
 
             {/* Image upload */}
             <div>
