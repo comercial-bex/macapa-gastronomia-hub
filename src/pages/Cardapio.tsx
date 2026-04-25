@@ -6,13 +6,20 @@ import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, type LucideIcon } from "lucide-react";
 
 import foodDemo1 from "@/assets/food-demo-1.jpeg";
 import foodDemo2 from "@/assets/food-demo-2.jpeg";
 import foodDemo3 from "@/assets/food-demo-3.jpeg";
 
 const demoImages = [foodDemo1, foodDemo2, foodDemo3];
+
+const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
+  "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
+  "vegetariano": { label: "Vegetariano", icon: Sprout, className: "bg-green-500/15 text-green-200 border-green-400/30" },
+  "sem-gluten": { label: "Sem glúten", icon: WheatOff, className: "bg-amber-500/15 text-amber-200 border-amber-400/30" },
+  "picante": { label: "Picante", icon: Flame, className: "bg-red-500/15 text-red-200 border-red-400/30" },
+};
 
 const getDishIcon = (name: string): LucideIcon => {
   const n = name.toLowerCase();
@@ -52,6 +59,7 @@ interface MenuItem {
   ordem: number;
   imagem_url: string | null;
   tipo_midia: string;
+  tags?: string[] | null;
 }
 
 const Cardapio = () => {
@@ -204,6 +212,21 @@ const Cardapio = () => {
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
                                       <h3 className="font-display text-xl font-bold text-white">{item.prato}</h3>
+                                      {item.tags && item.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                          {item.tags.map((t) => {
+                                            const meta = DIET_TAGS_META[t];
+                                            if (!meta) return null;
+                                            const Icon = meta.icon;
+                                            return (
+                                              <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
+                                                <Icon className="h-2.5 w-2.5" />
+                                                {meta.label}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
                                     </div>
                                   </>
                                 );
@@ -236,9 +259,26 @@ const Cardapio = () => {
                                 }`}>
                                   <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                                 </div>
-                                <span className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                                  {item.prato}
-                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <span className={`text-sm font-medium transition-colors duration-300 block ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                                    {item.prato}
+                                  </span>
+                                  {item.tags && item.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {item.tags.map((t) => {
+                                        const meta = DIET_TAGS_META[t];
+                                        if (!meta) return null;
+                                        const Icon = meta.icon;
+                                        return (
+                                          <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
+                                            <Icon className="h-2.5 w-2.5" />
+                                            {meta.label}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
@@ -274,6 +314,21 @@ const Cardapio = () => {
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
                                       <h3 className="font-display text-2xl font-bold text-white">{item.prato}</h3>
+                                      {item.tags && item.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                          {item.tags.map((t) => {
+                                            const meta = DIET_TAGS_META[t];
+                                            if (!meta) return null;
+                                            const Icon = meta.icon;
+                                            return (
+                                              <span key={t} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${meta.className}`}>
+                                                <Icon className="h-3 w-3" />
+                                                {meta.label}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
                                     </div>
                                   </>
                                 );
