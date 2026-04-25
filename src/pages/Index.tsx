@@ -740,18 +740,22 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     className="input-underline"
                     placeholder="Seu nome"
                   />
+                  {errors.nome && <p className="text-destructive text-xs mt-2">{errors.nome}</p>}
                 </div>
                 <div>
                   <Label htmlFor="res-telefone" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Telefone *</Label>
                   <input
                     id="res-telefone"
+                    type="tel"
+                    inputMode="tel"
                     value={form.telefone}
                     onChange={(e) => setForm({ ...form, telefone: e.target.value })}
                     required
                     maxLength={20}
                     className="input-underline"
-                    placeholder="(00) 00000-0000"
+                    placeholder="(96) 99999-9999"
                   />
+                  {errors.telefone && <p className="text-destructive text-xs mt-2">{errors.telefone}</p>}
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-8">
@@ -760,11 +764,13 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   <input
                     id="res-data"
                     type="date"
+                    min={today}
                     value={form.data}
                     onChange={(e) => setForm({ ...form, data: e.target.value })}
                     required
                     className="input-underline"
                   />
+                  {errors.data && <p className="text-destructive text-xs mt-2">{errors.data}</p>}
                 </div>
                 <div>
                   <Label htmlFor="res-pessoas" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nº Pessoas *</Label>
@@ -778,6 +784,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     required
                     className="input-underline"
                   />
+                  {errors.pessoas && <p className="text-destructive text-xs mt-2">{errors.pessoas}</p>}
                 </div>
               </div>
 
@@ -804,7 +811,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 disabled={loading}
                 className="btn-fill-hover w-full"
               >
-                {loading ? "Enviando..." : "Enviar Reserva"}
+                {loading ? "Enviando..." : "Garantir minha mesa"}
               </button>
 
               <div className="text-center pt-4">
