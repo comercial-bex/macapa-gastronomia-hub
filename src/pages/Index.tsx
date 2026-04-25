@@ -296,7 +296,7 @@ const Index = () => {
                 </p>
 
                 {/* Big numbers — display style */}
-                <div className="flex gap-16">
+                <div className="flex gap-16 mb-12">
                   <div>
                     <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
                       <AnimatedCounter target={7} suffix="" />
@@ -309,6 +309,31 @@ const Index = () => {
                       <span className="text-primary/60">+</span>
                     </p>
                     <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Pratos</p>
+                  </div>
+                </div>
+
+                {/* Highlights — diferenciais */}
+                <div className="grid sm:grid-cols-3 gap-6 pt-10 border-t border-border/40">
+                  <div className="flex items-start gap-3">
+                    <Award className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Desde 2018</p>
+                      <p className="text-muted-foreground text-xs mt-1">Tradição construída em Macapá</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Leaf className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Amazônia/AP</p>
+                      <p className="text-muted-foreground text-xs mt-1">Ingredientes regionais selecionados</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Heart className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Feito à mão</p>
+                      <p className="text-muted-foreground text-xs mt-1">Atendimento próximo e acolhedor</p>
+                    </div>
                   </div>
                 </div>
               </div>
