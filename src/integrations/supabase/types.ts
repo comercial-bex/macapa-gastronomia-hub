@@ -70,6 +70,7 @@ export type Database = {
           ativo: boolean
           category_id: string | null
           id: string
+          imagem_url: string | null
           nome: string
           ordem: number
           preco: number | null
@@ -79,6 +80,7 @@ export type Database = {
           ativo?: boolean
           category_id?: string | null
           id?: string
+          imagem_url?: string | null
           nome: string
           ordem?: number
           preco?: number | null
@@ -88,6 +90,7 @@ export type Database = {
           ativo?: boolean
           category_id?: string | null
           id?: string
+          imagem_url?: string | null
           nome?: string
           ordem?: number
           preco?: number | null
@@ -203,6 +206,7 @@ export type Database = {
           ordem: number
           tipo: string
           titulo: string
+          unit_id: string | null
           url: string | null
         }
         Insert: {
@@ -215,6 +219,7 @@ export type Database = {
           ordem?: number
           tipo?: string
           titulo: string
+          unit_id?: string | null
           url?: string | null
         }
         Update: {
@@ -227,9 +232,18 @@ export type Database = {
           ordem?: number
           tipo?: string
           titulo?: string
+          unit_id?: string | null
           url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_items_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -263,8 +277,12 @@ export type Database = {
           id: string
           nome: string
           observacoes: string | null
+          observacoes_internas: string | null
           pessoas: number
+          status: Database["public"]["Enums"]["reservation_status"]
           telefone: string
+          unit_id: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -273,8 +291,12 @@ export type Database = {
           id?: string
           nome: string
           observacoes?: string | null
+          observacoes_internas?: string | null
           pessoas?: number
+          status?: Database["public"]["Enums"]["reservation_status"]
           telefone: string
+          unit_id?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -283,10 +305,22 @@ export type Database = {
           id?: string
           nome?: string
           observacoes?: string | null
+          observacoes_internas?: string | null
           pessoas?: number
+          status?: Database["public"]["Enums"]["reservation_status"]
           telefone?: string
+          unit_id?: string | null
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reservations_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
@@ -345,6 +379,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_menu_days: {
         Row: {
           dia_semana: string
@@ -366,30 +424,39 @@ export type Database = {
       weekly_menu_items: {
         Row: {
           ativo: boolean
+          categoria: string | null
           day_id: string | null
           id: string
           imagem_url: string | null
           ordem: number
           prato: string
+          tags: string[]
           tipo_midia: string
+          unit_id: string | null
         }
         Insert: {
           ativo?: boolean
+          categoria?: string | null
           day_id?: string | null
           id?: string
           imagem_url?: string | null
           ordem?: number
           prato: string
+          tags?: string[]
           tipo_midia?: string
+          unit_id?: string | null
         }
         Update: {
           ativo?: boolean
+          categoria?: string | null
           day_id?: string | null
           id?: string
           imagem_url?: string | null
           ordem?: number
           prato?: string
+          tags?: string[]
           tipo_midia?: string
+          unit_id?: string | null
         }
         Relationships: [
           {
@@ -399,6 +466,13 @@ export type Database = {
             referencedRelation: "weekly_menu_days"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "weekly_menu_items_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -406,10 +480,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor" | "gerente"
+      reservation_status:
+        | "pendente"
+        | "confirmada"
+        | "cancelada"
+        | "no_show"
+        | "concluida"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -536,6 +623,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor", "gerente"],
+      reservation_status: [
+        "pendente",
+        "confirmada",
+        "cancelada",
+        "no_show",
+        "concluida",
+      ],
+    },
   },
 } as const
