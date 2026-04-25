@@ -78,7 +78,7 @@ const Header = () => {
             }}
           >
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-wide uppercase text-xs px-6">
-              Reserva
+              Reservar mesa
             </Button>
           </a>
         </div>
@@ -126,7 +126,7 @@ const Header = () => {
                 }}
               >
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-xs mt-2">
-                  Reserva
+                  Reservar mesa
                 </Button>
               </a>
             </nav>
