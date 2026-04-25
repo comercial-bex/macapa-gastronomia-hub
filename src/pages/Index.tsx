@@ -818,7 +818,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   {errors.telefone && <p className="text-destructive text-xs mt-2">{errors.telefone}</p>}
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-8">
+              <div className="grid sm:grid-cols-3 gap-8">
                 <div>
                   <Label htmlFor="res-data" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Data *</Label>
                   <input
@@ -831,6 +831,18 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     className="input-underline"
                   />
                   {errors.data && <p className="text-destructive text-xs mt-2">{errors.data}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="res-horario" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Horário *</Label>
+                  <input
+                    id="res-horario"
+                    type="time"
+                    value={form.horario}
+                    onChange={(e) => setForm({ ...form, horario: e.target.value })}
+                    required
+                    className="input-underline"
+                  />
+                  {errors.horario && <p className="text-destructive text-xs mt-2">{errors.horario}</p>}
                 </div>
                 <div>
                   <Label htmlFor="res-pessoas" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nº Pessoas *</Label>
@@ -850,7 +862,9 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
 
               <div className="flex items-start gap-2 py-3 border-b border-primary/20">
                 <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-muted-foreground">A reserva garante sua mesa até as <strong className="text-foreground">12h</strong>.</p>
+                <p className="text-sm text-muted-foreground">
+                  A reserva garante sua mesa por até <strong className="text-foreground">15 minutos</strong> após o horário escolhido.
+                </p>
               </div>
 
               <div>
