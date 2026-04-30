@@ -815,6 +815,28 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 </motion.div>
               )}
 
+              {units.length > 1 && (
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-3 block">Unidade *</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {units.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => setForm({ ...form, unit_id: u.id })}
+                        className={`px-4 py-2 text-sm rounded-sm border transition-all ${
+                          form.unit_id === u.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                        }`}
+                      >
+                        {u.nome}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid sm:grid-cols-2 gap-8">
                 <div>
                   <Label htmlFor="res-nome" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nome *</Label>
