@@ -211,15 +211,16 @@ const Cardapio = () => {
                               {(() => {
                                 const item = selectedItems[selectedItemIndex];
                                 if (!item) return null;
-                                const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                                const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
                                 const currentDay = days.find((d) => d.id === activeDay);
+                                if (!item.imagem_url) {
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                }
                                 return (
                                   <>
-                                    {mediaTipo === 'video' ? (
-                                      <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                    {item.tipo_midia === 'video' ? (
+                                      <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={item.prato} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
@@ -313,15 +314,16 @@ const Cardapio = () => {
                               {(() => {
                                 const item = selectedItems[selectedItemIndex];
                                 if (!item) return null;
-                                const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                                const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
                                 const currentDay = days.find((d) => d.id === activeDay);
+                                if (!item.imagem_url) {
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                }
                                 return (
                                   <>
-                                    {mediaTipo === 'video' ? (
-                                      <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                    {item.tipo_midia === 'video' ? (
+                                      <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={item.prato} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
