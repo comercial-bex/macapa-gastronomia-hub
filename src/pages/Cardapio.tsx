@@ -8,17 +8,30 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, type LucideIcon } from "lucide-react";
 
-import foodDemo1 from "@/assets/food-demo-1.jpeg";
-import foodDemo2 from "@/assets/food-demo-2.jpeg";
-import foodDemo3 from "@/assets/food-demo-3.jpeg";
-
-const demoImages = [foodDemo1, foodDemo2, foodDemo3];
-
 const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
   "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
   "vegetariano": { label: "Vegetariano", icon: Sprout, className: "bg-green-500/15 text-green-200 border-green-400/30" },
   "sem-gluten": { label: "Sem glúten", icon: WheatOff, className: "bg-amber-500/15 text-amber-200 border-amber-400/30" },
   "picante": { label: "Picante", icon: Flame, className: "bg-red-500/15 text-red-200 border-red-400/30" },
+};
+
+// Elegant dark placeholder shown when a dish has no media yet.
+// Keeps the UI honest: the site reflects exactly what is in the CMS.
+const DishPlaceholder = ({ prato, dia, size = "lg" }: { prato: string; dia?: string; size?: "sm" | "lg" }) => {
+  const Icon = getDishIcon(prato);
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background overflow-hidden">
+      <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_hsl(var(--primary)/0.25),_transparent_60%)]" />
+      <div className="relative flex flex-col items-center text-center px-6">
+        <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]">
+          <Icon className={`${size === "lg" ? "h-10 w-10" : "h-7 w-7"} text-primary`} />
+        </div>
+        {dia && <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{dia}</p>}
+        <h4 className={`font-display ${size === "lg" ? "text-lg" : "text-sm"} font-bold text-foreground/90 leading-tight`}>{prato}</h4>
+        <span className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/60">Foto em breve</span>
+      </div>
+    </div>
+  );
 };
 
 const getDishIcon = (name: string): LucideIcon => {
@@ -198,15 +211,16 @@ const Cardapio = () => {
                               {(() => {
                                 const item = selectedItems[selectedItemIndex];
                                 if (!item) return null;
-                                const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                                const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
                                 const currentDay = days.find((d) => d.id === activeDay);
+                                if (!item.imagem_url) {
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                }
                                 return (
                                   <>
-                                    {mediaTipo === 'video' ? (
-                                      <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                    {item.tipo_midia === 'video' ? (
+                                      <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={item.prato} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
@@ -300,15 +314,16 @@ const Cardapio = () => {
                               {(() => {
                                 const item = selectedItems[selectedItemIndex];
                                 if (!item) return null;
-                                const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                                const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
                                 const currentDay = days.find((d) => d.id === activeDay);
+                                if (!item.imagem_url) {
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                }
                                 return (
                                   <>
-                                    {mediaTipo === 'video' ? (
-                                      <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                                    {item.tipo_midia === 'video' ? (
+                                      <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={item.prato} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">

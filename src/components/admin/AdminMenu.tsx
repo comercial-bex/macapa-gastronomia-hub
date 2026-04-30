@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle } from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuditLog } from "@/hooks/useAuditLog";
 
@@ -100,7 +100,9 @@ const AdminMenu = () => {
     const { error: uploadError } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Erro no upload: " + uploadError.message); setUploading(null); return; }
     const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
-    await supabase.from("weekly_menu_items").update({ imagem_url: urlData.publicUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", itemId);
+    // cache-bust to guarantee the public site shows the new media immediately
+    const bustedUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+    await supabase.from("weekly_menu_items").update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", itemId);
     const item = items.find(i => i.id === itemId);
     await logAction("cardapio", "editou", `Upload de mídia para '${item?.prato}'`);
     toast.success("Mídia adicionada!");
@@ -154,7 +156,8 @@ const AdminMenu = () => {
       const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
       if (!upErr) {
         const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
-        await supabase.from("weekly_menu_items").update({ imagem_url: urlData.publicUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", target.id);
+        const bustedUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+        await supabase.from("weekly_menu_items").update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", target.id);
         matched++;
       } else {
         skipped++;
@@ -172,6 +175,7 @@ const AdminMenu = () => {
   const dayItems = items.filter((i) => i.day_id === activeDay);
   const activeDayName = days.find((d) => d.id === activeDay)?.dia_semana;
   const semFoto = items.filter((i) => !i.imagem_url).length;
+  const dayItemsComFoto = dayItems.filter((i) => i.imagem_url).length;
 
   return (
     <div>
@@ -213,6 +217,22 @@ const AdminMenu = () => {
 
       {activeDay && (
         <div>
+          {/* Day-level sync status + open-on-site link */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-3 py-2 rounded-lg bg-secondary/40 border border-border">
+            <div className="text-xs text-muted-foreground">
+              <span className="text-foreground font-semibold">{dayItemsComFoto}</span> de <span className="text-foreground font-semibold">{dayItems.length}</span> pratos com foto em <span className="text-primary font-medium">{activeDayName}</span>
+            </div>
+            <a
+              href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+              title="Abrir essa página no site público"
+            >
+              <ExternalLink className="h-3 w-3" /> Ver no site
+            </a>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-2 mb-6">
             <Input value={newPrato} onChange={(e) => setNewPrato(e.target.value)} placeholder="Nome do prato" onKeyDown={(e) => e.key === "Enter" && addItem()} className="flex-1" />
             <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={newCategoria} onChange={(e) => setNewCategoria(e.target.value)}>
