@@ -57,6 +57,7 @@ interface Beverage {
   nome: string;
   volume: string | null;
   preco: number | null;
+  imagem_url?: string | null;
 }
 
 interface MenuDay {
@@ -145,16 +146,26 @@ const Cardapio = () => {
                         {items.map((bev) => (
                           <StaggerItem key={bev.id}>
                             <motion.div
-                              className="flex justify-between items-center py-3 border-b border-border/50 hover:bg-secondary/50 px-2 rounded transition-colors"
+                              className="flex justify-between items-center gap-3 py-3 border-b border-border/50 hover:bg-secondary/50 px-2 rounded transition-colors"
                               whileHover={{ x: 4 }}
                               transition={{ duration: 0.2 }}
                             >
-                              <div>
-                                <span className="font-medium">{bev.nome}</span>
-                                {bev.volume && <span className="text-muted-foreground text-sm ml-2">({bev.volume})</span>}
+                              <div className="flex items-center gap-3 min-w-0">
+                                {bev.imagem_url && (
+                                  <img
+                                    src={bev.imagem_url}
+                                    alt={bev.nome}
+                                    loading="lazy"
+                                    className="h-12 w-12 rounded-md object-cover flex-shrink-0 border border-border/40"
+                                  />
+                                )}
+                                <div className="min-w-0">
+                                  <span className="font-medium">{bev.nome}</span>
+                                  {bev.volume && <span className="text-muted-foreground text-sm ml-2">({bev.volume})</span>}
+                                </div>
                               </div>
                               {bev.preco !== null && (
-                                <span className="text-primary font-semibold">
+                                <span className="text-primary font-semibold flex-shrink-0">
                                   R$ {Number(bev.preco).toFixed(2).replace(".", ",")}
                                 </span>
                               )}

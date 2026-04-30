@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Wine } from "lucide-react";
+import { Plus, Pencil, Trash2, Wine, ImagePlus, X } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAuditLog";
 
 const AdminBeverages = () => {
@@ -20,6 +20,7 @@ const AdminBeverages = () => {
   const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true });
   const [bevForm, setBevForm] = useState({ category_id: "", nome: "", volume: "", preco: "", ativo: true, ordem: 0 });
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
   const { logAction } = useAuditLog();
 
   const fetchData = async () => {
@@ -62,12 +63,41 @@ const AdminBeverages = () => {
     toast.success("Excluído!"); fetchData();
   };
 
+  const uploadImage = async (bevId: string, file: File) => {
+    setUploading(bevId);
+    const ext = file.name.split(".").pop();
+    const path = `${bevId}.${ext}`;
+    await supabase.storage.from("beverages").remove([path]);
+    const { error } = await supabase.storage.from("beverages").upload(path, file, { upsert: true });
+    if (error) { toast.error("Erro: " + error.message); setUploading(null); return; }
+    const { data: urlData } = supabase.storage.from("beverages").getPublicUrl(path);
+    const busted = `${urlData.publicUrl}?v=${Date.now()}`;
+    await supabase.from("beverages").update({ imagem_url: busted }).eq("id", bevId);
+    await logAction("bebidas", "editou", `Atualizou imagem de bebida`);
+    toast.success("Imagem enviada!"); setUploading(null); fetchData();
+  };
+
+  const removeImage = async (bevId: string, url: string | null) => {
+    if (!url) return;
+    const parts = url.split("/beverages/");
+    if (parts[1]) {
+      const path = parts[1].split("?")[0];
+      await supabase.storage.from("beverages").remove([path]);
+    }
+    await supabase.from("beverages").update({ imagem_url: null }).eq("id", bevId);
+    toast.success("Imagem removida"); fetchData();
+  };
+
+  const totalComFoto = beverages.filter((b) => b.imagem_url).length;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-2xl font-bold">Bebidas</h2>
-          <p className="text-muted-foreground text-sm mt-1">{categories.length} categorias · {beverages.length} itens</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {categories.length} categorias · {beverages.length} itens · {totalComFoto}/{beverages.length} com foto
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true }); setCatOpen(true); }}>+ Categoria</Button>
@@ -94,6 +124,30 @@ const AdminBeverages = () => {
               {catBevs.map((bev) => (
                 <div key={bev.id} className="glass-effect rounded-lg p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
                   <div className="flex items-center gap-3">
+                    {bev.imagem_url ? (
+                      <div className="relative h-12 w-12 rounded-md overflow-hidden bg-secondary flex-shrink-0">
+                        <img src={bev.imagem_url} alt={bev.nome} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(bev.id, bev.imagem_url)}
+                          className="absolute top-0 right-0 bg-destructive/90 text-destructive-foreground rounded-bl-md p-0.5"
+                          title="Remover imagem"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="h-12 w-12 rounded-md border border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-secondary/50 flex-shrink-0" title="Adicionar imagem">
+                        <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploading === bev.id}
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(bev.id, f); }}
+                        />
+                      </label>
+                    )}
                     <span className={`font-medium text-sm ${!bev.ativo ? "text-muted-foreground line-through" : ""}`}>{bev.nome}</span>
                     {bev.volume && <span className="text-muted-foreground text-xs">({bev.volume})</span>}
                     {!bev.ativo && <Badge variant="secondary" className="text-xs">Inativo</Badge>}
