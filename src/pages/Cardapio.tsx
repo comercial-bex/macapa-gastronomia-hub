@@ -74,6 +74,14 @@ interface MenuItem {
   imagem_url: string | null;
   tipo_midia: string;
   tags?: string[] | null;
+  unit_id?: string | null;
+}
+
+interface Unit {
+  id: string;
+  nome: string;
+  principal: boolean;
+  ativo: boolean;
 }
 
 const Cardapio = () => {
@@ -86,14 +94,17 @@ const Cardapio = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [activeDay, setActiveDay] = useState<string>("");
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [activeUnit, setActiveUnit] = useState<string>("all");
 
   useEffect(() => {
     const fetchData = async () => {
-      const [catsRes, bevsRes, daysRes, itemsRes] = await Promise.all([
+      const [catsRes, bevsRes, daysRes, itemsRes, unitsRes] = await Promise.all([
         supabase.from("beverage_categories").select("*").eq("ativo", true).order("ordem"),
         supabase.from("beverages").select("*").eq("ativo", true).order("ordem"),
         supabase.from("weekly_menu_days").select("*").order("ordem"),
         supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem"),
+        supabase.from("units").select("id,nome,principal,ativo").eq("ativo", true).order("principal", { ascending: false }),
       ]);
       if (catsRes.data) setCategories(catsRes.data);
       if (bevsRes.data) setBeverages(bevsRes.data);
@@ -103,15 +114,20 @@ const Cardapio = () => {
         if (target) setActiveDay(target.id);
       }
       if (itemsRes.data) setMenuItems(itemsRes.data);
+      if (unitsRes.data) setUnits(unitsRes.data as Unit[]);
     };
     fetchData();
   }, [diaParam]);
 
   useEffect(() => {
     setSelectedItemIndex(0);
-  }, [activeDay]);
+  }, [activeDay, activeUnit]);
 
-  const selectedItems = menuItems.filter((item) => item.day_id === activeDay);
+  const selectedItems = menuItems.filter(
+    (item) =>
+      item.day_id === activeDay &&
+      (activeUnit === "all" || !item.unit_id || item.unit_id === activeUnit),
+  );
 
   return (
     <Layout>
@@ -183,6 +199,31 @@ const Cardapio = () => {
             </TabsContent>
 
             <TabsContent value="semana">
+              {units.length > 1 && (
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">Unidade:</span>
+                  <Button
+                    variant={activeUnit === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveUnit("all")}
+                    className={activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                  >
+                    Todas
+                  </Button>
+                  {units.map((u) => (
+                    <Button
+                      key={u.id}
+                      variant={activeUnit === u.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setActiveUnit(u.id)}
+                      className={activeUnit === u.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                    >
+                      {u.nome}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-2 mb-8">
                 {days.map((day) => (
                   <Button

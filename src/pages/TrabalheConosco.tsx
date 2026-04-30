@@ -22,19 +22,31 @@ interface Job {
   salario: string | null;
 }
 
+interface UnitOption {
+  id: string;
+  nome: string;
+}
+
 const TrabalheConosco = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "",
+    nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "", unidade_pref: "",
   });
   const [file, setFile] = useState<File | null>(null);
+  const [units, setUnits] = useState<UnitOption[]>([]);
 
   useEffect(() => {
     const fetch = async () => {
       const { data } = await supabase.from("job_positions").select("*").eq("ativa", true).order("ordem");
       if (data) setJobs(data as any);
+      const { data: unitsData } = await supabase
+        .from("units")
+        .select("id,nome")
+        .eq("ativo", true)
+        .order("principal", { ascending: false });
+      if (unitsData) setUnits(unitsData);
     };
     fetch();
   }, []);
@@ -66,12 +78,19 @@ const TrabalheConosco = () => {
         experiencia: form.experiencia.trim(),
         disponibilidade: form.disponibilidade,
         curriculo_url,
-        observacoes: form.observacoes.trim(),
+        observacoes: [
+          form.unidade_pref
+            ? `Unidade preferencial: ${units.find((u) => u.id === form.unidade_pref)?.nome ?? "—"}`
+            : null,
+          form.observacoes.trim() || null,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
       });
       if (error) throw error;
       toast.success("Candidatura enviada com sucesso!");
       setSelectedJob(null);
-      setForm({ nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "" });
+      setForm({ nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "", unidade_pref: "" });
       setFile(null);
     } catch {
       toast.error("Erro ao enviar candidatura. Tente novamente.");
@@ -200,6 +219,19 @@ const TrabalheConosco = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {units.length > 1 && (
+                      <div>
+                        <Label htmlFor="unidade-pref">Unidade preferencial</Label>
+                        <Select value={form.unidade_pref} onValueChange={(v) => setForm({ ...form, unidade_pref: v })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione a unidade" /></SelectTrigger>
+                          <SelectContent>
+                            {units.map((u) => (
+                              <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div>
                       <Label htmlFor="curriculo">Currículo (PDF/DOC)</Label>
                       <div className="mt-1">

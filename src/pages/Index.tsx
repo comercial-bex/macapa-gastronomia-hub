@@ -633,8 +633,25 @@ const Index = () => {
 const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "" });
+  const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "", unit_id: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [units, setUnits] = useState<{ id: string; nome: string; principal: boolean }[]>([]);
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      const { data } = await supabase
+        .from("units")
+        .select("id,nome,principal")
+        .eq("ativo", true)
+        .order("principal", { ascending: false });
+      if (data) {
+        setUnits(data);
+        const principal = data.find((u) => u.principal) ?? data[0];
+        if (principal) setForm((f) => (f.unit_id ? f : { ...f, unit_id: principal.id }));
+      }
+    };
+    fetchUnits();
+  }, []);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -698,6 +715,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
         horario: result.data.horario,
         pessoas: parseInt(result.data.pessoas) || 1,
         observacoes: (result.data.observacoes ?? "").trim(),
+        unit_id: form.unit_id || null,
       });
       if (error) throw error;
       toast.success("Reserva enviada! Entraremos em contato em breve.");
@@ -727,6 +745,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
     `Olá, Restaurante Macapaba! 👋\nGostaria de fazer uma *reserva* com os seguintes dados:\n\n` +
     `• *Nome:* ${form.nome || "-"}\n` +
     `• *Telefone:* ${form.telefone || "-"}\n` +
+    `• *Unidade:* ${units.find((u) => u.id === form.unit_id)?.nome || "A definir"}\n` +
     `• *Data:* ${formatDateBR(form.data) || "-"}\n` +
     `• *Horário:* ${form.horario || "-"}\n` +
     `• *Pessoas:* ${form.pessoas || "-"}` +
@@ -739,7 +758,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   )}?text=${encodeURIComponent(whatsappMessage)}`;
 
   const resetForm = () => {
-    setForm({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "" });
+    setForm((f) => ({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "", unit_id: f.unit_id }));
     setErrors({});
     setSent(false);
   };
@@ -794,6 +813,28 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     </ul>
                   </div>
                 </motion.div>
+              )}
+
+              {units.length > 1 && (
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-3 block">Unidade *</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {units.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => setForm({ ...form, unit_id: u.id })}
+                        className={`px-4 py-2 text-sm rounded-sm border transition-all ${
+                          form.unit_id === u.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                        }`}
+                      >
+                        {u.nome}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               <div className="grid sm:grid-cols-2 gap-8">
