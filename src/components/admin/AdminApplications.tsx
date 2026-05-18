@@ -19,21 +19,46 @@ const AdminApplications = () => {
   const [apps, setApps] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [units, setUnits] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("novo");
   const { logAction } = useAuditLog();
 
   const fetchData = async () => {
-    const [a, j] = await Promise.all([
+    const [a, j, u] = await Promise.all([
       supabase.from("job_applications").select("*").order("created_at", { ascending: false }),
       supabase.from("job_positions").select("id, titulo"),
+      supabase.from("units").select("id, nome"),
     ]);
     if (a.data) setApps(a.data);
     if (j.data) setJobs(j.data);
+    if (u.data) setUnits(u.data);
   };
 
   useEffect(() => { fetchData(); }, []);
 
   const getJobTitle = (id: string | null) => jobs.find((j) => j.id === id)?.titulo || "—";
+  const getUnitName = (id: string | null) => units.find((u) => u.id === id)?.nome || "—";
+
+  const getLegacyResumePath = (url?: string | null) => {
+    if (!url) return null;
+    const [, rawPath] = url.split("/resumes/");
+    return rawPath ? rawPath.split("?")[0] : null;
+  };
+
+  const downloadResume = async (app: any) => {
+    const path = app.curriculo_path || getLegacyResumePath(app.curriculo_url);
+    if (!path && app.curriculo_url) {
+      window.open(app.curriculo_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (!path) return;
+    const { data, error } = await supabase.storage.from("resumes").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) {
+      toast.error("Não foi possível gerar o link seguro do currículo.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
 
   const moveStatus = async (app: any, newStatus: string) => {
     await supabase.from("job_applications").update({ status: newStatus } as any).eq("id", app.id);
@@ -79,16 +104,14 @@ const AdminApplications = () => {
               <div className="flex-1">
                 <p className="font-medium">{app.nome}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {getJobTitle(app.vaga_id)} · {new Date(app.created_at).toLocaleDateString("pt-BR")}
+                  {getJobTitle(app.vaga_id)} · {getUnitName(app.unit_id)} · {new Date(app.created_at).toLocaleDateString("pt-BR")}
                 </p>
                 {app.telefone && <p className="text-xs text-muted-foreground">{app.telefone}</p>}
               </div>
               <div className="flex items-center gap-1">
                 <Button size="icon" variant="ghost" onClick={() => setSelected(app)}><Eye className="h-4 w-4" /></Button>
-                {app.curriculo_url && (
-                  <a href={app.curriculo_url} target="_blank" rel="noopener noreferrer">
-                    <Button size="icon" variant="ghost"><Download className="h-4 w-4" /></Button>
-                  </a>
+                {(app.curriculo_path || app.curriculo_url) && (
+                  <Button size="icon" variant="ghost" onClick={() => downloadResume(app)}><Download className="h-4 w-4" /></Button>
                 )}
               </div>
             </div>
@@ -124,16 +147,15 @@ const AdminApplications = () => {
             <div className="space-y-3 text-sm">
               <div><span className="text-muted-foreground">Nome:</span> {selected.nome}</div>
               <div><span className="text-muted-foreground">Vaga:</span> {getJobTitle(selected.vaga_id)}</div>
+              <div><span className="text-muted-foreground">Unidade preferencial:</span> {getUnitName(selected.unit_id)}</div>
               <div><span className="text-muted-foreground">Telefone:</span> {selected.telefone}</div>
               <div><span className="text-muted-foreground">E-mail:</span> {selected.email}</div>
               <div><span className="text-muted-foreground">Experiência:</span> {selected.experiencia || "—"}</div>
               <div><span className="text-muted-foreground">Disponibilidade:</span> {selected.disponibilidade || "—"}</div>
               <div><span className="text-muted-foreground">Observações:</span> {selected.observacoes || "—"}</div>
               <div><span className="text-muted-foreground">Data:</span> {new Date(selected.created_at).toLocaleString("pt-BR")}</div>
-              {selected.curriculo_url && (
-                <a href={selected.curriculo_url} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="gap-2 mt-2"><Download className="h-4 w-4" /> Baixar Currículo</Button>
-                </a>
+              {(selected.curriculo_path || selected.curriculo_url) && (
+                <Button variant="outline" size="sm" className="gap-2 mt-2" onClick={() => downloadResume(selected)}><Download className="h-4 w-4" /> Baixar Currículo</Button>
               )}
             </div>
           )}

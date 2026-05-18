@@ -32,13 +32,16 @@ Deno.serve(async (req) => {
 
     const callerId = claimsData.claims.sub;
 
-    // Check if caller is admin
-    const { data: callerProfile } = await anonClient.from("profiles").select("role").eq("id", callerId).single();
-    if (callerProfile?.role !== "admin") {
+    // Check if caller is admin via the same RBAC function used by RLS.
+    const { data: callerIsAdmin, error: adminCheckError } = await anonClient.rpc("is_admin");
+    if (adminCheckError || !callerIsAdmin || !callerId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
     }
 
-    const { email, password, nome } = await req.json();
+    const { email, password, nome, role = "admin", unit_id = null } = await req.json();
+    if (!["admin", "editor", "gerente"].includes(role)) {
+      return new Response(JSON.stringify({ error: "Papel administrativo inválido" }), { status: 400, headers: corsHeaders });
+    }
     if (!email || !password) {
       return new Response(JSON.stringify({ error: "Email e senha são obrigatórios" }), { status: 400, headers: corsHeaders });
     }
@@ -59,8 +62,13 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: createError.message }), { status: 400, headers: corsHeaders });
     }
 
-    // Update profile to admin
-    await adminClient.from("profiles").update({ role: "admin", nome: nome || null }).eq("id", newUser.user.id);
+    // Keep legacy profile compatibility and persist the canonical RBAC role.
+    await adminClient.from("profiles").update({ role: role === "admin" ? "admin" : "user", nome: nome || null }).eq("id", newUser.user.id);
+    await adminClient.from("user_roles").insert({
+      user_id: newUser.user.id,
+      role,
+      unit_id,
+    });
 
     return new Response(JSON.stringify({ success: true, user_id: newUser.user.id }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {

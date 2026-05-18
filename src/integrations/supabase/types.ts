@@ -109,6 +109,7 @@ export type Database = {
       job_applications: {
         Row: {
           created_at: string
+          curriculo_path: string | null
           curriculo_url: string | null
           disponibilidade: string | null
           email: string
@@ -118,10 +119,12 @@ export type Database = {
           observacoes: string | null
           status: string
           telefone: string
+          unit_id: string | null
           vaga_id: string | null
         }
         Insert: {
           created_at?: string
+          curriculo_path?: string | null
           curriculo_url?: string | null
           disponibilidade?: string | null
           email: string
@@ -131,10 +134,12 @@ export type Database = {
           observacoes?: string | null
           status?: string
           telefone: string
+          unit_id?: string | null
           vaga_id?: string | null
         }
         Update: {
           created_at?: string
+          curriculo_path?: string | null
           curriculo_url?: string | null
           disponibilidade?: string | null
           email?: string
@@ -144,9 +149,17 @@ export type Database = {
           observacoes?: string | null
           status?: string
           telefone?: string
+          unit_id?: string | null
           vaga_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "job_applications_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_applications_vaga_id_fkey"
             columns: ["vaga_id"]
@@ -498,6 +511,14 @@ export type Database = {
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role_for_unit: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _unit_id: string | null
           _user_id: string
         }
         Returns: boolean

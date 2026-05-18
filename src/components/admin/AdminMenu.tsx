@@ -16,6 +16,12 @@ const DIET_TAGS = [
   { key: "picante", label: "Picante", icon: Flame, color: "bg-red-500/15 text-red-600 border-red-500/30" },
 ] as const;
 
+const getMenuMediaPath = (url?: string | null) => {
+  if (!url) return null;
+  const [, rawPath] = url.split("/menu-items/");
+  return rawPath ? rawPath.split("?")[0] : null;
+};
+
 const AdminMenu = () => {
   const [days, setDays] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
@@ -85,6 +91,8 @@ const AdminMenu = () => {
 
   const deleteItem = async (id: string) => {
     const item = items.find(i => i.id === id);
+    const mediaPath = getMenuMediaPath(item?.imagem_url);
+    if (mediaPath) await supabase.storage.from("menu-items").remove([mediaPath]);
     await supabase.from("weekly_menu_items").delete().eq("id", id);
     await logAction("cardapio", "excluiu", `Removeu prato '${item?.prato}'`);
     toast.success("Removido!");
@@ -96,6 +104,8 @@ const AdminMenu = () => {
     const isVideo = file.type.startsWith("video/");
     const ext = file.name.split(".").pop();
     const path = `${itemId}.${ext}`;
+    const currentPath = getMenuMediaPath(items.find((i) => i.id === itemId)?.imagem_url);
+    if (currentPath) await supabase.storage.from("menu-items").remove([currentPath]);
     await supabase.storage.from("menu-items").remove([path]);
     const { error: uploadError } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Erro no upload: " + uploadError.message); setUploading(null); return; }
@@ -111,8 +121,8 @@ const AdminMenu = () => {
   };
 
   const removeMedia = async (itemId: string, url: string) => {
-    const parts = url.split("/menu-items/");
-    if (parts[1]) await supabase.storage.from("menu-items").remove([parts[1]]);
+    const path = getMenuMediaPath(url);
+    if (path) await supabase.storage.from("menu-items").remove([path]);
     await supabase.from("weekly_menu_items").update({ imagem_url: null, tipo_midia: "imagem" }).eq("id", itemId);
     const item = items.find(i => i.id === itemId);
     await logAction("cardapio", "editou", `Removeu mídia de '${item?.prato}'`);
@@ -152,6 +162,8 @@ const AdminMenu = () => {
       const isVideo = file.type.startsWith("video/");
       const ext = file.name.split(".").pop();
       const path = `${target.id}.${ext}`;
+      const currentPath = getMenuMediaPath(target.imagem_url);
+      if (currentPath) await supabase.storage.from("menu-items").remove([currentPath]);
       await supabase.storage.from("menu-items").remove([path]);
       const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
       if (!upErr) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, CheckCircle2, ImageOff, Clock, Calendar, MapPin } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, ImageOff, Clock, Calendar, MapPin, Users } from "lucide-react";
 
 interface HealthCheck {
   label: string;
@@ -17,12 +17,13 @@ const SiteHealth = () => {
 
   useEffect(() => {
     const run = async () => {
-      const [menu, portfolio, units, reservations, beverages] = await Promise.all([
+      const [menu, portfolio, units, reservations, beverages, applications] = await Promise.all([
         supabase.from("weekly_menu_items").select("id, imagem_url, unit_id, ativo"),
         supabase.from("portfolio_items").select("id, url, ativo"),
         supabase.from("units").select("id, ativo, horarios, telefone, imagem_url"),
         supabase.from("reservations").select("id, status, created_at").eq("status", "pendente"),
         supabase.from("beverages").select("id, preco, ativo"),
+        supabase.from("job_applications").select("id, unit_id"),
       ]);
 
       const menuItems = menu.data || [];
@@ -38,6 +39,7 @@ const SiteHealth = () => {
 
       const reservasPendentes = (reservations.data || []).length;
       const bebidasSemPreco = (beverages.data || []).filter((b: any) => b.ativo && !b.preco).length;
+      const candidaturasSemUnidade = (applications.data || []).filter((a: any) => !a.unit_id).length;
 
       const result: HealthCheck[] = [
         {
@@ -75,6 +77,12 @@ const SiteHealth = () => {
           status: bebidasSemPreco === 0 ? "ok" : "warn",
           detail: bebidasSemPreco === 0 ? "Preços completos" : `${bebidasSemPreco} sem preço`,
           icon: AlertTriangle,
+        },
+        {
+          label: "Candidaturas sem unidade",
+          status: candidaturasSemUnidade === 0 ? "ok" : candidaturasSemUnidade > 5 ? "error" : "warn",
+          detail: candidaturasSemUnidade === 0 ? "Todas relacionadas" : `${candidaturasSemUnidade} sem unidade preferencial`,
+          icon: Users,
         },
       ];
 

@@ -60,32 +60,26 @@ const TrabalheConosco = () => {
     }
     setLoading(true);
     try {
-      let curriculo_url = "";
+      let curriculo_path: string | null = null;
       if (file) {
         const ext = file.name.split(".").pop();
         const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
         const { error: uploadErr } = await supabase.storage.from("resumes").upload(path, file);
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(path);
-        curriculo_url = urlData.publicUrl;
+        curriculo_path = path;
       }
 
       const { error } = await supabase.from("job_applications").insert({
         vaga_id: selectedJob.id,
+        unit_id: form.unidade_pref || null,
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
         email: form.email.trim(),
         experiencia: form.experiencia.trim(),
         disponibilidade: form.disponibilidade,
-        curriculo_url,
-        observacoes: [
-          form.unidade_pref
-            ? `Unidade preferencial: ${units.find((u) => u.id === form.unidade_pref)?.nome ?? "—"}`
-            : null,
-          form.observacoes.trim() || null,
-        ]
-          .filter(Boolean)
-          .join("\n\n"),
+        curriculo_path,
+        curriculo_url: null,
+        observacoes: form.observacoes.trim() || null,
       });
       if (error) throw error;
       toast.success("Candidatura enviada com sucesso!");
