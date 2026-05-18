@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
+import { getAdministrativeRoles, hasAdministrativeAccess } from "@/lib/adminAuth";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -19,8 +20,8 @@ const AdminLogin = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single();
-        if (profile?.role === "admin") navigate("/admin");
+        const roles = await getAdministrativeRoles(session.user.id);
+        if (hasAdministrativeAccess(roles)) navigate("/admin");
       }
     };
     checkSession();
@@ -32,10 +33,10 @@ const AdminLogin = () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
-      if (profile?.role !== "admin") {
+      const roles = await getAdministrativeRoles(data.user.id);
+      if (!hasAdministrativeAccess(roles)) {
         await supabase.auth.signOut();
-        toast.error("Acesso negado. Apenas administradores.");
+        toast.error("Acesso negado. Usuário sem papel administrativo.");
         return;
       }
       toast.success("Login realizado!");

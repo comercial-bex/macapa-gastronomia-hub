@@ -16,18 +16,19 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import AdminProfile from "@/components/admin/AdminProfile";
 import AdminAuditLog from "@/components/admin/AdminAuditLog";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import { getAdministrativeRoles, hasAdministrativeAccess, type AppRole } from "@/lib/adminAuth";
 
-const sidebarLinks = [
-  { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Portfólio", path: "/admin/portfolio", icon: Image },
-  { label: "Bebidas", path: "/admin/bebidas", icon: Wine },
-  { label: "Cardápio", path: "/admin/cardapio", icon: CalendarDays },
-  { label: "Unidades", path: "/admin/unidades", icon: MapPin },
-  { label: "Vagas", path: "/admin/vagas", icon: Briefcase },
-  { label: "Candidaturas", path: "/admin/candidaturas", icon: Users },
-  { label: "Reservas", path: "/admin/reservas", icon: BookOpen },
-  { label: "Histórico", path: "/admin/historico", icon: ClipboardList },
-  { label: "Configurações", path: "/admin/configuracoes", icon: Settings },
+const sidebarLinks: Array<{ label: string; path: string; icon: typeof LayoutDashboard; roles: AppRole[] }> = [
+  { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, roles: ["admin", "editor", "gerente"] },
+  { label: "Portfólio", path: "/admin/portfolio", icon: Image, roles: ["admin", "editor"] },
+  { label: "Bebidas", path: "/admin/bebidas", icon: Wine, roles: ["admin", "editor"] },
+  { label: "Cardápio", path: "/admin/cardapio", icon: CalendarDays, roles: ["admin", "editor"] },
+  { label: "Unidades", path: "/admin/unidades", icon: MapPin, roles: ["admin"] },
+  { label: "Vagas", path: "/admin/vagas", icon: Briefcase, roles: ["admin"] },
+  { label: "Candidaturas", path: "/admin/candidaturas", icon: Users, roles: ["admin", "gerente"] },
+  { label: "Reservas", path: "/admin/reservas", icon: BookOpen, roles: ["admin", "gerente"] },
+  { label: "Histórico", path: "/admin/historico", icon: ClipboardList, roles: ["admin"] },
+  { label: "Configurações", path: "/admin/configuracoes", icon: Settings, roles: ["admin", "editor"] },
 ];
 
 const sidebarItemVariants = {
@@ -44,14 +45,20 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ nome: string | null; avatar_url: string | null; email: string }>({ nome: null, avatar_url: null, email: "" });
+  const [roles, setRoles] = useState<AppRole[]>([]);
 
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate("/admin/login"); return; }
-      const { data: profile } = await supabase.from("profiles").select("role, nome, avatar_url").eq("id", session.user.id).single();
-      if (profile?.role !== "admin") { navigate("/admin/login"); return; }
-      setUserProfile({ nome: (profile as any)?.nome || null, avatar_url: (profile as any)?.avatar_url || null, email: session.user.email || "" });
+      const [profileResult, adminRoles] = await Promise.all([
+        supabase.from("profiles").select("nome, avatar_url").eq("id", session.user.id).maybeSingle(),
+        getAdministrativeRoles(session.user.id),
+      ]);
+      if (!hasAdministrativeAccess(adminRoles)) { navigate("/admin/login"); return; }
+      const profile = profileResult.data;
+      setRoles(adminRoles);
+      setUserProfile({ nome: profile?.nome || null, avatar_url: profile?.avatar_url || null, email: session.user.email || "" });
       setLoading(false);
     };
 
@@ -74,6 +81,10 @@ const Admin = () => {
     );
   }
 
+  const canAccess = (allowedRoles: AppRole[]) => allowedRoles.some((role) => roles.includes(role));
+  const guarded = (allowedRoles: AppRole[], element: JSX.Element) => (canAccess(allowedRoles) ? element : <AdminDashboard />);
+  const visibleLinks = sidebarLinks.filter((link) => canAccess(link.roles));
+
   const SidebarContent = () => (
     <>
        <div className="p-6 border-b border-white/10">
@@ -82,7 +93,7 @@ const Admin = () => {
        </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {sidebarLinks.map((link, i) => {
+        {visibleLinks.map((link, i) => {
           const isActive = location.pathname === link.path;
           return (
             <motion.div key={link.path} custom={i} initial="hidden" animate="visible" variants={sidebarItemVariants}>
@@ -174,15 +185,15 @@ const Admin = () => {
         <div className="p-6 lg:p-8">
           <Routes>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="portfolio" element={<AdminPortfolio />} />
-            <Route path="bebidas" element={<AdminBeverages />} />
-            <Route path="cardapio" element={<AdminMenu />} />
-            <Route path="unidades" element={<AdminUnits />} />
-            <Route path="vagas" element={<AdminJobs />} />
-            <Route path="candidaturas" element={<AdminApplications />} />
-            <Route path="reservas" element={<AdminReservations />} />
-            <Route path="historico" element={<AdminAuditLog />} />
-            <Route path="configuracoes" element={<AdminSettings />} />
+            <Route path="portfolio" element={guarded(["admin", "editor"], <AdminPortfolio />)} />
+            <Route path="bebidas" element={guarded(["admin", "editor"], <AdminBeverages />)} />
+            <Route path="cardapio" element={guarded(["admin", "editor"], <AdminMenu />)} />
+            <Route path="unidades" element={guarded(["admin"], <AdminUnits />)} />
+            <Route path="vagas" element={guarded(["admin"], <AdminJobs />)} />
+            <Route path="candidaturas" element={guarded(["admin", "gerente"], <AdminApplications />)} />
+            <Route path="reservas" element={guarded(["admin", "gerente"], <AdminReservations />)} />
+            <Route path="historico" element={guarded(["admin"], <AdminAuditLog />)} />
+            <Route path="configuracoes" element={guarded(["admin", "editor"], <AdminSettings />)} />
             <Route path="perfil" element={<AdminProfile />} />
             <Route path="*" element={<AdminDashboard />} />
           </Routes>

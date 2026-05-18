@@ -52,6 +52,7 @@ const AdminReservations = () => {
     const { error } = await supabase.from("reservations").update({ unit_id } as any).eq("id", id);
     if (error) { toast.error("Erro."); return; }
     await logAction("reservas", "editou", `Vinculou reserva de ${name} a unidade`);
+    setSelected((current: any) => current?.id === id ? { ...current, unit_id } : current);
     toast.success("Unidade vinculada!");
     fetchData();
   };
@@ -69,7 +70,9 @@ const AdminReservations = () => {
   const openWhatsApp = (r: any) => {
     const phone = r.telefone.replace(/\D/g, "");
     const dataFmt = new Date(r.data + "T00:00:00").toLocaleDateString("pt-BR");
-    const msg = `Olá ${r.nome}! Sua reserva no Restaurante Macapaba para ${dataFmt} às ${r.horario} (${r.pessoas} pessoa${r.pessoas > 1 ? "s" : ""}) está *confirmada*. Te esperamos! 🍽️`;
+    const unitName = units.find((u) => u.id === r.unit_id)?.nome;
+    const unitText = unitName ? ` na unidade ${unitName}` : "";
+    const msg = `Olá ${r.nome}! Sua reserva no Restaurante Macapaba${unitText} para ${dataFmt} às ${r.horario} (${r.pessoas} pessoa${r.pessoas > 1 ? "s" : ""}) está *confirmada*. Te esperamos! 🍽️`;
     window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
