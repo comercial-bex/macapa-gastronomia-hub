@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown, CalendarDays, Eye, EyeOff, Pencil, GripVertical, Camera, ImageOff } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,8 @@ const AdminMenu = () => {
   const [savingDetails, setSavingDetails] = useState(false);
   const [filter, setFilter] = useState<"todos" | "sem-foto" | "esgotados" | "novos">("todos");
   const [copyDialog, setCopyDialog] = useState<{ open: boolean; targetDayId: string; mode: "merge" | "replace" }>({ open: false, targetDayId: "", mode: "merge" });
+  const [dayManagerOpen, setDayManagerOpen] = useState(false);
+  const [newDayName, setNewDayName] = useState("");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
