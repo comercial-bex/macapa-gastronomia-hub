@@ -11,6 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
+import { SortableItem } from "./SortableItem";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +58,9 @@ const AdminMenu = () => {
   const [detailsItem, setDetailsItem] = useState<any | null>(null);
   const [detailsForm, setDetailsForm] = useState({ descricao: "", badge: "", esgotado: false, alergenos: "", disponivel_de: "", disponivel_ate: "" });
   const [savingDetails, setSavingDetails] = useState(false);
+  const [filter, setFilter] = useState<"todos" | "sem-foto" | "esgotados" | "novos">("todos");
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const fetchData = async () => {
     const [d, i, u] = await Promise.all([
@@ -300,6 +306,37 @@ const AdminMenu = () => {
   const activeDayName = days.find((d) => d.id === activeDay)?.dia_semana;
   const semFoto = items.filter((i) => !i.imagem_url).length;
   const dayItemsComFoto = dayItems.filter((i) => i.imagem_url).length;
+  const dayItemsSemFoto = dayItems.filter((i) => !i.imagem_url).length;
+  const dayItemsEsgotados = dayItems.filter((i) => i.esgotado).length;
+  const dayItemsNovos = dayItems.filter((i) => i.badge === "novo" || i.badge === "destaque").length;
+
+  const visibleItems = dayItems.filter((i) => {
+    if (filter === "sem-foto") return !i.imagem_url;
+    if (filter === "esgotados") return !!i.esgotado;
+    if (filter === "novos") return i.badge === "novo" || i.badge === "destaque";
+    return true;
+  });
+
+  const handleDragEnd = async (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = visibleItems.findIndex((i) => i.id === active.id);
+    const newIndex = visibleItems.findIndex((i) => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(visibleItems, oldIndex, newIndex);
+    // Optimistic update: rewrite "ordem" for visible subset, keep others as-is.
+    const newOrderMap = new Map(reordered.map((it, idx) => [it.id, idx]));
+    setItems((prev) => prev.map((it) => newOrderMap.has(it.id) ? { ...it, ordem: newOrderMap.get(it.id)! } : it));
+    // Persist in background.
+    const updates = reordered.map((it, idx) =>
+      supabase.from("weekly_menu_items").update({ ordem: idx }).eq("id", it.id),
+    );
+    const results = await Promise.all(updates);
+    if (results.some((r) => r.error)) {
+      toast.error("Falha ao reordenar. Recarregando…");
+      fetchData();
+    }
+  };
 
   return (
     <div>
@@ -357,6 +394,30 @@ const AdminMenu = () => {
             </a>
           </div>
 
+          {/* Quick filters */}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {[
+              { key: "todos", label: `Todos (${dayItems.length})` },
+              { key: "sem-foto", label: `Sem foto (${dayItemsSemFoto})` },
+              { key: "esgotados", label: `Esgotados hoje (${dayItemsEsgotados})` },
+              { key: "novos", label: `Novos / Destaque (${dayItemsNovos})` },
+            ].map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key as any)}
+                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                  filter === f.key
+                    ? "bg-primary/15 text-primary border-primary/30"
+                    : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            <span className="text-[11px] text-muted-foreground/70 ml-auto">Arraste pelo punho ⠿ para reordenar.</span>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-2 mb-6">
             <Input value={newPrato} onChange={(e) => setNewPrato(e.target.value)} placeholder="Nome do prato" onKeyDown={(e) => e.key === "Enter" && addItem()} className="flex-1" />
             <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={newCategoria} onChange={(e) => setNewCategoria(e.target.value)}>
@@ -400,9 +461,11 @@ const AdminMenu = () => {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {dayItems.map((item) => (
-              <div key={item.id} className="glass-effect rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={visibleItems.map((i) => i.id)} strategy={rectSortingStrategy}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {visibleItems.map((item) => (
+                  <SortableItem key={item.id} id={item.id} className="glass-effect rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {/* Media preview */}
                 <div className="relative aspect-[16/10] bg-muted">
                   {item.imagem_url ? (
@@ -511,14 +574,21 @@ const AdminMenu = () => {
                     <Settings2 className="h-3 w-3" /> Detalhes (descrição, badge, alérgenos, horário)
                   </Button>
                 </div>
+                  </SortableItem>
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
 
           {dayItems.length === 0 && (
             <div className="text-center py-12">
               <UtensilsCrossed className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
               <p className="text-muted-foreground text-sm">Nenhum prato cadastrado para {activeDayName}.</p>
+            </div>
+          )}
+          {dayItems.length > 0 && visibleItems.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Nenhum prato neste filtro.
             </div>
           )}
         </div>
