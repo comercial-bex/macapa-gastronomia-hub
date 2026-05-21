@@ -294,6 +294,30 @@ const AdminBeverages = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDelete?.kind === "cat" ? "Excluir categoria?" : "Excluir bebida?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.kind === "cat"
+                ? <>A categoria "{pendingDelete?.nome}" será removida.{pendingDelete?.childCount ? ` ${pendingDelete.childCount} bebida(s) ficarão sem categoria.` : ""}</>
+                : <>"{pendingDelete?.nome}" será removida permanentemente.</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={runPendingDelete}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
