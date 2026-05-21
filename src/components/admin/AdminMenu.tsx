@@ -692,9 +692,14 @@ const AdminMenu = () => {
                         </button>
                       )}
                     </div>
-                    <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setPendingDelete({ id: item.id, prato: item.prato })}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Duplicar prato" onClick={() => duplicateItem(item)}>
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setPendingDelete({ id: item.id, prato: item.prato })}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   {(item.esgotado || item.badge) && (
                     <div className="flex flex-wrap gap-1">
@@ -823,6 +828,60 @@ const AdminMenu = () => {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDetailsItem(null)}>Cancelar</Button>
             <Button onClick={saveDetails} disabled={savingDetails}>{savingDetails ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={copyDialog.open} onOpenChange={(o) => setCopyDialog((s) => ({ ...s, open: o }))}>
+        <DialogContent className="glass-effect max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Copiar dia para outro dia</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Vai copiar <span className="text-foreground font-medium">{dayItems.length} prato(s)</span> de
+              {" "}<span className="text-primary font-medium">{activeDayName}</span>. As <strong>fotos não são duplicadas</strong> (cada prato tem mídia própria).
+            </p>
+            <div>
+              <Label>Dia de destino</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={copyDialog.targetDayId}
+                onChange={(e) => setCopyDialog((s) => ({ ...s, targetDayId: e.target.value }))}
+              >
+                <option value="">Selecione…</option>
+                {days.filter((d) => d.id !== activeDay).map((d) => (
+                  <option key={d.id} value={d.id}>{d.dia_semana}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Modo</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setCopyDialog((s) => ({ ...s, mode: "merge" }))}
+                  className={`text-left p-3 rounded-lg border text-sm transition-colors ${copyDialog.mode === "merge" ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  <div className="font-medium">Acrescentar</div>
+                  <div className="text-[11px] mt-0.5">Mantém o que já existe no destino e adiciona estes.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCopyDialog((s) => ({ ...s, mode: "replace" }))}
+                  className={`text-left p-3 rounded-lg border text-sm transition-colors ${copyDialog.mode === "replace" ? "border-destructive bg-destructive/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  <div className="font-medium">Substituir</div>
+                  <div className="text-[11px] mt-0.5">Apaga os pratos do destino antes de copiar.</div>
+                </button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCopyDialog({ open: false, targetDayId: "", mode: "merge" })}>Cancelar</Button>
+            <Button onClick={() => copyDayTo(copyDialog.targetDayId, copyDialog.mode)} disabled={!copyDialog.targetDayId}>
+              Copiar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
