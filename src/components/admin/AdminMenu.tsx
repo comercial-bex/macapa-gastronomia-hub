@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const CATEGORIAS = ["entrada", "principal", "acompanhamento", "sobremesa"] as const;
 const DIET_TAGS = [
@@ -48,6 +49,8 @@ const AdminMenu = () => {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  useRealtimeRefresh(["weekly_menu_items", "weekly_menu_days"], fetchData);
 
   const addItem = async () => {
     if (!newPrato.trim() || !activeDay) return;

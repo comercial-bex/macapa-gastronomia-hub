@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
   "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
@@ -119,6 +120,25 @@ const Cardapio = () => {
     };
     fetchData();
   }, [diaParam]);
+
+  // Refetch in the background whenever an admin changes menu/beverage data.
+  useRealtimeRefresh(
+    ["weekly_menu_items", "beverages", "beverage_categories", "weekly_menu_days"],
+    () => {
+      (async () => {
+        const [catsRes, bevsRes, daysRes, itemsRes] = await Promise.all([
+          supabase.from("beverage_categories").select("*").eq("ativo", true).order("ordem"),
+          supabase.from("beverages").select("*").eq("ativo", true).order("ordem"),
+          supabase.from("weekly_menu_days").select("*").order("ordem"),
+          supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem"),
+        ]);
+        if (catsRes.data) setCategories(catsRes.data);
+        if (bevsRes.data) setBeverages(bevsRes.data);
+        if (daysRes.data) setDays(daysRes.data);
+        if (itemsRes.data) setMenuItems(itemsRes.data);
+      })();
+    },
+  );
 
   useEffect(() => {
     setSelectedItemIndex(0);
