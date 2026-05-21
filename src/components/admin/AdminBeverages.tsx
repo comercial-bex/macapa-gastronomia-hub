@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Wine, ImagePlus, X } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const AdminBeverages = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -33,6 +34,8 @@ const AdminBeverages = () => {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  useRealtimeRefresh(["beverages", "beverage_categories"], fetchData);
 
   const saveCat = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
