@@ -693,7 +693,20 @@ const Cardapio = () => {
                     </>
                   ) : (
                     <div className="w-full text-center py-8 text-muted-foreground">
-                      <p>Nenhum prato cadastrado para este dia.</p>
+                      {dayItemsAll.length === 0 ? (
+                        <p>Nenhum prato cadastrado para este dia.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          <p>Nenhum prato neste filtro.</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => { setQuerySemana(""); setActiveDiet(null); }}
+                          >
+                            Limpar filtros
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
