@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import {
@@ -49,6 +52,9 @@ const AdminMenu = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
   const [pendingDelete, setPendingDelete] = useState<{ id: string; prato: string } | null>(null);
+  const [detailsItem, setDetailsItem] = useState<any | null>(null);
+  const [detailsForm, setDetailsForm] = useState({ descricao: "", badge: "", esgotado: false, alergenos: "", disponivel_de: "", disponivel_ate: "" });
+  const [savingDetails, setSavingDetails] = useState(false);
 
   const fetchData = async () => {
     const [d, i, u] = await Promise.all([
@@ -114,6 +120,44 @@ const AdminMenu = () => {
     await logAction("cardapio", "excluiu", `Removeu prato '${item?.prato}'`);
     toast.success("Removido!");
     fetchData();
+  };
+
+  const openDetails = (item: any) => {
+    setDetailsItem(item);
+    setDetailsForm({
+      descricao: item.descricao || "",
+      badge: item.badge || "",
+      esgotado: !!item.esgotado,
+      alergenos: (item.alergenos || []).join(", "),
+      disponivel_de: item.disponivel_de ? item.disponivel_de.slice(0, 5) : "",
+      disponivel_ate: item.disponivel_ate ? item.disponivel_ate.slice(0, 5) : "",
+    });
+  };
+
+  const saveDetails = async () => {
+    if (!detailsItem) return;
+    setSavingDetails(true);
+    try {
+      const alergenos = detailsForm.alergenos
+        ? detailsForm.alergenos.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+      const payload: any = {
+        descricao: detailsForm.descricao || null,
+        badge: detailsForm.badge || null,
+        esgotado: detailsForm.esgotado,
+        alergenos,
+        disponivel_de: detailsForm.disponivel_de || null,
+        disponivel_ate: detailsForm.disponivel_ate || null,
+      };
+      const { error } = await supabase.from("weekly_menu_items").update(payload).eq("id", detailsItem.id);
+      if (error) { toast.error("Falha ao salvar: " + error.message); return; }
+      await logAction("cardapio", "editou", `Atualizou detalhes de '${detailsItem.prato}'`);
+      toast.success("Detalhes salvos!");
+      setDetailsItem(null);
+      fetchData();
+    } finally {
+      setSavingDetails(false);
+    }
   };
 
   const saveName = async (id: string) => {
@@ -424,6 +468,12 @@ const AdminMenu = () => {
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
+                  {(item.esgotado || item.badge) && (
+                    <div className="flex flex-wrap gap-1">
+                      {item.esgotado && <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="h-3 w-3" /> Esgotado hoje</Badge>}
+                      {item.badge && <Badge className="text-[10px] gap-1 bg-primary/15 text-primary border-primary/30"><Sparkles className="h-3 w-3" /> {item.badge}</Badge>}
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
                     <Tag className="h-3 w-3 text-muted-foreground" />
                     <select className="text-xs bg-muted rounded px-1.5 py-0.5 border border-border" value={item.categoria || "principal"} onChange={(e) => updateCategoria(item.id, e.target.value)}>
@@ -457,6 +507,9 @@ const AdminMenu = () => {
                       );
                     })}
                   </div>
+                  <Button size="sm" variant="ghost" className="w-full h-7 mt-1 text-xs gap-1.5" onClick={() => openDetails(item)}>
+                    <Settings2 className="h-3 w-3" /> Detalhes (descrição, badge, alérgenos, horário)
+                  </Button>
                 </div>
               </div>
             ))}
@@ -490,6 +543,54 @@ const AdminMenu = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!detailsItem} onOpenChange={(o) => !o && setDetailsItem(null)}>
+        <DialogContent className="glass-effect max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">Detalhes — {detailsItem?.prato}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Descrição curta</Label>
+              <Textarea rows={2} maxLength={240} value={detailsForm.descricao} onChange={(e) => setDetailsForm({ ...detailsForm, descricao: e.target.value })} placeholder="Ex: Tucunaré grelhado com purê de macaxeira e farofa de banana." />
+              <p className="text-[11px] text-muted-foreground mt-1">Aparece no site (máx. 240 caracteres).</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Badge</Label>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={detailsForm.badge} onChange={(e) => setDetailsForm({ ...detailsForm, badge: e.target.value })}>
+                  <option value="">Nenhuma</option>
+                  <option value="novo">Novo</option>
+                  <option value="destaque">Destaque</option>
+                  <option value="chef">Sugestão do chef</option>
+                  <option value="promocao">Promoção</option>
+                </select>
+              </div>
+              <label className="flex items-end gap-2 text-sm pb-2">
+                <Switch checked={detailsForm.esgotado} onCheckedChange={(v) => setDetailsForm({ ...detailsForm, esgotado: v })} />
+                Esgotado hoje
+              </label>
+            </div>
+            <div>
+              <Label>Alérgenos</Label>
+              <Input value={detailsForm.alergenos} onChange={(e) => setDetailsForm({ ...detailsForm, alergenos: e.target.value })} placeholder="Ex: glúten, lactose, frutos do mar" />
+              <p className="text-[11px] text-muted-foreground mt-1">Separados por vírgula.</p>
+            </div>
+            <div>
+              <Label>Janela de disponibilidade no dia</Label>
+              <div className="grid grid-cols-2 gap-3 mt-1">
+                <Input type="time" value={detailsForm.disponivel_de} onChange={(e) => setDetailsForm({ ...detailsForm, disponivel_de: e.target.value })} />
+                <Input type="time" value={detailsForm.disponivel_ate} onChange={(e) => setDetailsForm({ ...detailsForm, disponivel_ate: e.target.value })} />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">Deixe em branco para "o dia inteiro".</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDetailsItem(null)}>Cancelar</Button>
+            <Button onClick={saveDetails} disabled={savingDetails}>{savingDetails ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
