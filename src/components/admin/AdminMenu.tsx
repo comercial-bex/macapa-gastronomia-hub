@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { compressImage } from "@/lib/compressImage";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { SortableItem } from "./SortableItem";
@@ -330,26 +331,30 @@ const AdminMenu = () => {
       toast.error("Envie apenas imagem ou vídeo.");
       return;
     }
-    const maxMb = isVideo ? 50 : 10;
+    const maxMb = isVideo ? 50 : 20;
     if (file.size > maxMb * 1024 * 1024) {
       toast.error(`Arquivo acima de ${maxMb} MB.`);
       return;
     }
     setUploading(itemId);
     try {
+      // Compress images client-side before upload (resize + WebP). Videos pass through.
+      const finalFile = isImage ? await compressImage(file, { maxDim: 1600, quality: 0.82 }) : file;
+      const finalIsVideo = finalFile.type.startsWith("video/");
+
       // Remove qualquer arquivo anterior deste id, qualquer extensão.
       const { data: existing } = await supabase.storage.from("menu-items").list("", { search: itemId });
       const toRemove = (existing || []).filter((f) => f.name.startsWith(`${itemId}.`)).map((f) => f.name);
       if (toRemove.length) await supabase.storage.from("menu-items").remove(toRemove);
 
-      const rawExt = (file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "");
-      const allowed = isVideo ? ["mp4", "mov", "webm"] : ["jpg", "jpeg", "png", "webp", "gif"];
-      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "jpg");
+      const rawExt = (finalFile.name.split(".").pop() || (finalIsVideo ? "mp4" : "webp")).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const allowed = finalIsVideo ? ["mp4", "mov", "webm"] : ["jpg", "jpeg", "png", "webp", "gif"];
+      const ext = allowed.includes(rawExt) ? rawExt : (finalIsVideo ? "mp4" : "webp");
       const path = `${itemId}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("menu-items")
-        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+        .upload(path, finalFile, { upsert: true, contentType: finalFile.type, cacheControl: "3600" });
       if (uploadError) {
         toast.error("Falha no upload: " + uploadError.message);
         return;
@@ -360,7 +365,7 @@ const AdminMenu = () => {
 
       const { error: updErr } = await supabase
         .from("weekly_menu_items")
-        .update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" })
+        .update({ imagem_url: bustedUrl, tipo_midia: finalIsVideo ? "video" : "imagem" })
         .eq("id", itemId);
       if (updErr) {
         toast.error("Mídia subiu mas não vinculou ao prato: " + updErr.message);
@@ -406,7 +411,9 @@ const AdminMenu = () => {
     let skipped = 0;
 
     for (let idx = 0; idx < files.length; idx++) {
-      const file = files[idx];
+      const rawFile = files[idx];
+      const isImageRaw = rawFile.type.startsWith("image/");
+      const file = isImageRaw ? await compressImage(rawFile, { maxDim: 1600, quality: 0.82 }) : rawFile;
       const base = file.name.replace(/\.[^.]+$/, "");
       const baseNorm = norm(base);
       // best match: longest prato name contained in filename (or vice-versa)
@@ -426,7 +433,7 @@ const AdminMenu = () => {
       if (toRemove.length) await supabase.storage.from("menu-items").remove(toRemove);
       const rawExt = (file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "");
       const allowed = isVideo ? ["mp4", "mov", "webm"] : ["jpg", "jpeg", "png", "webp", "gif"];
-      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "jpg");
+      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "webp");
       const path = `${target.id}.${ext}`;
       const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
       if (!upErr) {

@@ -7,9 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+
+const SITE_URL = "https://restaurantemacapaba.com.br";
+
+const slugify = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
   "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
@@ -96,8 +102,9 @@ interface Unit {
 }
 
 const Cardapio = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const diaParam = searchParams.get("dia");
+  const pratoParam = searchParams.get("prato");
   const [tab, setTab] = useState(diaParam ? "semana" : "bebidas");
   const [categories, setCategories] = useState<BeverageCategory[]>([]);
   const [beverages, setBeverages] = useState<Beverage[]>([]);
@@ -226,11 +233,103 @@ const Cardapio = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [tab, selectedItems.length]);
 
+  // Deep-link: select dish by ?prato=slug once the list is loaded.
+  useEffect(() => {
+    if (!pratoParam || selectedItems.length === 0) return;
+    const idx = selectedItems.findIndex((i) => slugify(i.prato) === pratoParam);
+    if (idx >= 0) setSelectedItemIndex(idx);
+  }, [pratoParam, selectedItems]);
+
+  // Keep URL in sync with current selection so links can be shared.
+  useEffect(() => {
+    if (tab !== "semana") return;
+    const item = selectedItems[selectedItemIndex];
+    const day = days.find((d) => d.id === activeDay);
+    if (!item || !day) return;
+    const next = new URLSearchParams(searchParams);
+    next.set("dia", day.dia_semana);
+    next.set("prato", slugify(item.prato));
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, selectedItemIndex, activeDay, selectedItems.length]);
+
+  // Share current dish via Web Share API, with WhatsApp + copy-link fallbacks.
+  const shareCurrent = async () => {
+    const item = selectedItems[selectedItemIndex];
+    const day = days.find((d) => d.id === activeDay);
+    if (!item || !day) return;
+    const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
+    const text = `${item.prato} — ${day.dia_semana} no Restaurante Macapaba`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: item.prato, text, url });
+        return;
+      }
+    } catch { /* user dismissed */ }
+    try {
+      await navigator.clipboard.writeText(url);
+      // Lightweight toast via alert-ish, but Cardapio doesn't import sonner here; use console + browser.
+      window.dispatchEvent(new CustomEvent("macapaba:copied", { detail: url }));
+      alert("Link copiado!");
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
+  const shareWhatsApp = () => {
+    const item = selectedItems[selectedItemIndex];
+    const day = days.find((d) => d.id === activeDay);
+    if (!item || !day) return;
+    const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
+    const text = `🍽️ *${item.prato}* — ${day.dia_semana}\nNo Restaurante Macapaba: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  };
+
+  // ===== Structured data (JSON-LD Menu) =====
+  const menuJsonLd = useMemo(() => {
+    if (days.length === 0 || menuItems.length === 0) return undefined;
+    const sections = days.map((d) => ({
+      "@type": "MenuSection",
+      name: d.dia_semana,
+      hasMenuItem: menuItems
+        .filter((i) => i.day_id === d.id)
+        .map((i) => ({
+          "@type": "MenuItem",
+          name: i.prato,
+          ...(i.descricao ? { description: i.descricao } : {}),
+          ...(i.imagem_url && i.tipo_midia !== "video" ? { image: i.imagem_url } : {}),
+        })),
+    }));
+    return {
+      "@context": "https://schema.org",
+      "@type": "Menu",
+      name: "Cardápio Restaurante Macapaba",
+      inLanguage: "pt-BR",
+      hasMenuSection: sections,
+    };
+  }, [days, menuItems]);
+
+  const currentItem = selectedItems[selectedItemIndex];
+  const currentDay = days.find((d) => d.id === activeDay);
+  const dynamicTitle = tab === "semana" && currentItem && currentDay
+    ? `${currentItem.prato} — ${currentDay.dia_semana} | Restaurante Macapaba`
+    : "Cardápio — Restaurante Macapaba | Macapá-AP";
+  const dynamicDesc = tab === "semana" && currentItem
+    ? (currentItem.descricao || `${currentItem.prato} no cardápio de ${currentDay?.dia_semana} do Restaurante Macapaba em Macapá-AP.`)
+    : "Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP.";
+  const dynamicImage = tab === "semana" && currentItem?.imagem_url && currentItem.tipo_midia !== "video"
+    ? currentItem.imagem_url
+    : undefined;
+
   return (
     <Layout>
       <SEO
-        title="Cardápio — Restaurante Macapaba | Macapá-AP"
-        description="Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP."
+        title={dynamicTitle}
+        description={dynamicDesc}
+        image={dynamicImage}
+        jsonLd={menuJsonLd}
       />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-5xl">
@@ -488,7 +587,13 @@ const Cardapio = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
-                                      <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
+                                      <div className="flex items-start justify-between gap-2">
+                                        <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
+                                        <div className="flex gap-1 shrink-0">
+                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
+                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
+                                        </div>
+                                      </div>
                                       {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1 mt-2">
                                         {item.esgotado && (
@@ -640,7 +745,13 @@ const Cardapio = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
-                                      <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
+                                      <div className="flex items-start justify-between gap-2">
+                                        <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
+                                        <div className="flex gap-1.5 shrink-0">
+                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
+                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
+                                        </div>
+                                      </div>
                                       {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1.5 mt-2">
                                         {item.esgotado && (

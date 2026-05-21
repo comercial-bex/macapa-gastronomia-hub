@@ -8,6 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import SiteHealth from "./SiteHealth";
+import MenuInsights from "./MenuInsights";
 
 interface StatCard {
   label: string;
@@ -247,6 +248,9 @@ const AdminDashboard = () => {
 
       {/* Site Health */}
       <SiteHealth />
+
+      {/* Menu insights */}
+      <MenuInsights />
 
       {/* Period filter + Charts */}
       <div className="flex items-center gap-2 mb-4">
