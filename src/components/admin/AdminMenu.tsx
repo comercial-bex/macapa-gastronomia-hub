@@ -411,7 +411,9 @@ const AdminMenu = () => {
     let skipped = 0;
 
     for (let idx = 0; idx < files.length; idx++) {
-      const file = files[idx];
+      const rawFile = files[idx];
+      const isImageRaw = rawFile.type.startsWith("image/");
+      const file = isImageRaw ? await compressImage(rawFile, { maxDim: 1600, quality: 0.82 }) : rawFile;
       const base = file.name.replace(/\.[^.]+$/, "");
       const baseNorm = norm(base);
       // best match: longest prato name contained in filename (or vice-versa)
@@ -431,7 +433,7 @@ const AdminMenu = () => {
       if (toRemove.length) await supabase.storage.from("menu-items").remove(toRemove);
       const rawExt = (file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "");
       const allowed = isVideo ? ["mp4", "mov", "webm"] : ["jpg", "jpeg", "png", "webp", "gif"];
-      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "jpg");
+      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "webp");
       const path = `${target.id}.${ext}`;
       const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
       if (!upErr) {
