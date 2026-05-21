@@ -6,7 +6,7 @@ import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
@@ -60,6 +60,9 @@ interface Beverage {
   volume: string | null;
   preco: number | null;
   imagem_url?: string | null;
+  descricao?: string | null;
+  badge?: string | null;
+  esgotado?: boolean | null;
 }
 
 interface MenuDay {
@@ -77,6 +80,11 @@ interface MenuItem {
   tipo_midia: string;
   tags?: string[] | null;
   unit_id?: string | null;
+  descricao?: string | null;
+  badge?: string | null;
+  esgotado?: boolean | null;
+  disponivel_de?: string | null;
+  disponivel_ate?: string | null;
 }
 
 interface Unit {
@@ -201,8 +209,23 @@ const Cardapio = () => {
                                   />
                                 )}
                                 <div className="min-w-0">
-                                  <span className="font-medium">{bev.nome}</span>
-                                  {bev.volume && <span className="text-muted-foreground text-sm ml-2">({bev.volume})</span>}
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{bev.nome}</span>
+                                    {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
+                                    {bev.esgotado && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
+                                        <AlertTriangle className="h-3 w-3" /> Esgotado
+                                      </span>
+                                    )}
+                                    {bev.badge && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
+                                        <Sparkles className="h-3 w-3" /> {bev.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {bev.descricao && (
+                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{bev.descricao}</p>
+                                  )}
                                 </div>
                               </div>
                               {bev.preco !== null && (
@@ -303,6 +326,25 @@ const Cardapio = () => {
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
                                       <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
+                                      {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{item.descricao}</p>}
+                                      <div className="flex flex-wrap gap-1 mt-2">
+                                        {item.esgotado && (
+                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
+                                            <AlertTriangle className="h-3 w-3" /> Esgotado hoje
+                                          </span>
+                                        )}
+                                        {item.badge && (
+                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground border border-primary/30">
+                                            <Sparkles className="h-3 w-3" /> {item.badge}
+                                          </span>
+                                        )}
+                                        {(item.disponivel_de || item.disponivel_ate) && (
+                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-black/60 text-white border border-white/20">
+                                            <Clock className="h-3 w-3" />
+                                            {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
+                                          </span>
+                                        )}
+                                      </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
                                           {item.tags.map((t) => {
@@ -351,9 +393,26 @@ const Cardapio = () => {
                                   <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <span className={`text-sm font-medium transition-colors duration-300 block ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                                  <span className={`text-sm font-medium transition-colors duration-300 block ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                                     {item.prato}
                                   </span>
+                                  {item.descricao && (
+                                    <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-2">{item.descricao}</p>
+                                  )}
+                                  {(item.esgotado || item.badge) && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {item.esgotado && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
+                                          <AlertTriangle className="h-2.5 w-2.5" /> Esgotado
+                                        </span>
+                                      )}
+                                      {item.badge && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
+                                          <Sparkles className="h-2.5 w-2.5" /> {item.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                   {item.tags && item.tags.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">
                                       {item.tags.map((t) => {
@@ -406,6 +465,25 @@ const Cardapio = () => {
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
                                       <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
+                                      {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{item.descricao}</p>}
+                                      <div className="flex flex-wrap gap-1.5 mt-2">
+                                        {item.esgotado && (
+                                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
+                                            <AlertTriangle className="h-3 w-3" /> Esgotado hoje
+                                          </span>
+                                        )}
+                                        {item.badge && (
+                                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground border border-primary/30">
+                                            <Sparkles className="h-3 w-3" /> {item.badge}
+                                          </span>
+                                        )}
+                                        {(item.disponivel_de || item.disponivel_ate) && (
+                                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-black/60 text-white border border-white/20">
+                                            <Clock className="h-3 w-3" />
+                                            {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
+                                          </span>
+                                        )}
+                                      </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">
                                           {item.tags.map((t) => {

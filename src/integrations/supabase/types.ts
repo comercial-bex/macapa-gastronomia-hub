@@ -67,8 +67,12 @@ export type Database = {
       }
       beverages: {
         Row: {
+          alergenos: string[]
           ativo: boolean
+          badge: string | null
           category_id: string | null
+          descricao: string | null
+          esgotado: boolean
           id: string
           imagem_url: string | null
           nome: string
@@ -77,8 +81,12 @@ export type Database = {
           volume: string | null
         }
         Insert: {
+          alergenos?: string[]
           ativo?: boolean
+          badge?: string | null
           category_id?: string | null
+          descricao?: string | null
+          esgotado?: boolean
           id?: string
           imagem_url?: string | null
           nome: string
@@ -87,8 +95,12 @@ export type Database = {
           volume?: string | null
         }
         Update: {
+          alergenos?: string[]
           ativo?: boolean
+          badge?: string | null
           category_id?: string | null
+          descricao?: string | null
+          esgotado?: boolean
           id?: string
           imagem_url?: string | null
           nome?: string
@@ -434,9 +446,15 @@ export type Database = {
       }
       weekly_menu_items: {
         Row: {
+          alergenos: string[]
           ativo: boolean
+          badge: string | null
           categoria: string | null
           day_id: string | null
+          descricao: string | null
+          disponivel_ate: string | null
+          disponivel_de: string | null
+          esgotado: boolean
           id: string
           imagem_url: string | null
           ordem: number
@@ -446,9 +464,15 @@ export type Database = {
           unit_id: string | null
         }
         Insert: {
+          alergenos?: string[]
           ativo?: boolean
+          badge?: string | null
           categoria?: string | null
           day_id?: string | null
+          descricao?: string | null
+          disponivel_ate?: string | null
+          disponivel_de?: string | null
+          esgotado?: boolean
           id?: string
           imagem_url?: string | null
           ordem?: number
@@ -458,9 +482,15 @@ export type Database = {
           unit_id?: string | null
         }
         Update: {
+          alergenos?: string[]
           ativo?: boolean
+          badge?: string | null
           categoria?: string | null
           day_id?: string | null
+          descricao?: string | null
+          disponivel_ate?: string | null
+          disponivel_de?: string | null
+          esgotado?: boolean
           id?: string
           imagem_url?: string | null
           ordem?: number

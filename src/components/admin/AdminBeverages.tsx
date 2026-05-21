@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Wine, ImagePlus, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Wine, ImagePlus, X, AlertTriangle, Sparkles } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import {
@@ -37,7 +38,10 @@ const AdminBeverages = () => {
   const [editingCat, setEditingCat] = useState<any>(null);
   const [editingBev, setEditingBev] = useState<any>(null);
   const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true });
-  const [bevForm, setBevForm] = useState({ category_id: "", nome: "", volume: "", preco: "", ativo: true, ordem: 0 });
+  const [bevForm, setBevForm] = useState<{
+    category_id: string; nome: string; volume: string; preco: string; ativo: boolean; ordem: number;
+    descricao: string; badge: string; esgotado: boolean; alergenos: string;
+  }>({ category_id: "", nome: "", volume: "", preco: "", ativo: true, ordem: 0, descricao: "", badge: "", esgotado: false, alergenos: "" });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const { logAction } = useAuditLog();
@@ -71,7 +75,21 @@ const AdminBeverages = () => {
     try {
       const preco = bevForm.preco ? parseBRPrice(bevForm.preco) : null;
       if (bevForm.preco && preco === null) { toast.error("Preço inválido. Use 5,00 ou 5.00"); setLoading(false); return; }
-      const payload = { ...bevForm, preco, volume: bevForm.volume || null };
+      const alergenosArr = bevForm.alergenos
+        ? bevForm.alergenos.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+      const payload: any = {
+        category_id: bevForm.category_id,
+        nome: bevForm.nome,
+        volume: bevForm.volume || null,
+        preco,
+        ativo: bevForm.ativo,
+        ordem: bevForm.ordem,
+        descricao: bevForm.descricao || null,
+        badge: bevForm.badge || null,
+        esgotado: bevForm.esgotado,
+        alergenos: alergenosArr,
+      };
       const { error } = editingBev
         ? await supabase.from("beverages").update(payload).eq("id", editingBev.id)
         : await supabase.from("beverages").insert(payload);
@@ -190,7 +208,7 @@ const AdminBeverages = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true }); setCatOpen(true); }}>+ Categoria</Button>
-          <Button onClick={() => { setEditingBev(null); setBevForm({ category_id: categories[0]?.id || "", nome: "", volume: "", preco: "", ativo: true, ordem: 0 }); setBevOpen(true); }} className="gap-2">
+          <Button onClick={() => { setEditingBev(null); setBevForm({ category_id: categories[0]?.id || "", nome: "", volume: "", preco: "", ativo: true, ordem: 0, descricao: "", badge: "", esgotado: false, alergenos: "" }); setBevOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" /> Bebida
           </Button>
         </div>
@@ -243,6 +261,12 @@ const AdminBeverages = () => {
                     <span className={`font-medium text-sm ${!bev.ativo ? "text-muted-foreground line-through" : ""}`}>{bev.nome}</span>
                     {bev.volume && <span className="text-muted-foreground text-xs">({bev.volume})</span>}
                     {!bev.ativo && <Badge variant="secondary" className="text-xs">Inativo</Badge>}
+                    {bev.esgotado && (
+                      <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="h-3 w-3" /> Esgotado</Badge>
+                    )}
+                    {bev.badge && (
+                      <Badge className="text-[10px] gap-1 bg-primary/15 text-primary border-primary/30"><Sparkles className="h-3 w-3" /> {bev.badge}</Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {bev.preco && (
@@ -250,7 +274,7 @@ const AdminBeverages = () => {
                         R$ {Number(bev.preco).toFixed(2)}
                       </Badge>
                     )}
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingBev(bev); setBevForm({ category_id: bev.category_id, nome: bev.nome, volume: bev.volume || "", preco: bev.preco?.toString() || "", ativo: bev.ativo, ordem: bev.ordem }); setBevOpen(true); }}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingBev(bev); setBevForm({ category_id: bev.category_id, nome: bev.nome, volume: bev.volume || "", preco: bev.preco?.toString() || "", ativo: bev.ativo, ordem: bev.ordem, descricao: bev.descricao || "", badge: bev.badge || "", esgotado: !!bev.esgotado, alergenos: (bev.alergenos || []).join(", ") }); setBevOpen(true); }}>
                       <Pencil className="h-3 w-3" />
                     </Button>
                     <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => confirmDeleteBev(bev.id)}><Trash2 className="h-3 w-3" /></Button>
@@ -275,7 +299,7 @@ const AdminBeverages = () => {
       </Dialog>
 
       <Dialog open={bevOpen} onOpenChange={setBevOpen}>
-        <DialogContent className="glass-effect max-w-sm">
+        <DialogContent className="glass-effect max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-display">{editingBev ? "Editar" : "Nova"} Bebida</DialogTitle></DialogHeader>
           <form onSubmit={saveBev} className="space-y-4">
             <div><Label>Categoria</Label>
@@ -288,8 +312,29 @@ const AdminBeverages = () => {
               <div><Label>Volume</Label><Input value={bevForm.volume} onChange={(e) => setBevForm({ ...bevForm, volume: e.target.value })} placeholder="350ml" /></div>
               <div><Label>Preço</Label><Input value={bevForm.preco} onChange={(e) => setBevForm({ ...bevForm, preco: e.target.value })} placeholder="5.00" /></div>
             </div>
-            <div><Label>Ordem</Label><Input type="number" value={bevForm.ordem} onChange={(e) => setBevForm({ ...bevForm, ordem: parseInt(e.target.value) || 0 })} /></div>
-            <label className="flex items-center gap-2 text-sm"><Switch checked={bevForm.ativo} onCheckedChange={(v) => setBevForm({ ...bevForm, ativo: v })} /> Ativo</label>
+            <div><Label>Descrição curta</Label>
+              <Textarea rows={2} maxLength={200} value={bevForm.descricao} onChange={(e) => setBevForm({ ...bevForm, descricao: e.target.value })} placeholder="Ex: Cerveja artesanal local, lúpulo cítrico." />
+              <p className="text-[11px] text-muted-foreground mt-1">Aparece no site (máx. 200 caracteres).</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Badge</Label>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={bevForm.badge} onChange={(e) => setBevForm({ ...bevForm, badge: e.target.value })}>
+                  <option value="">Nenhuma</option>
+                  <option value="novo">Novo</option>
+                  <option value="destaque">Destaque</option>
+                  <option value="promocao">Promoção</option>
+                </select>
+              </div>
+              <div><Label>Ordem</Label><Input type="number" value={bevForm.ordem} onChange={(e) => setBevForm({ ...bevForm, ordem: parseInt(e.target.value) || 0 })} /></div>
+            </div>
+            <div><Label>Alérgenos</Label>
+              <Input value={bevForm.alergenos} onChange={(e) => setBevForm({ ...bevForm, alergenos: e.target.value })} placeholder="Ex: glúten, lactose" />
+              <p className="text-[11px] text-muted-foreground mt-1">Separados por vírgula.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm"><Switch checked={bevForm.ativo} onCheckedChange={(v) => setBevForm({ ...bevForm, ativo: v })} /> Ativo</label>
+              <label className="flex items-center gap-2 text-sm"><Switch checked={bevForm.esgotado} onCheckedChange={(v) => setBevForm({ ...bevForm, esgotado: v })} /> Esgotado hoje</label>
+            </div>
             <Button type="submit" disabled={loading} className="w-full">{loading ? "Salvando..." : "Salvar"}</Button>
           </form>
         </DialogContent>
