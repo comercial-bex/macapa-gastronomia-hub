@@ -102,8 +102,9 @@ interface Unit {
 }
 
 const Cardapio = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const diaParam = searchParams.get("dia");
+  const pratoParam = searchParams.get("prato");
   const [tab, setTab] = useState(diaParam ? "semana" : "bebidas");
   const [categories, setCategories] = useState<BeverageCategory[]>([]);
   const [beverages, setBeverages] = useState<Beverage[]>([]);
