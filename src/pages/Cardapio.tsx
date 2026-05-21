@@ -402,6 +402,55 @@ const Cardapio = () => {
                 ))}
               </div>
 
+              {/* Search + diet chips */}
+              <div className="mb-6 space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    type="search"
+                    value={querySemana}
+                    onChange={(e) => setQuerySemana(e.target.value)}
+                    placeholder="Buscar prato"
+                    aria-label="Buscar prato"
+                    className="pl-9 pr-9 bg-secondary/40 border-border"
+                  />
+                  {querySemana && (
+                    <button
+                      type="button"
+                      onClick={() => setQuerySemana("")}
+                      aria-label="Limpar busca"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+                {Object.keys(DIET_TAGS_META).some((k) => dietCounts[k]) && (
+                  <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por restrição alimentar">
+                    {Object.entries(DIET_TAGS_META).map(([key, meta]) => {
+                      const count = dietCounts[key] || 0;
+                      if (count === 0) return null;
+                      const active = activeDiet === key;
+                      const Icon = meta.icon;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setActiveDiet(active ? null : key)}
+                          aria-pressed={active}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                            active ? meta.className : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="h-3 w-3" /> {meta.label}
+                          <span className="opacity-70">({count})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeDay}
