@@ -144,7 +144,7 @@ const Portfolio = () => {
 
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
         <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-md border-border p-2">
-          <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 z-50 text-foreground hover:text-primary">
+          <button onClick={() => setLightbox(null)} aria-label="Fechar visualização" className="absolute top-4 right-4 z-50 text-foreground hover:text-primary">
             <X className="h-6 w-6" />
           </button>
           {lightbox && (
@@ -155,7 +155,7 @@ const Portfolio = () => {
                 <img src={lightbox.url} alt={lightbox.titulo} className="w-full rounded-lg" />
               ) : null}
               <div className="p-4">
-                <h3 className="font-display text-xl font-bold">{lightbox.titulo}</h3>
+                <h2 className="font-display text-xl font-bold">{lightbox.titulo}</h2>
                 {lightbox.descricao && <p className="text-muted-foreground text-sm mt-1">{lightbox.descricao}</p>}
               </div>
             </div>
