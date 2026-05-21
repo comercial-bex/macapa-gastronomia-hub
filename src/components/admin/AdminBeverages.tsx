@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, Wine, ImagePlus, X, AlertTriangle, Sparkles } fro
 import { Textarea } from "@/components/ui/textarea";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { compressImage } from "@/lib/compressImage";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
