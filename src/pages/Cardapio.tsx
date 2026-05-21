@@ -587,7 +587,13 @@ const Cardapio = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
-                                      <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
+                                      <div className="flex items-start justify-between gap-2">
+                                        <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
+                                        <div className="flex gap-1 shrink-0">
+                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
+                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
+                                        </div>
+                                      </div>
                                       {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1 mt-2">
                                         {item.esgotado && (
@@ -739,7 +745,13 @@ const Cardapio = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
-                                      <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
+                                      <div className="flex items-start justify-between gap-2">
+                                        <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
+                                        <div className="flex gap-1.5 shrink-0">
+                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
+                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
+                                        </div>
+                                      </div>
                                       {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1.5 mt-2">
                                         {item.esgotado && (
