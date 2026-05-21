@@ -1,146 +1,119 @@
-# Diagnóstico AIOX e Plano — Macapaba
+# Diagnóstico — /admin/cardapio e /admin/bebidas
 
-**Skill atuante:** Orion (Orquestrador) coordenando River (Analista) + Aria (Arquiteta) + Pax (Frontend) + Dara (Data).
+Skill atuante: **Orion → Quinn (QA)** para diagnóstico, depois **Dex + Pax + Dara** para execução. Análise feita lendo o código atual, os logs de auditoria reais e o conteúdo de `storage.objects`.
 
 ---
 
-## 1. Visão geral em % (maturidade por dimensão)
+## 1. O que está realmente acontecendo (fatos verificados no banco)
 
-| Dimensão | Status | % | Observação |
+### Cardápio da Semana — `weekly_menu_items`
+- **55 pratos cadastrados** distribuídos em 7 dias.
+- **0 (zero) pratos com foto.** A coluna `imagem_url` está NULL para 100% dos itens.
+- **Bucket `menu-items` no Storage está VAZIO** (nenhum arquivo).
+- Auditoria mostra apenas **1 ação** no módulo cardápio em toda a história: "Teste Auditoria" em fev/2026 por `by.harison`.
+- **Vitória nunca subiu nenhuma foto de prato no cardápio.** O sintoma "ela sobe mas não aparece" não corresponde aos dados — ou ela está subindo em outro lugar (provavelmente bebidas), ou o upload falhou silenciosamente sem chegar a registrar log.
+
+### Bebidas — `beverages`
+- **50 bebidas, apenas 2 com foto** (4%).
+- Bucket `beverages` tem **2 arquivos** físicos.
+- Auditoria mostra **3 uploads da Vitória hoje** ("Atualizou imagem de bebida") — mas só **2 arquivos** ficaram salvos.
+- Isso confirma um **bug real de upload em bebidas**: uma das 3 tentativas falhou ou foi sobrescrita.
+
+### Causa-raiz do bug "subi e não apareceu"
+O caminho do arquivo é `${bevId}.${ext}`. Quando a usuária:
+1. Sobe `bebida.jpg` → grava `id.jpg`.
+2. Sobe substituição como `bebida.jpeg` → tenta `remove(['id.jpeg'])` (não existe) e faz upload novo de `id.jpeg`. O `id.jpg` antigo fica **órfão** e o `imagem_url` aponta para o novo. OK visualmente.
+3. Mas se a etapa de `update` no banco falhar (RLS, latência), a imagem vai pro storage e o registro não atualiza → "subi e não vejo".
+
+Além disso, o `getPublicUrl` é chamado **sem aguardar** a propagação do CDN — e o cache-buster (`?v=Date.now()`) está só na URL salva, não no carregamento original do admin (que usa a URL antiga em memória até o `fetchData()`).
+
+---
+
+## 2. Diagnóstico por área (com %)
+
+| Área | Funciona | Problemas | Saúde |
 |---|---|---|---|
-| Identidade visual / UX público | Sólido | **88%** | Premium, animações controladas, tema dark consistente |
-| Estrutura de banco (tabelas + RLS) | Sólido | **82%** | RLS correto, mas faltam FKs reais e índices |
-| Sincronização CMS ↔ Site público | **Quebrado** | **55%** | Cardápio mostra fotos demo quando DB está vazio (bug crítico) |
-| Perfis e papéis (admin/editor/gerente) | Parcial | **65%** | Roles existem no enum, mas nem todas as telas filtram por papel |
-| Reservas (capacidade + confirmação) | Bom | **78%** | Capacidade implementada na Onda 3, falta UX de slot lotado em tempo real |
-| Recrutamento (vagas + candidaturas) | Bom | **80%** | Falta vínculo candidatura↔unidade e notificação ao gerente da unidade |
-| Cardápio da semana (DB + admin + público) | **Crítico** | **45%** | 55/55 pratos sem foto, 55/55 sem unidade, fallback engana o usuário |
-| Bebidas | Razoável | **70%** | 50/50 bebidas ativas sem imagem; preview de imagem inexistente no admin |
-| Portfolio | Bom | **80%** | Vinculado a unidade ✅, faltam reorder drag-and-drop e crop |
-| Auditoria / Logs | Bom | **78%** | Hook funciona, mas nem todos os módulos chamam logAction |
-| Notificações (e-mail/WhatsApp) | Parcial | **60%** | Edge function existe, link wa.me OK, falta digest diário |
-| SEO / Performance | Sólido | **85%** | preconnect, fetchPriority, willChange aplicados |
-| Acessibilidade (a11y) | Fraco | **50%** | Faltam labels em inputs, foco visível inconsistente, contraste de tags ok |
-| **Maturidade global ponderada** | — | **≈ 71%** | — |
+| **CRUD Cardápio (criar/excluir prato)** | sim | sem edição inline do nome, sem reorder, sem confirm de excluir | 60% |
+| **CRUD Cardápio (categoria/unidade/tags/ativo)** | sim | OK | 90% |
+| **Upload de mídia no Cardápio** | **0 fotos** | sem feedback de erro robusto, sem retry, sem validação de tamanho | 30% |
+| **Bulk upload (matching por nome)** | sim | frágil quando nomes repetem em dias diferentes (Bacalhau aparece 3×, Peixe frito 4×) — atribui à primeira match | 50% |
+| **Sincronização painel → site** | sim | site filtra `ativo=true` corretamente | 90% |
+| **CRUD Bebidas (categoria)** | criar/editar | **não há exclusão**, sem reorder | 50% |
+| **CRUD Bebidas (item)** | sim | `parseFloat` quebra com vírgula (R$ 5,00 vira NaN) | 70% |
+| **Upload imagem bebida** | parcial | 1 em 3 tentativas falhou silenciosamente | 50% |
+| **Realtime / refresh automático** | não | precisa F5 para ver mudanças de outro admin | 30% |
+| **Validações de regras de negócio** | parcial | sem "esgotado hoje", sem janela de disponibilidade, sem destaque/novo, sem alérgenos completos | 40% |
+| **Auditoria** | sim | OK | 90% |
+| **Acessibilidade do admin** | parcial | inputs sem `aria-label`, modais OK | 70% |
+
+**Saúde geral do módulo cardápio+bebidas: ~57%.**
 
 ---
 
-## 2. Conexões e estruturas que NÃO se relacionam (mas deveriam)
+## 3. Comparação com referências do segmento (Goomer, Toast, Square for Restaurants, MenuDino, iFood Gestor)
 
-Diagnóstico baseado em consulta real ao banco hoje:
+Faltam recursos que são padrão de mercado:
 
-### 2.1 Cardápio ↔ Mídia ↔ Site público (CRÍTICO — causa do bug que você relatou)
-- **Fato:** 55 de 55 pratos (`weekly_menu_items.imagem_url IS NULL`) estão sem foto no DB.
-- **Bug:** `src/pages/Cardapio.tsx` linhas 201 e 303 fazem `item.imagem_url || demoImages[i % 3]` — quando não há foto, mostra **food-demo-1/2/3.jpeg** (assets estáticos do projeto). Por isso aparecem fotos "fantasmas" que não existem no admin.
-- **Impacto:** gerente não confia no painel ("mudo no admin e no site não muda"), porque o site nunca esteve refletindo o admin para esses pratos.
-- **Solução proposta (Onda A — executar agora):** remover o fallback de imagens demo. Quando não houver `imagem_url`, mostrar um **placeholder elegante** (ícone do prato + nome em fundo dark com gradiente dourado) coerente com a identidade. O preview do admin já mostra o mesmo placeholder. Estado: **um para um** entre admin e site.
-
-### 2.2 Cardápio ↔ Unidade (ALTO)
-- **Fato:** 55/55 pratos com `unit_id NULL` (= "Todas as unidades"), mas o site não permite ao cliente filtrar por unidade no `/cardapio`.
-- **Solução:** adicionar filtro "Unidade 1 / Unidade 2 / Todas" em `Cardapio.tsx` e link contextual a partir de `/unidades`.
-
-### 2.3 Bebidas ↔ Imagem (MÉDIO)
-- **Fato:** 50/50 bebidas ativas sem `imagem_url`. Coluna existe, admin não tem upload nem preview.
-- **Solução:** adicionar upload + preview no `AdminBeverages.tsx` (mesmo padrão do AdminMenu).
-
-### 2.4 Reservas ↔ Unidade (ALTO)
-- **Fato:** 4/4 reservas existentes com `unit_id NULL`. O trigger de capacidade cai no fallback "unidade principal" — funciona, mas ofusca relatórios por unidade.
-- **Solução:** tornar a escolha de unidade **obrigatória** no formulário público (`Index.tsx` e `Reserva.tsx`) com radio visual.
-
-### 2.5 Candidatura ↔ Unidade preferida (MÉDIO)
-- **Fato:** `job_applications` não tem coluna `unit_id`. Gerente da Unidade 2 vê candidatos para a Unidade 1.
-- **Solução:** adicionar `unit_id` em `job_applications`, perguntar no formulário público "Em qual unidade prefere trabalhar?", e roteamento de e-mail por unidade.
-
-### 2.6 user_roles ↔ unit_id (PARCIAL)
-- **Fato:** a tabela já tem `unit_id`, mas as RLS de `reservations`, `job_applications` e `weekly_menu_items` **não filtram por unidade do gerente** — qualquer gerente vê tudo.
-- **Solução:** policies `gerente vê apenas reservas/candidatos da sua unidade`. Mantém admin com visão total.
-
-### 2.7 Foreign Keys reais (TÉCNICO mas IMPACTANTE)
-- **Fato:** nenhuma das tabelas tem FK declarada (todas listadas como "No foreign keys"). Risco de **órfãos**: deletar uma unidade ou um dia da semana deixa lixo.
-- **Solução:** adicionar FKs com `ON DELETE` apropriado:
-  - `weekly_menu_items.day_id → weekly_menu_days(id) ON DELETE CASCADE`
-  - `weekly_menu_items.unit_id → units(id) ON DELETE SET NULL`
-  - `beverages.category_id → beverage_categories(id) ON DELETE RESTRICT`
-  - `job_applications.vaga_id → job_positions(id) ON DELETE SET NULL`
-  - `portfolio_items.unit_id → units(id) ON DELETE SET NULL`
-  - `reservations.unit_id → units(id) ON DELETE SET NULL`
-  - `user_roles.unit_id → units(id) ON DELETE SET NULL`
-
-### 2.8 Índices ausentes (PERFORMANCE)
-Falta `idx_menu_items_day`, `idx_menu_items_unit`, `idx_beverages_category`, `idx_audit_logs_created_at`. Hoje cada tela faz `select * order by ordem` — funciona mas não escala.
-
-### 2.9 site_settings ↔ páginas (INCONSISTENTE)
-- Hook `useSiteSettings` existe, mas várias páginas (Footer, Unidades, TrabalheConosco) ainda têm string hardcoded ("Sabor e tradição..."). Mudar no admin **não muda no site**.
-- **Solução:** auditar cada página e trocar strings fixas pelo `getSetting(...)` + cadastrar as chaves padrão (slogan, telefone, email_recrutamento, horario_geral).
-
-### 2.10 audit_logs cobertura (MÉDIO)
-- `AdminBeverages`, `AdminSettings`, `AdminProfile`, `AdminJobs` não chamam `logAction`. Você não consegue auditar quem mexeu no preço da cerveja.
+- **86'd / Esgotado hoje** — toggle que volta sozinho no dia seguinte (hoje só temos `ativo` permanente).
+- **Janela de disponibilidade** — `disponivel_de` / `disponivel_ate` (almoço, jantar, sazonal).
+- **Marcadores comerciais** — "Novo", "Chef recomenda", "Mais pedido", "Edição limitada".
+- **Descrição, ingredientes, alérgenos completos** — hoje só temos `prato` (texto curto) e 4 tags dietéticas. Mercado pede 8–14 alérgenos (lactose, ovo, soja, crustáceo, etc.).
+- **Variações e tamanhos** — bebidas com 350 / 600 / 1L; pratos individual / família.
+- **Drag-and-drop para ordenar** — `ordem` existe no schema mas não é editada na UI.
+- **Preview lado-a-lado do site** — ver na hora como vai sair.
+- **Upload com crop 16:9 e compressão** — hoje sobe arquivo cru (lento e pesado).
+- **Realtime entre admins** — duas pessoas editando ao mesmo tempo viram conflito silencioso.
+- **Importar de planilha** — colar Excel com pratos da semana.
 
 ---
 
-## 3. Perfis × Atividades × Casos de uso
+## 4. Soluções recomendadas (sem executar agora)
 
-### Perfis identificados
-| Papel | Acesso atual | Acesso ideal |
-|---|---|---|
-| **Visitante** | Lê site, faz reserva, candidata-se | OK |
-| **admin** | Tudo | OK |
-| **gerente** | Reservas (todas) + Candidaturas | Apenas da SUA unidade |
-| **editor** | Cardápio + Bebidas + Portfolio + Settings | Sem acesso a reservas/usuários — OK, mas falta UI esconder menus |
-| **user (default)** | Login mas sem painel | Redirecionar para "/" — falta UX |
+### Onda 1 — Estabilizar uploads (CRÍTICO, resolve a queixa principal)
+1. **Padronizar extensão**: salvar sempre como `${id}.jpg` ou `${id}.webp` (converter via canvas no client). Elimina o problema de órfão e simplifica o cache-bust.
+2. **Verificar resposta do `update`** após o upload e mostrar toast de erro se falhar.
+3. **Recarregar a lista usando a URL real do banco** (não a otimista), forçando `cache: no-store`.
+4. **Validação client-side**: tipo, peso máx (10 MB), dimensão mínima.
+5. **Indicador "subindo X%"** com `XMLHttpRequest` ou eventos do supabase-js.
 
-### Casos de uso principais (com gaps)
-1. **Cliente faz reserva** → escolhe unidade ❌ (opcional hoje) → recebe link wa.me ✅ → gerente confirma ✅ → ganha lembrete 24h antes ❌ (não existe).
-2. **Gerente confirma reserva** → vê todas ❌ (deveria ver só da sua unidade) → marca confirmada ✅ → cliente é avisado ❌ (manual).
-3. **Editor sobe foto do prato do dia** → faz upload individual ✅ → upload em massa ✅ (Onda 2) → vê preview no admin ✅ → vê no site ❌ **(bug 2.1 quebra esse fluxo)**.
-4. **Candidato se aplica** → escolhe vaga ✅ → escolhe unidade ❌ → upload PDF ✅ → gerente da unidade certa é notificado ❌.
-5. **Admin convida novo gerente** → cria conta ✅ → atribui role ✅ → atribui unidade ❌ (campo existe, UI não usa).
-6. **Visitante vê cardápio do dia** → escolhe dia ✅ → vê foto ❌ (vê foto fake) → quer filtrar por unidade ❌.
+### Onda 2 — Sincronização real-time painel ↔ site
+6. Habilitar `supabase_realtime` para `weekly_menu_items`, `beverages`, `beverage_categories`.
+7. Hook `useRealtimeTable` no admin para refresh automático quando outro admin altera.
+8. No site público, opcionalmente assinar mudanças de imagem para refletir sem F5.
 
----
+### Onda 3 — Fechar CRUDs (UX a nível Toast/Goomer)
+9. **AdminBeverages**: adicionar exclusão de categoria (com confirmação se houver itens), edição inline do nome, drag-drop de ordem.
+10. **AdminMenu**: edição inline do nome do prato, drag-drop de ordem, duplicar prato para outro dia.
+11. **Confirm dialogs** em todas as exclusões (hoje só bebida tem `confirm()`).
+12. **Corrigir parser de preço** (`5,00` e `5.00` devem funcionar).
+13. **Mensagens de erro reais** vindas do Supabase (hoje engole no `catch {}`).
 
-## 4. Roadmap de melhorias (ondas adicionais — pendentes de aprovação)
+### Onda 4 — Regras de negócio que faltam
+14. Coluna `esgotado_em` (date) → switch "esgotado hoje" que reseta de madrugada por trigger.
+15. Colunas `disponivel_de` / `disponivel_ate` (time) — almoço vs. jantar.
+16. Coluna `badge` ENUM ('novo','chef','mais_pedido', null).
+17. Coluna `descricao` (text curto, 140 chars) e `alergenos` (text[]).
+18. Coluna `variacoes` jsonb para bebidas em múltiplos tamanhos.
 
-| Onda | Foco | Esforço | Ganho de maturidade estimado |
-|---|---|---|---|
-| **A — AGORA** | **Sincronização real do cardápio (remover fotos fantasmas + placeholder elegante + preview consistente admin/site)** | Pequeno | +12% (55% → 67%) na sinc CMS |
-| B | Bebidas com imagem (upload + preview no admin, exibição no site) | Médio | +15% no módulo bebidas |
-| C | FKs reais + índices + cleanup de órfãos | Médio | +10% técnico, evita corrupção |
-| D | Filtro por unidade no /cardapio + reserva com unidade obrigatória + candidatura com unidade | Médio | +20% UX cliente |
-| E | RLS por unidade para gerente (segregação real) | Médio | +25% governança |
-| F | Cobertura total de audit_logs + página "Atividade recente" no admin | Pequeno | +8% governança |
-| G | site_settings consumido em 100% das páginas (zero hardcode) | Pequeno | +12% CMS |
-| H | A11y (labels, foco, aria, keyboard nav) | Médio | +30% acessibilidade |
-| I | Notificações: digest diário por e-mail + lembrete 24h antes da reserva | Médio | +20% retenção |
+### Onda 5 — Diferenciais (referência de mercado)
+19. **Bulk upload mais inteligente**: quando o nome do arquivo bate com vários pratos (ex.: 4× "Peixe frito"), abrir diálogo perguntando dia/unidade — em vez de atribuir à primeira ocorrência.
+20. **Crop 16:9 + conversão para WebP** no client (canvas) antes do upload — reduz 70% do peso.
+21. **Pré-visualização "Ver no site"** já embutida em iframe ao lado do editor.
+22. **Importar planilha** (CSV/Excel) de pratos da semana.
+23. **Painel "Saúde do cardápio"**: % com foto, % com descrição, dias incompletos.
 
----
-
-## 5. Onda A — escopo de execução imediata (após aprovação deste plano)
-
-**Objetivo:** o que está no admin é o que aparece no site. Nada mais, nada menos.
-
-**Mudanças:**
-1. `src/pages/Cardapio.tsx`: remover imports `food-demo-1/2/3` e o array `demoImages`. Substituir o fallback `item.imagem_url || demoImages[...]` por um componente `<DishPlaceholder prato={item.prato} dia={dia} />` com:
-   - Fundo gradiente oliva→preto (tokens existentes)
-   - Ícone do prato (já existe `getDishIcon`) grande, dourado, com leve glow
-   - Nome do prato + dia da semana
-   - Selo discreto "Foto em breve"
-2. `src/components/admin/AdminMenu.tsx`: o card sem foto já mostra ícone — alinhar visualmente com o mesmo placeholder do site (preview 1:1).
-3. Adicionar **botão "Ver no site"** em cada card do AdminMenu abrindo `/cardapio?dia=<nome>` em nova aba — fecha o ciclo cognitivo (mudou aqui → confere lá).
-4. Adicionar **contador "X / Y pratos com foto"** por dia no AdminMenu (já existe geral, falta por aba).
-5. Validar bucket `menu-items` (público ✅) e fluxo de upload — testar que `getPublicUrl` retorna URL válida e cache-bust funciona após substituir foto (adicionar `?v=timestamp` no update).
-
-**Não faz parte da Onda A** (fica para ondas B–I): bebidas com imagem, FKs, RLS por unidade, filtro de unidade no cardápio.
-
-**Validação Quinn (QA):**
-- Subir 1 foto pelo admin → ver no site em <2s sem refresh manual.
-- Remover foto → site volta ao placeholder, não a uma demo.
-- Rodar `tsc` (automático).
+### Onda 6 — Sincronização "painel ↔ site" garantida
+- Reescrever a query do site público com `staleTime: 0` quando vindo do admin e usar `revalidateOnFocus`.
+- Banner discreto no admin: "Última publicação refletida no site em hh:mm".
 
 ---
 
-## Pergunta antes de executar
+## 5. Sequência sugerida de execução (quando aprovar)
 
-A Onda A está pronta para executar imediatamente após sua aprovação. As ondas B–I são opcionais e podem ser priorizadas em qualquer ordem.
+1. **Onda 1** (uploads estáveis) — alto impacto, baixo risco, ~2h.
+2. **Onda 2** (realtime) — médio impacto, ~1h.
+3. **Onda 3** (fechar CRUDs) — ~3h.
+4. **Onda 4** (campos novos: migration + UI) — ~3h.
+5. **Ondas 5–6** (diferenciais) — incremental.
 
-Confirma **"executar onda A"** para corrigir o cardápio agora? Se quiser empacotar A + outra onda em um único ciclo, me diga qual (ex: "A + D").
+Não vou executar nada antes de você dizer qual onda iniciar. Recomendação: começar pela **Onda 1**, pois resolve diretamente o sintoma "Vitória sobe e não aparece".

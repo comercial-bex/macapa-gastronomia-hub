@@ -100,24 +100,58 @@ const AdminMenu = () => {
   };
 
   const uploadMedia = async (itemId: string, file: File) => {
-    setUploading(itemId);
     const isVideo = file.type.startsWith("video/");
-    const ext = file.name.split(".").pop();
-    const path = `${itemId}.${ext}`;
-    const currentPath = getMenuMediaPath(items.find((i) => i.id === itemId)?.imagem_url);
-    if (currentPath) await supabase.storage.from("menu-items").remove([currentPath]);
-    await supabase.storage.from("menu-items").remove([path]);
-    const { error: uploadError } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
-    if (uploadError) { toast.error("Erro no upload: " + uploadError.message); setUploading(null); return; }
-    const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
-    // cache-bust to guarantee the public site shows the new media immediately
-    const bustedUrl = `${urlData.publicUrl}?v=${Date.now()}`;
-    await supabase.from("weekly_menu_items").update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", itemId);
-    const item = items.find(i => i.id === itemId);
-    await logAction("cardapio", "editou", `Upload de mídia para '${item?.prato}'`);
-    toast.success("Mídia adicionada!");
-    setUploading(null);
-    fetchData();
+    const isImage = file.type.startsWith("image/");
+    if (!isImage && !isVideo) {
+      toast.error("Envie apenas imagem ou vídeo.");
+      return;
+    }
+    const maxMb = isVideo ? 50 : 10;
+    if (file.size > maxMb * 1024 * 1024) {
+      toast.error(`Arquivo acima de ${maxMb} MB.`);
+      return;
+    }
+    setUploading(itemId);
+    try {
+      // Remove qualquer arquivo anterior deste id, qualquer extensão.
+      const { data: existing } = await supabase.storage.from("menu-items").list("", { search: itemId });
+      const toRemove = (existing || []).filter((f) => f.name.startsWith(`${itemId}.`)).map((f) => f.name);
+      if (toRemove.length) await supabase.storage.from("menu-items").remove(toRemove);
+
+      const rawExt = (file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const allowed = isVideo ? ["mp4", "mov", "webm"] : ["jpg", "jpeg", "png", "webp", "gif"];
+      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "jpg");
+      const path = `${itemId}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("menu-items")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+      if (uploadError) {
+        toast.error("Falha no upload: " + uploadError.message);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
+      const bustedUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+
+      const { error: updErr } = await supabase
+        .from("weekly_menu_items")
+        .update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" })
+        .eq("id", itemId);
+      if (updErr) {
+        toast.error("Mídia subiu mas não vinculou ao prato: " + updErr.message);
+        return;
+      }
+
+      const item = items.find((i) => i.id === itemId);
+      await logAction("cardapio", "editou", `Upload de mídia para '${item?.prato}'`);
+      toast.success("Mídia adicionada!");
+      await fetchData();
+    } catch (e: any) {
+      toast.error("Erro inesperado: " + (e?.message || "tente novamente"));
+    } finally {
+      setUploading(null);
+    }
   };
 
   const removeMedia = async (itemId: string, url: string) => {
@@ -160,17 +194,22 @@ const AdminMenu = () => {
       if (!candidate) { skipped++; setBulkProgress({ done: idx + 1, total: files.length }); continue; }
       const target = candidate.it;
       const isVideo = file.type.startsWith("video/");
-      const ext = file.name.split(".").pop();
+      const isImage = file.type.startsWith("image/");
+      if (!isImage && !isVideo) { skipped++; setBulkProgress({ done: idx + 1, total: files.length }); continue; }
+      // Remove anteriores em qualquer extensão.
+      const { data: existing } = await supabase.storage.from("menu-items").list("", { search: target.id });
+      const toRemove = (existing || []).filter((f) => f.name.startsWith(`${target.id}.`)).map((f) => f.name);
+      if (toRemove.length) await supabase.storage.from("menu-items").remove(toRemove);
+      const rawExt = (file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const allowed = isVideo ? ["mp4", "mov", "webm"] : ["jpg", "jpeg", "png", "webp", "gif"];
+      const ext = allowed.includes(rawExt) ? rawExt : (isVideo ? "mp4" : "jpg");
       const path = `${target.id}.${ext}`;
-      const currentPath = getMenuMediaPath(target.imagem_url);
-      if (currentPath) await supabase.storage.from("menu-items").remove([currentPath]);
-      await supabase.storage.from("menu-items").remove([path]);
-      const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true });
+      const { error: upErr } = await supabase.storage.from("menu-items").upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
       if (!upErr) {
         const { data: urlData } = supabase.storage.from("menu-items").getPublicUrl(path);
         const bustedUrl = `${urlData.publicUrl}?v=${Date.now()}`;
-        await supabase.from("weekly_menu_items").update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", target.id);
-        matched++;
+        const { error: updErr } = await supabase.from("weekly_menu_items").update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" }).eq("id", target.id);
+        if (updErr) skipped++; else matched++;
       } else {
         skipped++;
       }
