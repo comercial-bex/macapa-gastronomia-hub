@@ -365,7 +365,7 @@ const AdminMenu = () => {
 
       const { error: updErr } = await supabase
         .from("weekly_menu_items")
-        .update({ imagem_url: bustedUrl, tipo_midia: isVideo ? "video" : "imagem" })
+        .update({ imagem_url: bustedUrl, tipo_midia: finalIsVideo ? "video" : "imagem" })
         .eq("id", itemId);
       if (updErr) {
         toast.error("Mídia subiu mas não vinculou ao prato: " + updErr.message);
