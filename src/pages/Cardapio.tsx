@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
@@ -106,6 +107,28 @@ const Cardapio = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
+  const [queryBev, setQueryBev] = useState("");
+  const [querySemana, setQuerySemana] = useState("");
+  const [activeDiet, setActiveDiet] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Is dish available right now based on its window?
+  const isAvailableNow = (item: MenuItem) => {
+    if (!item.disponivel_de && !item.disponivel_ate) return null; // no window set
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const parse = (t?: string | null) => {
+      if (!t) return null;
+      const [h, m] = t.split(":");
+      return Number(h) * 60 + Number(m || 0);
+    };
+    const from = parse(item.disponivel_de) ?? -Infinity;
+    const to = parse(item.disponivel_ate) ?? Infinity;
+    return cur >= from && cur <= to;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,13 +173,58 @@ const Cardapio = () => {
 
   useEffect(() => {
     setSelectedItemIndex(0);
-  }, [activeDay, activeUnit]);
+  }, [activeDay, activeUnit, querySemana, activeDiet]);
 
-  const selectedItems = menuItems.filter(
+  const dayItemsAll = menuItems.filter(
     (item) =>
       item.day_id === activeDay &&
       (activeUnit === "all" || !item.unit_id || item.unit_id === activeUnit),
   );
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const qSem = normalize(querySemana.trim());
+  const selectedItems = dayItemsAll.filter((item) => {
+    if (activeDiet && !(item.tags || []).includes(activeDiet)) return false;
+    if (qSem) {
+      const hay = normalize(`${item.prato} ${item.descricao || ""}`);
+      if (!hay.includes(qSem)) return false;
+    }
+    return true;
+  });
+
+  // Diet chip availability for current day
+  const dietCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    dayItemsAll.forEach((i) => (i.tags || []).forEach((t) => { c[t] = (c[t] || 0) + 1; }));
+    return c;
+  }, [dayItemsAll]);
+
+  // Bebidas filtered
+  const qBev = normalize(queryBev.trim());
+  const filteredBeverages = qBev
+    ? beverages.filter((b) => {
+        const hay = normalize(`${b.nome} ${b.volume || ""} ${b.descricao || ""}`);
+        return hay.includes(qBev);
+      })
+    : beverages;
+
+  // Keyboard navigation on dish list
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (tab !== "semana" || selectedItems.length === 0) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        setSelectedItemIndex((i) => Math.min(selectedItems.length - 1, i + 1));
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        setSelectedItemIndex((i) => Math.max(0, i - 1));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tab, selectedItems.length]);
 
   return (
     <Layout>
@@ -184,12 +252,53 @@ const Cardapio = () => {
             </TabsList>
 
             <TabsContent value="bebidas">
+              {/* Search + category quick-jump */}
+              <div className="mb-6 space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    type="search"
+                    value={queryBev}
+                    onChange={(e) => setQueryBev(e.target.value)}
+                    placeholder="Buscar bebida (ex: vinho, suco, água com gás)"
+                    aria-label="Buscar bebida"
+                    className="pl-9 pr-9 bg-secondary/40 border-border"
+                  />
+                  {queryBev && (
+                    <button
+                      type="button"
+                      onClick={() => setQueryBev("")}
+                      aria-label="Limpar busca"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+                {!queryBev && categories.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {categories.map((cat) => {
+                      const count = beverages.filter((b) => b.category_id === cat.id).length;
+                      if (count === 0) return null;
+                      return (
+                        <a
+                          key={cat.id}
+                          href={`#cat-${cat.id}`}
+                          className="px-2.5 py-1 rounded-full text-xs border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                        >
+                          {cat.nome} <span className="opacity-60">({count})</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               {categories.map((cat) => {
-                const items = beverages.filter((b) => b.category_id === cat.id);
+                const items = filteredBeverages.filter((b) => b.category_id === cat.id);
                 if (items.length === 0) return null;
                 return (
                   <ScrollReveal key={cat.id}>
-                    <div className="mb-10">
+                    <div id={`cat-${cat.id}`} className="mb-10 scroll-mt-24">
                       <h2 className="font-display text-2xl font-bold mb-4 text-primary">{cat.nome}</h2>
                       <ScrollReveal stagger className="space-y-0">
                         {items.map((bev) => (
@@ -244,6 +353,11 @@ const Cardapio = () => {
               {categories.length === 0 && (
                 <p className="text-center text-muted-foreground py-12">Nenhuma bebida cadastrada.</p>
               )}
+              {categories.length > 0 && qBev && filteredBeverages.length === 0 && (
+                <p className="text-center text-muted-foreground py-8 text-sm">
+                  Nada encontrado para "<span className="text-foreground">{queryBev}</span>".
+                </p>
+              )}
             </TabsContent>
 
             <TabsContent value="semana">
@@ -284,6 +398,55 @@ const Cardapio = () => {
                     {day.dia_semana.slice(0, 3)}
                   </Button>
                 ))}
+              </div>
+
+              {/* Search + diet chips */}
+              <div className="mb-6 space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    type="search"
+                    value={querySemana}
+                    onChange={(e) => setQuerySemana(e.target.value)}
+                    placeholder="Buscar prato"
+                    aria-label="Buscar prato"
+                    className="pl-9 pr-9 bg-secondary/40 border-border"
+                  />
+                  {querySemana && (
+                    <button
+                      type="button"
+                      onClick={() => setQuerySemana("")}
+                      aria-label="Limpar busca"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+                {Object.keys(DIET_TAGS_META).some((k) => dietCounts[k]) && (
+                  <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por restrição alimentar">
+                    {Object.entries(DIET_TAGS_META).map(([key, meta]) => {
+                      const count = dietCounts[key] || 0;
+                      if (count === 0) return null;
+                      const active = activeDiet === key;
+                      const Icon = meta.icon;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setActiveDiet(active ? null : key)}
+                          aria-pressed={active}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                            active ? meta.className : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="h-3 w-3" /> {meta.label}
+                          <span className="opacity-70">({count})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <AnimatePresence mode="wait">
@@ -344,6 +507,11 @@ const Cardapio = () => {
                                             {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
                                           </span>
                                         )}
+                                        {isAvailableNow(item) === true && !item.esgotado && (
+                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
+                                            <CheckCircle2 className="h-3 w-3" /> Agora
+                                          </span>
+                                        )}
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
@@ -377,10 +545,13 @@ const Cardapio = () => {
                           {selectedItems.map((item, index) => {
                             const DishIcon = getDishIcon(item.prato);
                             const isActive = index === selectedItemIndex;
+                            const avail = isAvailableNow(item);
                             return (
                               <button
                                 key={item.id}
                                 onClick={() => setSelectedItemIndex(index)}
+                                aria-current={isActive ? "true" : undefined}
+                                aria-label={`${item.prato}${item.esgotado ? " (esgotado)" : ""}`}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
                                   isActive
                                     ? "bg-primary/10 border-l-4 border-primary shadow-sm"
@@ -409,6 +580,11 @@ const Cardapio = () => {
                                       {item.badge && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
                                           <Sparkles className="h-2.5 w-2.5" /> {item.badge}
+                                        </span>
+                                      )}
+                                      {avail === true && !item.esgotado && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                                          <CheckCircle2 className="h-2.5 w-2.5" /> Disponível agora
                                         </span>
                                       )}
                                     </div>
@@ -483,6 +659,11 @@ const Cardapio = () => {
                                             {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
                                           </span>
                                         )}
+                                        {isAvailableNow(item) === true && !item.esgotado && (
+                                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
+                                            <CheckCircle2 className="h-3 w-3" /> Disponível agora
+                                          </span>
+                                        )}
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -510,7 +691,20 @@ const Cardapio = () => {
                     </>
                   ) : (
                     <div className="w-full text-center py-8 text-muted-foreground">
-                      <p>Nenhum prato cadastrado para este dia.</p>
+                      {dayItemsAll.length === 0 ? (
+                        <p>Nenhum prato cadastrado para este dia.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          <p>Nenhum prato neste filtro.</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => { setQuerySemana(""); setActiveDiet(null); }}
+                          >
+                            Limpar filtros
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
