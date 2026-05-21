@@ -6,7 +6,7 @@ import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
@@ -60,6 +60,9 @@ interface Beverage {
   volume: string | null;
   preco: number | null;
   imagem_url?: string | null;
+  descricao?: string | null;
+  badge?: string | null;
+  esgotado?: boolean | null;
 }
 
 interface MenuDay {
@@ -77,6 +80,11 @@ interface MenuItem {
   tipo_midia: string;
   tags?: string[] | null;
   unit_id?: string | null;
+  descricao?: string | null;
+  badge?: string | null;
+  esgotado?: boolean | null;
+  disponivel_de?: string | null;
+  disponivel_ate?: string | null;
 }
 
 interface Unit {
