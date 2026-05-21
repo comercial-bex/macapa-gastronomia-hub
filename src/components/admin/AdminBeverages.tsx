@@ -64,17 +64,54 @@ const AdminBeverages = () => {
   };
 
   const uploadImage = async (bevId: string, file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie apenas arquivos de imagem.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Imagem acima de 10 MB. Reduza o tamanho.");
+      return;
+    }
     setUploading(bevId);
-    const ext = file.name.split(".").pop();
-    const path = `${bevId}.${ext}`;
-    await supabase.storage.from("beverages").remove([path]);
-    const { error } = await supabase.storage.from("beverages").upload(path, file, { upsert: true });
-    if (error) { toast.error("Erro: " + error.message); setUploading(null); return; }
-    const { data: urlData } = supabase.storage.from("beverages").getPublicUrl(path);
-    const busted = `${urlData.publicUrl}?v=${Date.now()}`;
-    await supabase.from("beverages").update({ imagem_url: busted }).eq("id", bevId);
-    await logAction("bebidas", "editou", `Atualizou imagem de bebida`);
-    toast.success("Imagem enviada!"); setUploading(null); fetchData();
+    try {
+      // Remove qualquer arquivo anterior deste id, em qualquer extensão.
+      const { data: existing } = await supabase.storage.from("beverages").list("", { search: bevId });
+      const toRemove = (existing || []).filter((f) => f.name.startsWith(`${bevId}.`)).map((f) => f.name);
+      if (toRemove.length) await supabase.storage.from("beverages").remove(toRemove);
+
+      // Padroniza o caminho. Mantém a extensão real (jpg/png/webp).
+      const rawExt = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const ext = ["jpg", "jpeg", "png", "webp", "gif"].includes(rawExt) ? rawExt : "jpg";
+      const path = `${bevId}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("beverages")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+      if (upErr) {
+        toast.error("Falha no upload: " + upErr.message);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from("beverages").getPublicUrl(path);
+      const busted = `${urlData.publicUrl}?v=${Date.now()}`;
+
+      const { error: updErr } = await supabase
+        .from("beverages")
+        .update({ imagem_url: busted })
+        .eq("id", bevId);
+      if (updErr) {
+        toast.error("Imagem subiu mas não vinculou ao item: " + updErr.message);
+        return;
+      }
+
+      await logAction("bebidas", "editou", `Atualizou imagem de bebida`);
+      toast.success("Imagem enviada!");
+      await fetchData();
+    } catch (e: any) {
+      toast.error("Erro inesperado: " + (e?.message || "tente novamente"));
+    } finally {
+      setUploading(null);
+    }
   };
 
   const removeImage = async (bevId: string, url: string | null) => {
