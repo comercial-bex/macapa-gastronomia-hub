@@ -233,11 +233,103 @@ const Cardapio = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [tab, selectedItems.length]);
 
+  // Deep-link: select dish by ?prato=slug once the list is loaded.
+  useEffect(() => {
+    if (!pratoParam || selectedItems.length === 0) return;
+    const idx = selectedItems.findIndex((i) => slugify(i.prato) === pratoParam);
+    if (idx >= 0) setSelectedItemIndex(idx);
+  }, [pratoParam, selectedItems]);
+
+  // Keep URL in sync with current selection so links can be shared.
+  useEffect(() => {
+    if (tab !== "semana") return;
+    const item = selectedItems[selectedItemIndex];
+    const day = days.find((d) => d.id === activeDay);
+    if (!item || !day) return;
+    const next = new URLSearchParams(searchParams);
+    next.set("dia", day.dia_semana);
+    next.set("prato", slugify(item.prato));
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, selectedItemIndex, activeDay, selectedItems.length]);
+
+  // Share current dish via Web Share API, with WhatsApp + copy-link fallbacks.
+  const shareCurrent = async () => {
+    const item = selectedItems[selectedItemIndex];
+    const day = days.find((d) => d.id === activeDay);
+    if (!item || !day) return;
+    const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
+    const text = `${item.prato} — ${day.dia_semana} no Restaurante Macapaba`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: item.prato, text, url });
+        return;
+      }
+    } catch { /* user dismissed */ }
+    try {
+      await navigator.clipboard.writeText(url);
+      // Lightweight toast via alert-ish, but Cardapio doesn't import sonner here; use console + browser.
+      window.dispatchEvent(new CustomEvent("macapaba:copied", { detail: url }));
+      alert("Link copiado!");
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
+  const shareWhatsApp = () => {
+    const item = selectedItems[selectedItemIndex];
+    const day = days.find((d) => d.id === activeDay);
+    if (!item || !day) return;
+    const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
+    const text = `🍽️ *${item.prato}* — ${day.dia_semana}\nNo Restaurante Macapaba: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  };
+
+  // ===== Structured data (JSON-LD Menu) =====
+  const menuJsonLd = useMemo(() => {
+    if (days.length === 0 || menuItems.length === 0) return undefined;
+    const sections = days.map((d) => ({
+      "@type": "MenuSection",
+      name: d.dia_semana,
+      hasMenuItem: menuItems
+        .filter((i) => i.day_id === d.id)
+        .map((i) => ({
+          "@type": "MenuItem",
+          name: i.prato,
+          ...(i.descricao ? { description: i.descricao } : {}),
+          ...(i.imagem_url && i.tipo_midia !== "video" ? { image: i.imagem_url } : {}),
+        })),
+    }));
+    return {
+      "@context": "https://schema.org",
+      "@type": "Menu",
+      name: "Cardápio Restaurante Macapaba",
+      inLanguage: "pt-BR",
+      hasMenuSection: sections,
+    };
+  }, [days, menuItems]);
+
+  const currentItem = selectedItems[selectedItemIndex];
+  const currentDay = days.find((d) => d.id === activeDay);
+  const dynamicTitle = tab === "semana" && currentItem && currentDay
+    ? `${currentItem.prato} — ${currentDay.dia_semana} | Restaurante Macapaba`
+    : "Cardápio — Restaurante Macapaba | Macapá-AP";
+  const dynamicDesc = tab === "semana" && currentItem
+    ? (currentItem.descricao || `${currentItem.prato} no cardápio de ${currentDay?.dia_semana} do Restaurante Macapaba em Macapá-AP.`)
+    : "Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP.";
+  const dynamicImage = tab === "semana" && currentItem?.imagem_url && currentItem.tipo_midia !== "video"
+    ? currentItem.imagem_url
+    : undefined;
+
   return (
     <Layout>
       <SEO
-        title="Cardápio — Restaurante Macapaba | Macapá-AP"
-        description="Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP."
+        title={dynamicTitle}
+        description={dynamicDesc}
+        image={dynamicImage}
+        jsonLd={menuJsonLd}
       />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-5xl">
