@@ -47,12 +47,12 @@ const getDishIcon = (name: string): LucideIcon => {
 };
 
 const portfolioImages = [
-  { src: pratoVariado, alt: "Prato variado" },
-  { src: sushi, alt: "Sushi" },
-  { src: garcomServindo, alt: "Atendimento" },
-  { src: clientesRestaurante, alt: "Experiência" },
-  { src: salaoRestaurante, alt: "Ambiente" },
-  { src: pratoVariado, alt: "Especialidade" },
+  { src: pratoVariado, alt: "Prato variado amazônico do Restaurante Macapaba" },
+  { src: sushi, alt: "Sushi artesanal preparado no Macapaba" },
+  { src: garcomServindo, alt: "Garçom servindo clientes no salão" },
+  { src: clientesRestaurante, alt: "Clientes desfrutando experiência gastronômica" },
+  { src: salaoRestaurante, alt: "Ambiente acolhedor do salão principal" },
+  { src: pratoVariado, alt: "Especialidade da casa Macapaba" },
 ];
 
 const specialties = [
@@ -138,7 +138,7 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
-                    <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">{item.title}</h3>
+                    <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">{item.title}</h2>
                     <p className="text-white/50 text-sm md:text-base max-w-sm leading-relaxed opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       {item.desc}
                     </p>
@@ -216,7 +216,7 @@ const Index = () => {
         <motion.div style={{ opacity: heroOpacity }} className="relative z-20 text-center px-4 max-w-5xl mx-auto">
           <motion.img
             src={logoMacapaba}
-             alt="Macapaba"
+             alt="Restaurante Macapaba"
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
@@ -614,6 +614,7 @@ const Index = () => {
               <button
                 key={i}
                 onClick={() => setActiveTestimonial(i)}
+                aria-label={`Ver depoimento ${i + 1} de ${testimonials.length}`}
                 className={`h-px transition-all duration-500 ${
                   i === activeTestimonial ? "w-10 bg-primary" : "w-5 bg-muted-foreground/20 hover:bg-muted-foreground/40"
                 }`}
@@ -766,10 +767,6 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
   return (
     <section id="reserva" className="py-32 md:py-44 px-4 bg-card/30">
       <div className="container mx-auto max-w-2xl">
-        <SEO
-          title="Reserva — Restaurante Macapaba | Macapá-AP"
-          description="Reserve sua mesa no Restaurante Macapaba em Macapá. Gastronomia amazônica, ambiente acolhedor e atendimento personalizado."
-        />
         <ScrollReveal>
           <div className="text-center mb-16">
             <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Reserva</p>

@@ -5,6 +5,7 @@ import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { MapPin, Phone, Clock, Star, Navigation, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 
 interface Unit {
   id: string;
@@ -39,6 +40,10 @@ const Unidades = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Unidades — Restaurante Macapaba | Endereços em Macapá"
+        description="Encontre as unidades do Restaurante Macapaba em Macapá-AP: endereços, telefones, horários de funcionamento e como chegar."
+      />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-4xl">
           <ScrollReveal>
@@ -80,7 +85,7 @@ const Unidades = () => {
                         <Star className="h-4 w-4 fill-primary" /> Principal
                       </div>
                     )}
-                    <h3 className="font-display text-2xl font-bold mb-4">{unit.nome}</h3>
+                    <h2 className="font-display text-2xl font-bold mb-4">{unit.nome}</h2>
                     <div className="space-y-3 text-muted-foreground text-sm">
                       <div className="flex items-start gap-2">
                         <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />

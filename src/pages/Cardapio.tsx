@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, type LucideIcon } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
   "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
@@ -131,6 +132,10 @@ const Cardapio = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Cardápio — Restaurante Macapaba | Macapá-AP"
+        description="Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP."
+      />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-5xl">
           <ScrollReveal>
@@ -157,7 +162,7 @@ const Cardapio = () => {
                 return (
                   <ScrollReveal key={cat.id}>
                     <div className="mb-10">
-                      <h3 className="font-display text-2xl font-bold mb-4 text-primary">{cat.nome}</h3>
+                      <h2 className="font-display text-2xl font-bold mb-4 text-primary">{cat.nome}</h2>
                       <ScrollReveal stagger className="space-y-0">
                         {items.map((bev) => (
                           <StaggerItem key={bev.id}>
@@ -277,7 +282,7 @@ const Cardapio = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
-                                      <h3 className="font-display text-xl font-bold text-white">{item.prato}</h3>
+                                      <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
                                           {item.tags.map((t) => {
@@ -303,9 +308,9 @@ const Cardapio = () => {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-display text-2xl font-bold mb-6">
+                        <h2 className="font-display text-2xl font-bold mb-6">
                           {days.find((d) => d.id === activeDay)?.dia_semana}
-                        </h3>
+                        </h2>
                         <div className="space-y-1">
                           {selectedItems.map((item, index) => {
                             const DishIcon = getDishIcon(item.prato);
@@ -380,7 +385,7 @@ const Cardapio = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
-                                      <h3 className="font-display text-2xl font-bold text-white">{item.prato}</h3>
+                                      <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">
                                           {item.tags.map((t) => {

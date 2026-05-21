@@ -12,7 +12,7 @@ const Footer = () => {
         {/* Single horizontal row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           {/* Logo */}
-           <img src={logoMacapaba} alt="Macapaba" className="h-8" />
+           <img src={logoMacapaba} alt="Restaurante Macapaba" className="h-8" />
 
           {/* Links */}
           <nav className="flex flex-wrap items-center justify-center gap-6">
@@ -33,10 +33,10 @@ const Footer = () => {
           <div className="flex items-center gap-5">
             <span className="text-xs text-muted-foreground/40">{getSetting("email_contato", "restaurantemacapaba123@gmail.com")}</span>
             <div className="flex gap-3">
-              <a href={getSetting("instagram_url", "https://instagram.com/restaurantemacapaba")} target="_blank" rel="noopener noreferrer" className="text-muted-foreground/40 hover:text-primary transition-colors">
+              <a href={getSetting("instagram_url", "https://instagram.com/restaurantemacapaba")} target="_blank" rel="noopener noreferrer" aria-label="Instagram do Restaurante Macapaba" className="text-muted-foreground/40 hover:text-primary transition-colors">
                 <Instagram className="h-4 w-4" />
               </a>
-              <a href={getSetting("facebook_url", "https://facebook.com/restaurantemacapaba")} target="_blank" rel="noopener noreferrer" className="text-muted-foreground/40 hover:text-primary transition-colors">
+              <a href={getSetting("facebook_url", "https://facebook.com/restaurantemacapaba")} target="_blank" rel="noopener noreferrer" aria-label="Facebook do Restaurante Macapaba" className="text-muted-foreground/40 hover:text-primary transition-colors">
                 <Facebook className="h-4 w-4" />
               </a>
             </div>
