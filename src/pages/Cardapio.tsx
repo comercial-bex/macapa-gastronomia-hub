@@ -209,8 +209,23 @@ const Cardapio = () => {
                                   />
                                 )}
                                 <div className="min-w-0">
-                                  <span className="font-medium">{bev.nome}</span>
-                                  {bev.volume && <span className="text-muted-foreground text-sm ml-2">({bev.volume})</span>}
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{bev.nome}</span>
+                                    {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
+                                    {bev.esgotado && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
+                                        <AlertTriangle className="h-3 w-3" /> Esgotado
+                                      </span>
+                                    )}
+                                    {bev.badge && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
+                                        <Sparkles className="h-3 w-3" /> {bev.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {bev.descricao && (
+                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{bev.descricao}</p>
+                                  )}
                                 </div>
                               </div>
                               {bev.preco !== null && (
