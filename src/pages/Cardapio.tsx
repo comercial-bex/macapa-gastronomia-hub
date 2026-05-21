@@ -393,9 +393,26 @@ const Cardapio = () => {
                                   <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <span className={`text-sm font-medium transition-colors duration-300 block ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                                  <span className={`text-sm font-medium transition-colors duration-300 block ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                                     {item.prato}
                                   </span>
+                                  {item.descricao && (
+                                    <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-2">{item.descricao}</p>
+                                  )}
+                                  {(item.esgotado || item.badge) && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {item.esgotado && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
+                                          <AlertTriangle className="h-2.5 w-2.5" /> Esgotado
+                                        </span>
+                                      )}
+                                      {item.badge && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
+                                          <Sparkles className="h-2.5 w-2.5" /> {item.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                   {item.tags && item.tags.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">
                                       {item.tags.map((t) => {
