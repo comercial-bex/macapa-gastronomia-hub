@@ -509,6 +509,11 @@ const Cardapio = () => {
                                             {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
                                           </span>
                                         )}
+                                        {isAvailableNow(item) === true && !item.esgotado && (
+                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
+                                            <CheckCircle2 className="h-3 w-3" /> Agora
+                                          </span>
+                                        )}
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
@@ -654,6 +659,11 @@ const Cardapio = () => {
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-black/60 text-white border border-white/20">
                                             <Clock className="h-3 w-3" />
                                             {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
+                                          </span>
+                                        )}
+                                        {isAvailableNow(item) === true && !item.esgotado && (
+                                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
+                                            <CheckCircle2 className="h-3 w-3" /> Disponível agora
                                           </span>
                                         )}
                                       </div>
