@@ -483,6 +483,72 @@ const AdminMenu = () => {
     }
   };
 
+  // ===== Day management =====
+  const addDay = async () => {
+    const nome = newDayName.trim();
+    if (!nome) return;
+    const { error } = await supabase.from("weekly_menu_days").insert({
+      dia_semana: nome,
+      ordem: days.length,
+      ativo: true,
+    } as any);
+    if (error) return toast.error("Erro ao criar dia");
+    await logAction("cardapio", "criou", `Adicionou dia '${nome}'`);
+    setNewDayName("");
+    toast.success("Dia criado");
+    fetchData();
+  };
+
+  const renameDay = async (id: string, novo: string) => {
+    const v = novo.trim();
+    if (!v) return;
+    await supabase.from("weekly_menu_days").update({ dia_semana: v } as any).eq("id", id);
+    setDays((prev) => prev.map((d) => (d.id === id ? { ...d, dia_semana: v } : d)));
+  };
+
+  const toggleDayActive = async (id: string, ativo: boolean) => {
+    await supabase.from("weekly_menu_days").update({ ativo: !ativo } as any).eq("id", id);
+    setDays((prev) => prev.map((d) => (d.id === id ? { ...d, ativo: !ativo } : d)));
+  };
+
+  const deleteDay = async (id: string) => {
+    const dayItemsCount = items.filter((i) => i.day_id === id).length;
+    if (dayItemsCount > 0) {
+      toast.error(`Mova ou apague os ${dayItemsCount} prato(s) antes de excluir o dia.`);
+      return;
+    }
+    await supabase.from("weekly_menu_days").delete().eq("id", id);
+    if (activeDay === id) setActiveDay(days.find((d) => d.id !== id)?.id || "");
+    fetchData();
+  };
+
+  const handleDayDragEnd = async (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = days.findIndex((d) => d.id === active.id);
+    const newIndex = days.findIndex((d) => d.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(days, oldIndex, newIndex);
+    setDays(reordered.map((d, i) => ({ ...d, ordem: i })));
+    const updates = reordered.map((d, i) =>
+      supabase.from("weekly_menu_days").update({ ordem: i } as any).eq("id", d.id),
+    );
+    const results = await Promise.all(updates);
+    if (results.some((r) => r.error)) {
+      toast.error("Falha ao reordenar dias.");
+      fetchData();
+    }
+  };
+
+  // ===== Global health counters =====
+  const totalDays = days.length;
+  const totalDaysAtivos = days.filter((d) => d.ativo !== false).length;
+  const totalItems = items.length;
+  const totalComFoto = items.filter((i) => i.imagem_url).length;
+  const totalEsgotados = items.filter((i) => i.esgotado).length;
+  const totalDestaques = items.filter((i) => i.badge === "novo" || i.badge === "destaque").length;
+  const fotoPct = totalItems ? Math.round((totalComFoto / totalItems) * 100) : 0;
+
   return (
     <div>
       <h2 className="font-display text-2xl font-bold mb-2">Cardápio da Semana</h2>
