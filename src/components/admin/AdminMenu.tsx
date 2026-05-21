@@ -526,15 +526,37 @@ const AdminMenu = () => {
             <div className="text-xs text-muted-foreground">
               <span className="text-foreground font-semibold">{dayItemsComFoto}</span> de <span className="text-foreground font-semibold">{dayItems.length}</span> pratos com foto em <span className="text-primary font-medium">{activeDayName}</span>
             </div>
-            <a
-              href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-              title="Abrir essa página no site público"
-            >
-              <ExternalLink className="h-3 w-3" /> Ver no site
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                title="Abrir essa página no site público"
+              >
+                <ExternalLink className="h-3 w-3" /> Ver no site
+              </a>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
+                    Ações do dia <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>{activeDayName}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCopyDialog({ open: true, targetDayId: "", mode: "merge" })}>
+                    <CopyPlus className="h-3.5 w-3.5 mr-2" /> Copiar dia para…
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportDayCSV}>
+                    <FileDown className="h-3.5 w-3.5 mr-2" /> Exportar CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={printDay}>
+                    <Printer className="h-3.5 w-3.5 mr-2" /> Imprimir / PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Quick filters */}
