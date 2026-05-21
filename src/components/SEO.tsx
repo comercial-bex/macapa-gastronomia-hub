@@ -5,6 +5,8 @@ interface SEOProps {
   description: string;
   canonical?: string;
   image?: string;
+  /** Optional JSON-LD structured-data object(s). Replaces any previous SEO-managed script. */
+  jsonLd?: Record<string, any> | Record<string, any>[];
 }
 
 /**
@@ -13,7 +15,7 @@ interface SEOProps {
  */
 const DEFAULT_OG_IMAGE = "https://restaurantemacapaba.com.br/og-image.jpg";
 
-const SEO = ({ title, description, canonical, image }: SEOProps) => {
+const SEO = ({ title, description, canonical, image, jsonLd }: SEOProps) => {
   useEffect(() => {
     document.title = title;
 
@@ -60,7 +62,21 @@ const SEO = ({ title, description, canonical, image }: SEOProps) => {
       }
       link.setAttribute("href", href);
     }
-  }, [title, description, canonical]);
+
+    // Structured data (JSON-LD): keep a single SEO-owned <script> per page.
+    const existing = document.head.querySelector<HTMLScriptElement>(
+      'script[data-seo-jsonld="true"]',
+    );
+    if (jsonLd) {
+      const node = existing ?? document.createElement("script");
+      node.type = "application/ld+json";
+      node.dataset.seoJsonld = "true";
+      node.textContent = JSON.stringify(jsonLd);
+      if (!existing) document.head.appendChild(node);
+    } else if (existing) {
+      existing.remove();
+    }
+  }, [title, description, canonical, image, jsonLd]);
 
   return null;
 };
