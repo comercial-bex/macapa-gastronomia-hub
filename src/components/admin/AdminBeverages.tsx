@@ -176,25 +176,26 @@ const AdminBeverages = () => {
       toast.error("Envie apenas arquivos de imagem.");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Imagem acima de 10 MB. Reduza o tamanho.");
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Imagem acima de 20 MB. Reduza o tamanho.");
       return;
     }
     setUploading(bevId);
     try {
+      const finalFile = await compressImage(file, { maxDim: 1200, quality: 0.82 });
       // Remove qualquer arquivo anterior deste id, em qualquer extensão.
       const { data: existing } = await supabase.storage.from("beverages").list("", { search: bevId });
       const toRemove = (existing || []).filter((f) => f.name.startsWith(`${bevId}.`)).map((f) => f.name);
       if (toRemove.length) await supabase.storage.from("beverages").remove(toRemove);
 
       // Padroniza o caminho. Mantém a extensão real (jpg/png/webp).
-      const rawExt = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-      const ext = ["jpg", "jpeg", "png", "webp", "gif"].includes(rawExt) ? rawExt : "jpg";
+      const rawExt = (finalFile.name.split(".").pop() || "webp").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const ext = ["jpg", "jpeg", "png", "webp", "gif"].includes(rawExt) ? rawExt : "webp";
       const path = `${bevId}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("beverages")
-        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+        .upload(path, finalFile, { upsert: true, contentType: finalFile.type, cacheControl: "3600" });
       if (upErr) {
         toast.error("Falha no upload: " + upErr.message);
         return;
