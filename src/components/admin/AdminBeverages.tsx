@@ -34,6 +34,38 @@ const parseBRPrice = (raw: string): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+// Sortable wrapper for one beverage row with a drag handle on the left.
+const SortableBevRow = ({ bev, children }: { bev: any; children: React.ReactNode }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: bev.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.85 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="glass-effect rounded-lg p-3 flex justify-between items-center hover:shadow-sm transition-shadow gap-2"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-1 -ml-1"
+        title="Arrastar para reordenar"
+        aria-label="Arrastar"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="flex-1 flex justify-between items-center gap-2 min-w-0">
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const AdminBeverages = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [beverages, setBeverages] = useState<any[]>([]);
