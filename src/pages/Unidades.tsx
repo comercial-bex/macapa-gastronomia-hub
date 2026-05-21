@@ -85,7 +85,7 @@ const Unidades = () => {
                         <Star className="h-4 w-4 fill-primary" /> Principal
                       </div>
                     )}
-                    <h3 className="font-display text-2xl font-bold mb-4">{unit.nome}</h3>
+                    <h2 className="font-display text-2xl font-bold mb-4">{unit.nome}</h2>
                     <div className="space-y-3 text-muted-foreground text-sm">
                       <div className="flex items-start gap-2">
                         <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />

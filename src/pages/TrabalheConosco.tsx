@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Briefcase, ArrowLeft, Upload, CheckCircle, DollarSign, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import SEO from "@/components/SEO";
 
 interface Job {
   id: string;
@@ -103,6 +104,10 @@ const TrabalheConosco = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Trabalhe Conosco — Restaurante Macapaba | Vagas em Macapá"
+        description="Faça parte da equipe do Restaurante Macapaba em Macapá. Veja as vagas abertas, envie seu currículo e construa sua carreira na gastronomia amazônica."
+      />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-3xl">
           <ScrollReveal>
@@ -129,7 +134,7 @@ const TrabalheConosco = () => {
                     />
                     <div className="flex items-center gap-3 relative z-10">
                       <Briefcase className="h-5 w-5 text-primary" />
-                      <h3 className="font-display text-xl font-bold group-hover:text-primary transition-colors">{job.titulo}</h3>
+                      <h2 className="font-display text-xl font-bold group-hover:text-primary transition-colors">{job.titulo}</h2>
                     </div>
                     <div className="ml-8 relative z-10 mt-2 flex flex-wrap gap-2">
                       {job.tipo_contrato && <Badge variant="outline" className="text-xs">{job.tipo_contrato}</Badge>}
@@ -158,7 +163,7 @@ const TrabalheConosco = () => {
                 </button>
 
                 <div className="bg-card border border-border rounded-lg p-8">
-                  <h3 className="font-display text-2xl font-bold mb-2">{selectedJob.titulo}</h3>
+                  <h2 className="font-display text-2xl font-bold mb-2">{selectedJob.titulo}</h2>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {selectedJob.tipo_contrato && <Badge variant="outline">{selectedJob.tipo_contrato}</Badge>}
                     {selectedJob.salario && <Badge variant="outline" className="gap-1"><DollarSign className="h-3 w-3" /> {selectedJob.salario}</Badge>}
