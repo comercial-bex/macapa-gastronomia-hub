@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Play, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
@@ -106,6 +107,30 @@ const Cardapio = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
+  const [queryBev, setQueryBev] = useState("");
+  const [querySemana, setQuerySemana] = useState("");
+  const [activeDiet, setActiveDiet] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Is dish available right now based on its window?
+  const isAvailableNow = (item: MenuItem) => {
+    if (!item.disponivel_de && !item.disponivel_ate) return null; // no window set
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const parse = (t?: string | null) => {
+      if (!t) return null;
+      const [h, m] = t.split(":");
+      return Number(h) * 60 + Number(m || 0);
+    };
+    const from = parse(item.disponivel_de) ?? -Infinity;
+    const to = parse(item.disponivel_ate) ?? Infinity;
+    return cur >= from && cur <= to;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
