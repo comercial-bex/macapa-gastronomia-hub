@@ -1,0 +1,14 @@
+# Restaurante Macapaba
+
+> Restaurante em Macapá-AP desde 2018. Gastronomia amazônica autoral, peixes regionais, sushi e ambiente acolhedor.
+
+O Restaurante Macapaba é referência em culinária amazônica na capital do Amapá, combinando ingredientes regionais com técnicas contemporâneas. Possui unidades em Macapá e oferece reservas online, cardápio semanal rotativo e seleção de bebidas.
+
+## Pages
+
+- [Home](/): Apresentação institucional, história e destaques do restaurante.
+- [Cardápio](/cardapio): Cardápio da semana e seleção de bebidas.
+- [Portfólio](/portfolio): Galeria de pratos, ambientes e momentos.
+- [Unidades](/unidades): Endereços, horários e contatos das unidades em Macapá.
+- [Reserva](/reserva): Formulário para reservar mesa.
+- [Trabalhe Conosco](/trabalhe-conosco): Vagas abertas e candidatura online.
