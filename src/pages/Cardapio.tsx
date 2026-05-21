@@ -542,10 +542,13 @@ const Cardapio = () => {
                           {selectedItems.map((item, index) => {
                             const DishIcon = getDishIcon(item.prato);
                             const isActive = index === selectedItemIndex;
+                            const avail = isAvailableNow(item);
                             return (
                               <button
                                 key={item.id}
                                 onClick={() => setSelectedItemIndex(index)}
+                                aria-current={isActive ? "true" : undefined}
+                                aria-label={`${item.prato}${item.esgotado ? " (esgotado)" : ""}`}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
                                   isActive
                                     ? "bg-primary/10 border-l-4 border-primary shadow-sm"
@@ -574,6 +577,11 @@ const Cardapio = () => {
                                       {item.badge && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
                                           <Sparkles className="h-2.5 w-2.5" /> {item.badge}
+                                        </span>
+                                      )}
+                                      {avail === true && !item.esgotado && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                                          <CheckCircle2 className="h-2.5 w-2.5" /> Disponível agora
                                         </span>
                                       )}
                                     </div>
