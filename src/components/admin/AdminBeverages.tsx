@@ -10,6 +10,24 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Wine, ImagePlus, X } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+// Aceita "5", "5.00", "5,00", "R$ 5,00", " R$1.234,56 ".
+const parseBRPrice = (raw: string): number | null => {
+  if (!raw) return null;
+  const cleaned = raw.replace(/[^0-9.,-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".");
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : null;
+};
 
 const AdminBeverages = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -23,6 +41,7 @@ const AdminBeverages = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const { logAction } = useAuditLog();
+  const [pendingDelete, setPendingDelete] = useState<{ kind: "bev" | "cat"; id: string; nome: string; childCount?: number } | null>(null);
 
   const fetchData = async () => {
     const [c, b] = await Promise.all([
@@ -50,20 +69,50 @@ const AdminBeverages = () => {
   const saveBev = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
     try {
-      const payload = { ...bevForm, preco: bevForm.preco ? parseFloat(bevForm.preco) : null, volume: bevForm.volume || null };
-      if (editingBev) { await supabase.from("beverages").update(payload).eq("id", editingBev.id); }
-      else { await supabase.from("beverages").insert(payload); }
+      const preco = bevForm.preco ? parseBRPrice(bevForm.preco) : null;
+      if (bevForm.preco && preco === null) { toast.error("Preço inválido. Use 5,00 ou 5.00"); setLoading(false); return; }
+      const payload = { ...bevForm, preco, volume: bevForm.volume || null };
+      const { error } = editingBev
+        ? await supabase.from("beverages").update(payload).eq("id", editingBev.id)
+        : await supabase.from("beverages").insert(payload);
+      if (error) { toast.error("Erro ao salvar: " + error.message); setLoading(false); return; }
       await logAction("bebidas", editingBev ? "editou" : "criou", `${editingBev ? "Editou" : "Criou"} bebida '${bevForm.nome}'`);
       toast.success("Salvo!"); setBevOpen(false); fetchData();
-    } catch { toast.error("Erro"); } finally { setLoading(false); }
+    } catch (e: any) { toast.error("Erro: " + (e?.message || "inesperado")); } finally { setLoading(false); }
   };
 
-  const deleteBev = async (id: string) => {
-    if (!confirm("Excluir?")) return;
+  const confirmDeleteBev = (id: string) => {
     const bev = beverages.find(b => b.id === id);
-    await supabase.from("beverages").delete().eq("id", id);
-    await logAction("bebidas", "excluiu", `Excluiu bebida '${bev?.nome}'`);
-    toast.success("Excluído!"); fetchData();
+    if (bev) setPendingDelete({ kind: "bev", id, nome: bev.nome });
+  };
+
+  const confirmDeleteCat = (id: string) => {
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+    const childCount = beverages.filter(b => b.category_id === id).length;
+    setPendingDelete({ kind: "cat", id, nome: cat.nome, childCount });
+  };
+
+  const runPendingDelete = async () => {
+    if (!pendingDelete) return;
+    if (pendingDelete.kind === "bev") {
+      const bev = beverages.find(b => b.id === pendingDelete.id);
+      if (bev?.imagem_url) {
+        const parts = bev.imagem_url.split("/beverages/");
+        if (parts[1]) await supabase.storage.from("beverages").remove([parts[1].split("?")[0]]);
+      }
+      const { error } = await supabase.from("beverages").delete().eq("id", pendingDelete.id);
+      if (error) { toast.error("Falha: " + error.message); return; }
+      await logAction("bebidas", "excluiu", `Excluiu bebida '${pendingDelete.nome}'`);
+    } else {
+      // Desvincula bebidas (FK SET NULL já faria, mas garantimos UX clara).
+      const { error } = await supabase.from("beverage_categories").delete().eq("id", pendingDelete.id);
+      if (error) { toast.error("Falha: " + error.message); return; }
+      await logAction("bebidas", "excluiu", `Excluiu categoria '${pendingDelete.nome}'`);
+    }
+    toast.success("Excluído!");
+    setPendingDelete(null);
+    fetchData();
   };
 
   const uploadImage = async (bevId: string, file: File) => {
@@ -159,6 +208,9 @@ const AdminBeverages = () => {
               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo }); setCatOpen(true); }}>
                 <Pencil className="h-3 w-3" />
               </Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Excluir categoria" onClick={() => confirmDeleteCat(cat.id)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
             <div className="space-y-2">
               {catBevs.map((bev) => (
@@ -201,7 +253,7 @@ const AdminBeverages = () => {
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingBev(bev); setBevForm({ category_id: bev.category_id, nome: bev.nome, volume: bev.volume || "", preco: bev.preco?.toString() || "", ativo: bev.ativo, ordem: bev.ordem }); setBevOpen(true); }}>
                       <Pencil className="h-3 w-3" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteBev(bev.id)}><Trash2 className="h-3 w-3" /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => confirmDeleteBev(bev.id)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
                 </div>
               ))}
@@ -242,6 +294,30 @@ const AdminBeverages = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDelete?.kind === "cat" ? "Excluir categoria?" : "Excluir bebida?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.kind === "cat"
+                ? <>A categoria "{pendingDelete?.nome}" será removida.{pendingDelete?.childCount ? ` ${pendingDelete.childCount} bebida(s) ficarão sem categoria.` : ""}</>
+                : <>"{pendingDelete?.nome}" será removida permanentemente.</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={runPendingDelete}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

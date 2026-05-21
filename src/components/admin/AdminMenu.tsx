@@ -8,6 +8,16 @@ import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Im
 import { Badge } from "@/components/ui/badge";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CATEGORIAS = ["entrada", "principal", "acompanhamento", "sobremesa"] as const;
 const DIET_TAGS = [
@@ -36,6 +46,9 @@ const AdminMenu = () => {
   const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
   const bulkInputRef = useRef<HTMLInputElement>(null);
   const { logAction } = useAuditLog();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; prato: string } | null>(null);
 
   const fetchData = async () => {
     const [d, i, u] = await Promise.all([
@@ -96,9 +109,22 @@ const AdminMenu = () => {
     const item = items.find(i => i.id === id);
     const mediaPath = getMenuMediaPath(item?.imagem_url);
     if (mediaPath) await supabase.storage.from("menu-items").remove([mediaPath]);
-    await supabase.from("weekly_menu_items").delete().eq("id", id);
+    const { error } = await supabase.from("weekly_menu_items").delete().eq("id", id);
+    if (error) { toast.error("Falha ao excluir: " + error.message); return; }
     await logAction("cardapio", "excluiu", `Removeu prato '${item?.prato}'`);
     toast.success("Removido!");
+    fetchData();
+  };
+
+  const saveName = async (id: string) => {
+    const value = editingValue.trim();
+    if (!value) { toast.error("Nome não pode ficar vazio."); return; }
+    if (value.length > 80) { toast.error("Nome muito longo (máx. 80)."); return; }
+    const { error } = await supabase.from("weekly_menu_items").update({ prato: value }).eq("id", id);
+    if (error) { toast.error("Falha ao renomear: " + error.message); return; }
+    await logAction("cardapio", "editou", `Renomeou prato para '${value}'`);
+    setEditingId(null);
+    toast.success("Renomeado!");
     fetchData();
   };
 
@@ -371,9 +397,30 @@ const AdminMenu = () => {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Switch checked={item.ativo} onCheckedChange={() => toggleActive(item.id, item.ativo)} />
-                      <span className={`text-sm font-medium truncate ${!item.ativo ? "text-muted-foreground line-through" : ""}`}>{item.prato}</span>
+                      {editingId === item.id ? (
+                        <Input
+                          autoFocus
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onBlur={() => saveName(item.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveName(item.id);
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          className="h-7 text-sm"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => { setEditingId(item.id); setEditingValue(item.prato); }}
+                          title="Clique para renomear"
+                          className={`text-sm font-medium truncate text-left hover:text-primary transition-colors ${!item.ativo ? "text-muted-foreground line-through" : ""}`}
+                        >
+                          {item.prato}
+                        </button>
+                      )}
                     </div>
-                    <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => deleteItem(item.id)}>
+                    <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setPendingDelete({ id: item.id, prato: item.prato })}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -423,6 +470,26 @@ const AdminMenu = () => {
           )}
         </div>
       )}
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir prato?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{pendingDelete?.prato}" será removido do cardápio e sua mídia apagada. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => { if (pendingDelete) { await deleteItem(pendingDelete.id); setPendingDelete(null); } }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
