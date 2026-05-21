@@ -428,16 +428,19 @@ export type Database = {
       }
       weekly_menu_days: {
         Row: {
+          ativo: boolean
           dia_semana: string
           id: string
           ordem: number
         }
         Insert: {
+          ativo?: boolean
           dia_semana: string
           id?: string
           ordem?: number
         }
         Update: {
+          ativo?: boolean
           dia_semana?: string
           id?: string
           ordem?: number

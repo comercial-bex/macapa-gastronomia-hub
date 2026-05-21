@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown, CalendarDays, Eye, EyeOff, Camera, ImageOff } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,8 @@ const AdminMenu = () => {
   const [savingDetails, setSavingDetails] = useState(false);
   const [filter, setFilter] = useState<"todos" | "sem-foto" | "esgotados" | "novos">("todos");
   const [copyDialog, setCopyDialog] = useState<{ open: boolean; targetDayId: string; mode: "merge" | "replace" }>({ open: false, targetDayId: "", mode: "merge" });
+  const [dayManagerOpen, setDayManagerOpen] = useState(false);
+  const [newDayName, setNewDayName] = useState("");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -481,6 +483,72 @@ const AdminMenu = () => {
     }
   };
 
+  // ===== Day management =====
+  const addDay = async () => {
+    const nome = newDayName.trim();
+    if (!nome) return;
+    const { error } = await supabase.from("weekly_menu_days").insert({
+      dia_semana: nome,
+      ordem: days.length,
+      ativo: true,
+    } as any);
+    if (error) return toast.error("Erro ao criar dia");
+    await logAction("cardapio", "criou", `Adicionou dia '${nome}'`);
+    setNewDayName("");
+    toast.success("Dia criado");
+    fetchData();
+  };
+
+  const renameDay = async (id: string, novo: string) => {
+    const v = novo.trim();
+    if (!v) return;
+    await supabase.from("weekly_menu_days").update({ dia_semana: v } as any).eq("id", id);
+    setDays((prev) => prev.map((d) => (d.id === id ? { ...d, dia_semana: v } : d)));
+  };
+
+  const toggleDayActive = async (id: string, ativo: boolean) => {
+    await supabase.from("weekly_menu_days").update({ ativo: !ativo } as any).eq("id", id);
+    setDays((prev) => prev.map((d) => (d.id === id ? { ...d, ativo: !ativo } : d)));
+  };
+
+  const deleteDay = async (id: string) => {
+    const dayItemsCount = items.filter((i) => i.day_id === id).length;
+    if (dayItemsCount > 0) {
+      toast.error(`Mova ou apague os ${dayItemsCount} prato(s) antes de excluir o dia.`);
+      return;
+    }
+    await supabase.from("weekly_menu_days").delete().eq("id", id);
+    if (activeDay === id) setActiveDay(days.find((d) => d.id !== id)?.id || "");
+    fetchData();
+  };
+
+  const handleDayDragEnd = async (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = days.findIndex((d) => d.id === active.id);
+    const newIndex = days.findIndex((d) => d.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(days, oldIndex, newIndex);
+    setDays(reordered.map((d, i) => ({ ...d, ordem: i })));
+    const updates = reordered.map((d, i) =>
+      supabase.from("weekly_menu_days").update({ ordem: i } as any).eq("id", d.id),
+    );
+    const results = await Promise.all(updates);
+    if (results.some((r) => r.error)) {
+      toast.error("Falha ao reordenar dias.");
+      fetchData();
+    }
+  };
+
+  // ===== Global health counters =====
+  const totalDays = days.length;
+  const totalDaysAtivos = days.filter((d) => d.ativo !== false).length;
+  const totalItems = items.length;
+  const totalComFoto = items.filter((i) => i.imagem_url).length;
+  const totalEsgotados = items.filter((i) => i.esgotado).length;
+  const totalDestaques = items.filter((i) => i.badge === "novo" || i.badge === "destaque").length;
+  const fotoPct = totalItems ? Math.round((totalComFoto / totalItems) * 100) : 0;
+
   return (
     <div>
       <h2 className="font-display text-2xl font-bold mb-2">Cardápio da Semana</h2>
@@ -491,6 +559,25 @@ const AdminMenu = () => {
         </span>
       </p>
 
+      {/* Health counters */}
+      <div className="mb-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        {[
+          { icon: CalendarDays, label: "Dias ativos", value: `${totalDaysAtivos}/${totalDays}`, tone: "text-primary" },
+          { icon: UtensilsCrossed, label: "Pratos totais", value: totalItems, tone: "text-foreground" },
+          { icon: Camera, label: `Com foto (${fotoPct}%)`, value: totalComFoto, tone: "text-emerald-500" },
+          { icon: ImageOff, label: "Sem foto", value: totalItems - totalComFoto, tone: semFoto > 0 ? "text-yellow-500" : "text-muted-foreground" },
+          { icon: AlertTriangle, label: "Esgotados hoje", value: totalEsgotados, tone: totalEsgotados > 0 ? "text-destructive" : "text-muted-foreground" },
+        ].map((c) => (
+          <div key={c.label} className="rounded-lg border border-border bg-secondary/30 px-3 py-2 flex items-center gap-2.5">
+            <c.icon className={`h-4 w-4 ${c.tone}`} />
+            <div className="min-w-0">
+              <div className={`text-base font-semibold leading-tight ${c.tone}`}>{c.value}</div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">{c.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {semFoto > 0 && (
         <div className="mb-6 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm flex items-center gap-2">
           <Image className="h-4 w-4" />
@@ -499,24 +586,30 @@ const AdminMenu = () => {
       )}
 
       {/* Day tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         {days.map((day) => {
           const count = items.filter((i) => i.day_id === day.id).length;
+          const inactive = day.ativo === false;
           return (
             <button
               key={day.id}
               onClick={() => setActiveDay(day.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5 ${
                 activeDay === day.id
                   ? "bg-primary/10 text-primary border-primary/30"
                   : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
+              } ${inactive ? "opacity-60" : ""}`}
+              title={inactive ? "Dia oculto no site público" : undefined}
             >
+              {inactive && <EyeOff className="h-3 w-3" />}
               {day.dia_semana}
               <span className="ml-1.5 text-xs opacity-60">({count})</span>
             </button>
           );
         })}
+        <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setDayManagerOpen(true)}>
+          <Settings2 className="h-3.5 w-3.5" /> Gerenciar dias
+        </Button>
       </div>
 
       {activeDay && (
@@ -882,6 +975,74 @@ const AdminMenu = () => {
             <Button onClick={() => copyDayTo(copyDialog.targetDayId, copyDialog.mode)} disabled={!copyDialog.targetDayId}>
               Copiar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dayManagerOpen} onOpenChange={setDayManagerOpen}>
+        <DialogContent className="glass-effect max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-primary" /> Gerenciar dias da semana
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Arraste pelo punho ⠿ para reordenar. Desative para ocultar do site público sem perder os pratos.
+            </p>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDayDragEnd}>
+              <SortableContext items={days.map((d) => d.id)} strategy={rectSortingStrategy}>
+                <div className="space-y-2">
+                  {days.map((d) => {
+                    const count = items.filter((i) => i.day_id === d.id).length;
+                    const ativo = d.ativo !== false;
+                    return (
+                      <SortableItem key={d.id} id={d.id} className="flex items-center gap-2 p-2 rounded-lg border border-border bg-secondary/30">
+                        <Input
+                          defaultValue={d.dia_semana}
+                          onBlur={(e) => { if (e.target.value !== d.dia_semana) renameDay(d.id, e.target.value); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                          className="h-8 text-sm flex-1"
+                        />
+                        <span className="text-[11px] text-muted-foreground w-16 text-right">{count} prato{count === 1 ? "" : "s"}</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          title={ativo ? "Ocultar do site" : "Mostrar no site"}
+                          onClick={() => toggleDayActive(d.id, ativo)}
+                        >
+                          {ativo ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive"
+                          title={count > 0 ? `Mova os ${count} prato(s) antes de excluir` : "Excluir dia"}
+                          onClick={() => deleteDay(d.id)}
+                          disabled={count > 0}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </SortableItem>
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
+            <div className="flex gap-2 pt-2 border-t border-border">
+              <Input
+                value={newDayName}
+                onChange={(e) => setNewDayName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addDay()}
+                placeholder="Novo dia (ex: Sexta)"
+                className="flex-1"
+              />
+              <Button onClick={addDay} className="gap-1.5"><Plus className="h-4 w-4" /> Adicionar</Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDayManagerOpen(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

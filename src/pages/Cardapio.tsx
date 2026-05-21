@@ -112,7 +112,7 @@ const Cardapio = () => {
       const [catsRes, bevsRes, daysRes, itemsRes, unitsRes] = await Promise.all([
         supabase.from("beverage_categories").select("*").eq("ativo", true).order("ordem"),
         supabase.from("beverages").select("*").eq("ativo", true).order("ordem"),
-        supabase.from("weekly_menu_days").select("*").order("ordem"),
+        supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
         supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem"),
         supabase.from("units").select("id,nome,principal,ativo").eq("ativo", true).order("principal", { ascending: false }),
       ]);
@@ -137,7 +137,7 @@ const Cardapio = () => {
         const [catsRes, bevsRes, daysRes, itemsRes] = await Promise.all([
           supabase.from("beverage_categories").select("*").eq("ativo", true).order("ordem"),
           supabase.from("beverages").select("*").eq("ativo", true).order("ordem"),
-          supabase.from("weekly_menu_days").select("*").order("ordem"),
+          supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
           supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem"),
         ]);
         if (catsRes.data) setCategories(catsRes.data);
