@@ -175,13 +175,58 @@ const Cardapio = () => {
 
   useEffect(() => {
     setSelectedItemIndex(0);
-  }, [activeDay, activeUnit]);
+  }, [activeDay, activeUnit, querySemana, activeDiet]);
 
-  const selectedItems = menuItems.filter(
+  const dayItemsAll = menuItems.filter(
     (item) =>
       item.day_id === activeDay &&
       (activeUnit === "all" || !item.unit_id || item.unit_id === activeUnit),
   );
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const qSem = normalize(querySemana.trim());
+  const selectedItems = dayItemsAll.filter((item) => {
+    if (activeDiet && !(item.tags || []).includes(activeDiet)) return false;
+    if (qSem) {
+      const hay = normalize(`${item.prato} ${item.descricao || ""}`);
+      if (!hay.includes(qSem)) return false;
+    }
+    return true;
+  });
+
+  // Diet chip availability for current day
+  const dietCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    dayItemsAll.forEach((i) => (i.tags || []).forEach((t) => { c[t] = (c[t] || 0) + 1; }));
+    return c;
+  }, [dayItemsAll]);
+
+  // Bebidas filtered
+  const qBev = normalize(queryBev.trim());
+  const filteredBeverages = qBev
+    ? beverages.filter((b) => {
+        const hay = normalize(`${b.nome} ${b.volume || ""} ${b.descricao || ""}`);
+        return hay.includes(qBev);
+      })
+    : beverages;
+
+  // Keyboard navigation on dish list
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (tab !== "semana" || selectedItems.length === 0) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        setSelectedItemIndex((i) => Math.min(selectedItems.length - 1, i + 1));
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        setSelectedItemIndex((i) => Math.max(0, i - 1));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tab, selectedItems.length]);
 
   return (
     <Layout>
