@@ -978,6 +978,74 @@ const AdminMenu = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={dayManagerOpen} onOpenChange={setDayManagerOpen}>
+        <DialogContent className="glass-effect max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-primary" /> Gerenciar dias da semana
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Arraste pelo punho ⠿ para reordenar. Desative para ocultar do site público sem perder os pratos.
+            </p>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDayDragEnd}>
+              <SortableContext items={days.map((d) => d.id)} strategy={rectSortingStrategy}>
+                <div className="space-y-2">
+                  {days.map((d) => {
+                    const count = items.filter((i) => i.day_id === d.id).length;
+                    const ativo = d.ativo !== false;
+                    return (
+                      <SortableItem key={d.id} id={d.id} className="flex items-center gap-2 p-2 rounded-lg border border-border bg-secondary/30">
+                        <Input
+                          defaultValue={d.dia_semana}
+                          onBlur={(e) => { if (e.target.value !== d.dia_semana) renameDay(d.id, e.target.value); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                          className="h-8 text-sm flex-1"
+                        />
+                        <span className="text-[11px] text-muted-foreground w-16 text-right">{count} prato{count === 1 ? "" : "s"}</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          title={ativo ? "Ocultar do site" : "Mostrar no site"}
+                          onClick={() => toggleDayActive(d.id, ativo)}
+                        >
+                          {ativo ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive"
+                          title={count > 0 ? `Mova os ${count} prato(s) antes de excluir` : "Excluir dia"}
+                          onClick={() => deleteDay(d.id)}
+                          disabled={count > 0}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </SortableItem>
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
+            <div className="flex gap-2 pt-2 border-t border-border">
+              <Input
+                value={newDayName}
+                onChange={(e) => setNewDayName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addDay()}
+                placeholder="Novo dia (ex: Sexta)"
+                className="flex-1"
+              />
+              <Button onClick={addDay} className="gap-1.5"><Plus className="h-4 w-4" /> Adicionar</Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDayManagerOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
