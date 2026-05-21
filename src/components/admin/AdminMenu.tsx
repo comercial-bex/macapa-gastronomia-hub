@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles } from "lucide-react";
+import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,6 +60,7 @@ const AdminMenu = () => {
   const [detailsForm, setDetailsForm] = useState({ descricao: "", badge: "", esgotado: false, alergenos: "", disponivel_de: "", disponivel_ate: "" });
   const [savingDetails, setSavingDetails] = useState(false);
   const [filter, setFilter] = useState<"todos" | "sem-foto" | "esgotados" | "novos">("todos");
+  const [copyDialog, setCopyDialog] = useState<{ open: boolean; targetDayId: string; mode: "merge" | "replace" }>({ open: false, targetDayId: "", mode: "merge" });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -126,6 +128,147 @@ const AdminMenu = () => {
     await logAction("cardapio", "excluiu", `Removeu prato '${item?.prato}'`);
     toast.success("Removido!");
     fetchData();
+  };
+
+  // Duplicate one dish in place (without media, to avoid cloning storage).
+  const duplicateItem = async (item: any) => {
+    const dayItemsLocal = items.filter((i) => i.day_id === item.day_id);
+    const payload: any = {
+      day_id: item.day_id,
+      prato: `${item.prato} (cópia)`,
+      categoria: item.categoria,
+      unit_id: item.unit_id,
+      tags: item.tags || [],
+      ativo: item.ativo,
+      descricao: item.descricao,
+      badge: item.badge,
+      esgotado: false,
+      alergenos: item.alergenos || [],
+      disponivel_de: item.disponivel_de,
+      disponivel_ate: item.disponivel_ate,
+      ordem: dayItemsLocal.length,
+    };
+    const { error } = await supabase.from("weekly_menu_items").insert(payload);
+    if (error) { toast.error("Falha ao duplicar: " + error.message); return; }
+    await logAction("cardapio", "criou", `Duplicou prato '${item.prato}'`);
+    toast.success("Prato duplicado!");
+    fetchData();
+  };
+
+  // Copy all dishes from active day to another day (merge appends, replace clears target first).
+  const copyDayTo = async (targetDayId: string, mode: "merge" | "replace") => {
+    if (!activeDay || !targetDayId || targetDayId === activeDay) {
+      toast.error("Escolha um dia diferente.");
+      return;
+    }
+    const source = items.filter((i) => i.day_id === activeDay);
+    if (source.length === 0) { toast.error("Dia de origem está vazio."); return; }
+
+    if (mode === "replace") {
+      const existingTarget = items.filter((i) => i.day_id === targetDayId);
+      // Remove media for items being replaced.
+      for (const it of existingTarget) {
+        const p = getMenuMediaPath(it.imagem_url);
+        if (p) await supabase.storage.from("menu-items").remove([p]);
+      }
+      if (existingTarget.length > 0) {
+        const { error: delErr } = await supabase.from("weekly_menu_items").delete().eq("day_id", targetDayId);
+        if (delErr) { toast.error("Falha ao limpar dia de destino: " + delErr.message); return; }
+      }
+    }
+
+    const baseOrder = mode === "merge" ? items.filter((i) => i.day_id === targetDayId).length : 0;
+    const payloads = source.map((it, idx) => ({
+      day_id: targetDayId,
+      prato: it.prato,
+      categoria: it.categoria,
+      unit_id: it.unit_id,
+      tags: it.tags || [],
+      ativo: it.ativo,
+      descricao: it.descricao,
+      badge: it.badge,
+      esgotado: false,
+      alergenos: it.alergenos || [],
+      disponivel_de: it.disponivel_de,
+      disponivel_ate: it.disponivel_ate,
+      ordem: baseOrder + idx,
+      // imagem_url/tipo_midia ficam vazios — fotos são únicas por id, não copiamos arquivo.
+    }));
+    const { error } = await supabase.from("weekly_menu_items").insert(payloads as any);
+    if (error) { toast.error("Falha ao copiar dia: " + error.message); return; }
+    const targetName = days.find((d) => d.id === targetDayId)?.dia_semana;
+    const srcName = days.find((d) => d.id === activeDay)?.dia_semana;
+    await logAction("cardapio", "criou", `Copiou ${source.length} prato(s) de ${srcName} para ${targetName} (${mode})`);
+    toast.success(`${source.length} prato(s) copiados para ${targetName}.`);
+    setCopyDialog({ open: false, targetDayId: "", mode: "merge" });
+    fetchData();
+  };
+
+  // Export current day to CSV (Excel-friendly, BR locale).
+  const exportDayCSV = () => {
+    const rows = visibleItems;
+    if (rows.length === 0) { toast.error("Nada para exportar."); return; }
+    const header = ["Prato", "Categoria", "Unidade", "Descrição", "Badge", "Esgotado", "Alérgenos", "Disponível de", "Disponível até", "Tags", "Tem foto"];
+    const esc = (v: any) => {
+      const s = v == null ? "" : String(v);
+      return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [header.join(";")];
+    for (const it of rows) {
+      const unitName = units.find((u) => u.id === it.unit_id)?.nome || "Todas";
+      lines.push([
+        it.prato, it.categoria || "", unitName, it.descricao || "", it.badge || "",
+        it.esgotado ? "Sim" : "Não", (it.alergenos || []).join(", "),
+        (it.disponivel_de || "").slice(0, 5), (it.disponivel_ate || "").slice(0, 5),
+        (it.tags || []).join(", "), it.imagem_url ? "Sim" : "Não",
+      ].map(esc).join(";"));
+    }
+    const csv = "\uFEFF" + lines.join("\n"); // BOM para Excel reconhecer UTF-8.
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cardapio-${activeDayName || "dia"}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV gerado.");
+  };
+
+  // Print: opens a clean printable view of the current day.
+  const printDay = () => {
+    const rows = visibleItems;
+    if (rows.length === 0) { toast.error("Nada para imprimir."); return; }
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) { toast.error("Permita pop-ups para imprimir."); return; }
+    const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" } as any)[c]);
+    const itemsHtml = rows.map((it) => `
+      <li class="dish">
+        <div class="title">${escapeHtml(it.prato)}${it.esgotado ? ' <span class="tag tag-out">Esgotado hoje</span>' : ""}${it.badge ? ` <span class="tag">${escapeHtml(it.badge)}</span>` : ""}</div>
+        ${it.descricao ? `<p>${escapeHtml(it.descricao)}</p>` : ""}
+        <div class="meta">${escapeHtml(it.categoria || "")}${(it.disponivel_de || it.disponivel_ate) ? ` · ${(it.disponivel_de || "").slice(0,5)}–${(it.disponivel_ate || "").slice(0,5)}` : ""}${(it.alergenos && it.alergenos.length) ? ` · Alérgenos: ${escapeHtml(it.alergenos.join(", "))}` : ""}</div>
+      </li>`).join("");
+    w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Cardápio — ${escapeHtml(activeDayName || "")}</title>
+      <style>
+        @page { margin: 18mm; }
+        body { font-family: Georgia, 'Times New Roman', serif; color: #222; max-width: 720px; margin: 0 auto; padding: 24px; }
+        h1 { font-size: 28px; margin: 0 0 4px; }
+        .sub { color: #777; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li.dish { padding: 14px 0; border-bottom: 1px solid #e5e5e5; }
+        .title { font-size: 18px; font-weight: 600; }
+        .dish p { margin: 4px 0 6px; color: #444; font-size: 14px; }
+        .meta { font-size: 12px; color: #888; }
+        .tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 999px; background: #efe8d7; color: #6b5a23; margin-left: 6px; vertical-align: middle; }
+        .tag-out { background: #fde2e2; color: #a11; }
+        footer { margin-top: 24px; font-size: 11px; color: #999; text-align: center; }
+      </style></head><body>
+      <p class="sub">Restaurante Macapaba — Sabor e tradição em Macapá desde 1998</p>
+      <h1>Cardápio · ${escapeHtml(activeDayName || "")}</h1>
+      <ul>${itemsHtml}</ul>
+      <footer>Gerado em ${new Date().toLocaleString("pt-BR")}</footer>
+      <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+    </body></html>`);
+    w.document.close();
   };
 
   const openDetails = (item: any) => {
@@ -383,15 +526,37 @@ const AdminMenu = () => {
             <div className="text-xs text-muted-foreground">
               <span className="text-foreground font-semibold">{dayItemsComFoto}</span> de <span className="text-foreground font-semibold">{dayItems.length}</span> pratos com foto em <span className="text-primary font-medium">{activeDayName}</span>
             </div>
-            <a
-              href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-              title="Abrir essa página no site público"
-            >
-              <ExternalLink className="h-3 w-3" /> Ver no site
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                title="Abrir essa página no site público"
+              >
+                <ExternalLink className="h-3 w-3" /> Ver no site
+              </a>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
+                    Ações do dia <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>{activeDayName}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCopyDialog({ open: true, targetDayId: "", mode: "merge" })}>
+                    <CopyPlus className="h-3.5 w-3.5 mr-2" /> Copiar dia para…
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportDayCSV}>
+                    <FileDown className="h-3.5 w-3.5 mr-2" /> Exportar CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={printDay}>
+                    <Printer className="h-3.5 w-3.5 mr-2" /> Imprimir / PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Quick filters */}
@@ -527,9 +692,14 @@ const AdminMenu = () => {
                         </button>
                       )}
                     </div>
-                    <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setPendingDelete({ id: item.id, prato: item.prato })}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Duplicar prato" onClick={() => duplicateItem(item)}>
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setPendingDelete({ id: item.id, prato: item.prato })}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   {(item.esgotado || item.badge) && (
                     <div className="flex flex-wrap gap-1">
@@ -658,6 +828,60 @@ const AdminMenu = () => {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDetailsItem(null)}>Cancelar</Button>
             <Button onClick={saveDetails} disabled={savingDetails}>{savingDetails ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={copyDialog.open} onOpenChange={(o) => setCopyDialog((s) => ({ ...s, open: o }))}>
+        <DialogContent className="glass-effect max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Copiar dia para outro dia</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Vai copiar <span className="text-foreground font-medium">{dayItems.length} prato(s)</span> de
+              {" "}<span className="text-primary font-medium">{activeDayName}</span>. As <strong>fotos não são duplicadas</strong> (cada prato tem mídia própria).
+            </p>
+            <div>
+              <Label>Dia de destino</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={copyDialog.targetDayId}
+                onChange={(e) => setCopyDialog((s) => ({ ...s, targetDayId: e.target.value }))}
+              >
+                <option value="">Selecione…</option>
+                {days.filter((d) => d.id !== activeDay).map((d) => (
+                  <option key={d.id} value={d.id}>{d.dia_semana}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Modo</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setCopyDialog((s) => ({ ...s, mode: "merge" }))}
+                  className={`text-left p-3 rounded-lg border text-sm transition-colors ${copyDialog.mode === "merge" ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  <div className="font-medium">Acrescentar</div>
+                  <div className="text-[11px] mt-0.5">Mantém o que já existe no destino e adiciona estes.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCopyDialog((s) => ({ ...s, mode: "replace" }))}
+                  className={`text-left p-3 rounded-lg border text-sm transition-colors ${copyDialog.mode === "replace" ? "border-destructive bg-destructive/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  <div className="font-medium">Substituir</div>
+                  <div className="text-[11px] mt-0.5">Apaga os pratos do destino antes de copiar.</div>
+                </button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCopyDialog({ open: false, targetDayId: "", mode: "merge" })}>Cancelar</Button>
+            <Button onClick={() => copyDayTo(copyDialog.targetDayId, copyDialog.mode)} disabled={!copyDialog.targetDayId}>
+              Copiar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
