@@ -11,6 +11,10 @@ import { Plus, Pencil, Trash2, Wine, ImagePlus, X, AlertTriangle, Sparkles } fro
 import { Textarea } from "@/components/ui/textarea";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, arrayMove, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +50,8 @@ const AdminBeverages = () => {
   const [uploading, setUploading] = useState<string | null>(null);
   const { logAction } = useAuditLog();
   const [pendingDelete, setPendingDelete] = useState<{ kind: "bev" | "cat"; id: string; nome: string; childCount?: number } | null>(null);
+  const [filter, setFilter] = useState<"todos" | "sem-foto" | "esgotados" | "novos">("todos");
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const fetchData = async () => {
     const [c, b] = await Promise.all([
@@ -196,6 +202,25 @@ const AdminBeverages = () => {
   };
 
   const totalComFoto = beverages.filter((b) => b.imagem_url).length;
+  const totalSemFoto = beverages.length - totalComFoto;
+  const totalEsgotados = beverages.filter((b) => b.esgotado).length;
+  const totalNovos = beverages.filter((b) => b.badge === "novo" || b.badge === "destaque").length;
+
+  const passesFilter = (b: any) => {
+    if (filter === "sem-foto") return !b.imagem_url;
+    if (filter === "esgotados") return !!b.esgotado;
+    if (filter === "novos") return b.badge === "novo" || b.badge === "destaque";
+    return true;
+  };
+
+  const reorderCategory = async (catId: string, oldIndex: number, newIndex: number) => {
+    const catBevs = beverages.filter((b) => b.category_id === catId).sort((a, b) => a.ordem - b.ordem);
+    const reordered = arrayMove(catBevs, oldIndex, newIndex);
+    const map = new Map(reordered.map((b, i) => [b.id, i]));
+    setBeverages((prev) => prev.map((b) => map.has(b.id) ? { ...b, ordem: map.get(b.id)! } : b));
+    const results = await Promise.all(reordered.map((b, i) => supabase.from("beverages").update({ ordem: i }).eq("id", b.id)));
+    if (results.some((r) => r.error)) { toast.error("Falha ao reordenar."); fetchData(); }
+  };
 
   return (
     <div>
@@ -214,15 +239,40 @@ const AdminBeverages = () => {
         </div>
       </div>
 
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        {[
+          { key: "todos", label: `Todas (${beverages.length})` },
+          { key: "sem-foto", label: `Sem foto (${totalSemFoto})` },
+          { key: "esgotados", label: `Esgotadas (${totalEsgotados})` },
+          { key: "novos", label: `Novas / Destaque (${totalNovos})` },
+        ].map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setFilter(f.key as any)}
+            className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+              filter === f.key
+                ? "bg-primary/15 text-primary border-primary/30"
+                : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        <span className="text-[11px] text-muted-foreground/70 ml-auto">Arraste ⠿ para reordenar dentro de cada categoria.</span>
+      </div>
+
       {categories.map((cat) => {
-        const catBevs = beverages.filter((b) => b.category_id === cat.id);
+        const catBevsAll = beverages.filter((b) => b.category_id === cat.id).sort((a, b) => a.ordem - b.ordem);
+        const catBevs = catBevsAll.filter(passesFilter);
+        if (filter !== "todos" && catBevs.length === 0) return null;
         return (
           <div key={cat.id} className="mb-8">
             <div className="flex items-center gap-3 mb-3 pb-2 border-b border-border">
               <Wine className="h-4 w-4 text-primary" />
               <h3 className="font-display text-lg font-bold">{cat.nome}</h3>
               <Badge variant={cat.ativo ? "default" : "secondary"} className="text-xs">{cat.ativo ? "Ativa" : "Inativa"}</Badge>
-              <span className="text-xs text-muted-foreground ml-auto">{catBevs.length} itens</span>
+              <span className="text-xs text-muted-foreground ml-auto">{catBevs.length}{filter !== "todos" ? `/${catBevsAll.length}` : ""} itens</span>
               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo }); setCatOpen(true); }}>
                 <Pencil className="h-3 w-3" />
               </Button>
@@ -230,9 +280,20 @@ const AdminBeverages = () => {
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
-            <div className="space-y-2">
-              {catBevs.map((bev) => (
-                <div key={bev.id} className="glass-effect rounded-lg p-3 flex justify-between items-center hover:shadow-sm transition-shadow">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e: DragEndEvent) => {
+                if (!e.over || e.active.id === e.over.id) return;
+                const oldIdx = catBevsAll.findIndex((b) => b.id === e.active.id);
+                const newIdx = catBevsAll.findIndex((b) => b.id === e.over!.id);
+                if (oldIdx !== -1 && newIdx !== -1) reorderCategory(cat.id, oldIdx, newIdx);
+              }}
+            >
+              <SortableContext items={catBevs.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {catBevs.map((bev) => (
+                    <SortableBevRow key={bev.id} bev={bev}>
                   <div className="flex items-center gap-3">
                     {bev.imagem_url ? (
                       <div className="relative h-12 w-12 rounded-md overflow-hidden bg-secondary flex-shrink-0">
@@ -279,9 +340,11 @@ const AdminBeverages = () => {
                     </Button>
                     <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => confirmDeleteBev(bev.id)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
+                    </SortableBevRow>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           </div>
         );
       })}
