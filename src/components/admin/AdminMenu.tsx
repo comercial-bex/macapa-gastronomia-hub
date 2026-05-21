@@ -559,6 +559,25 @@ const AdminMenu = () => {
         </span>
       </p>
 
+      {/* Health counters */}
+      <div className="mb-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        {[
+          { icon: CalendarDays, label: "Dias ativos", value: `${totalDaysAtivos}/${totalDays}`, tone: "text-primary" },
+          { icon: UtensilsCrossed, label: "Pratos totais", value: totalItems, tone: "text-foreground" },
+          { icon: Camera, label: `Com foto (${fotoPct}%)`, value: totalComFoto, tone: "text-emerald-500" },
+          { icon: ImageOff, label: "Sem foto", value: totalItems - totalComFoto, tone: semFoto > 0 ? "text-yellow-500" : "text-muted-foreground" },
+          { icon: AlertTriangle, label: "Esgotados hoje", value: totalEsgotados, tone: totalEsgotados > 0 ? "text-destructive" : "text-muted-foreground" },
+        ].map((c) => (
+          <div key={c.label} className="rounded-lg border border-border bg-secondary/30 px-3 py-2 flex items-center gap-2.5">
+            <c.icon className={`h-4 w-4 ${c.tone}`} />
+            <div className="min-w-0">
+              <div className={`text-base font-semibold leading-tight ${c.tone}`}>{c.value}</div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">{c.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {semFoto > 0 && (
         <div className="mb-6 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm flex items-center gap-2">
           <Image className="h-4 w-4" />
@@ -567,24 +586,30 @@ const AdminMenu = () => {
       )}
 
       {/* Day tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         {days.map((day) => {
           const count = items.filter((i) => i.day_id === day.id).length;
+          const inactive = day.ativo === false;
           return (
             <button
               key={day.id}
               onClick={() => setActiveDay(day.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5 ${
                 activeDay === day.id
                   ? "bg-primary/10 text-primary border-primary/30"
                   : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
+              } ${inactive ? "opacity-60" : ""}`}
+              title={inactive ? "Dia oculto no site público" : undefined}
             >
+              {inactive && <EyeOff className="h-3 w-3" />}
               {day.dia_semana}
               <span className="ml-1.5 text-xs opacity-60">({count})</span>
             </button>
           );
         })}
+        <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setDayManagerOpen(true)}>
+          <Settings2 className="h-3.5 w-3.5" /> Gerenciar dias
+        </Button>
       </div>
 
       {activeDay && (
