@@ -254,12 +254,53 @@ const Cardapio = () => {
             </TabsList>
 
             <TabsContent value="bebidas">
+              {/* Search + category quick-jump */}
+              <div className="mb-6 space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    type="search"
+                    value={queryBev}
+                    onChange={(e) => setQueryBev(e.target.value)}
+                    placeholder="Buscar bebida (ex: vinho, suco, água com gás)"
+                    aria-label="Buscar bebida"
+                    className="pl-9 pr-9 bg-secondary/40 border-border"
+                  />
+                  {queryBev && (
+                    <button
+                      type="button"
+                      onClick={() => setQueryBev("")}
+                      aria-label="Limpar busca"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+                {!queryBev && categories.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {categories.map((cat) => {
+                      const count = beverages.filter((b) => b.category_id === cat.id).length;
+                      if (count === 0) return null;
+                      return (
+                        <a
+                          key={cat.id}
+                          href={`#cat-${cat.id}`}
+                          className="px-2.5 py-1 rounded-full text-xs border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                        >
+                          {cat.nome} <span className="opacity-60">({count})</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               {categories.map((cat) => {
-                const items = beverages.filter((b) => b.category_id === cat.id);
+                const items = filteredBeverages.filter((b) => b.category_id === cat.id);
                 if (items.length === 0) return null;
                 return (
                   <ScrollReveal key={cat.id}>
-                    <div className="mb-10">
+                    <div id={`cat-${cat.id}`} className="mb-10 scroll-mt-24">
                       <h2 className="font-display text-2xl font-bold mb-4 text-primary">{cat.nome}</h2>
                       <ScrollReveal stagger className="space-y-0">
                         {items.map((bev) => (
@@ -313,6 +354,11 @@ const Cardapio = () => {
               })}
               {categories.length === 0 && (
                 <p className="text-center text-muted-foreground py-12">Nenhuma bebida cadastrada.</p>
+              )}
+              {categories.length > 0 && qBev && filteredBeverages.length === 0 && (
+                <p className="text-center text-muted-foreground py-8 text-sm">
+                  Nada encontrado para "<span className="text-foreground">{queryBev}</span>".
+                </p>
               )}
             </TabsContent>
 
