@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import PageTransition from "./PageTransition";
+import OfflineIndicator from "./OfflineIndicator";
 import { useSmoothScroll } from "@/hooks/useSmoothScroll";
 
 const Layout = ({ children }: { children: ReactNode }) => {
@@ -14,6 +15,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer />
+      <OfflineIndicator />
     </div>
   );
 };
