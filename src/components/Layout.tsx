@@ -9,9 +9,9 @@ const Layout = ({ children }: { children: ReactNode }) => {
   useSmoothScroll();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <Header />
-      <main className="flex-1 pt-16">
+      <main id="main" className="flex-1 pt-16" tabIndex={-1}>
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer />

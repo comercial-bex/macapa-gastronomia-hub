@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { WifiOff } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Discreet bottom-of-screen badge that appears whenever the browser reports
@@ -8,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
  * cached menu still get clear feedback that they're offline.
  */
 const OfflineIndicator = () => {
+  const { t } = useI18n();
   const [offline, setOffline] = useState(
     typeof navigator !== "undefined" ? !navigator.onLine : false,
   );
@@ -34,8 +36,8 @@ const OfflineIndicator = () => {
           aria-live="polite"
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-full bg-background/80 backdrop-blur-md border border-primary/30 px-4 py-2 text-xs text-foreground shadow-lg"
         >
-          <WifiOff className="h-3.5 w-3.5 text-primary" />
-          Você está offline — exibindo conteúdo salvo
+          <WifiOff className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+          {t("offline.message")}
         </motion.div>
       )}
     </AnimatePresence>
