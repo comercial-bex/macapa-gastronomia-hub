@@ -51,6 +51,12 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <SEO
+        title="Painel Administrativo — Macapaba"
+        description="Acesso restrito ao painel administrativo do Restaurante Macapaba."
+        noindex
+        hreflang={false}
+      />
       {/* Animated background blobs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] animate-blob" />
