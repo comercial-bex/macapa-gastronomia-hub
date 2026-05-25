@@ -306,10 +306,10 @@ const Cardapio = () => {
   const currentDay = days.find((d) => d.id === activeDay);
   const dynamicTitle = tab === "semana" && currentItem && currentDay
     ? `${currentItem.prato} — ${currentDay.dia_semana} | Restaurante Macapaba`
-    : "Cardápio — Restaurante Macapaba | Macapá-AP";
+    : t("seo.menu_title");
   const dynamicDesc = tab === "semana" && currentItem
     ? (currentItem.descricao || `${currentItem.prato} no cardápio de ${currentDay?.dia_semana} do Restaurante Macapaba em Macapá-AP.`)
-    : "Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP.";
+    : t("seo.menu_desc");
   const dynamicImage = tab === "semana" && currentItem?.imagem_url && currentItem.tipo_midia !== "video"
     ? currentItem.imagem_url
     : undefined;
