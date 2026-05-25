@@ -17,6 +17,7 @@ import AdminProfile from "@/components/admin/AdminProfile";
 import AdminAuditLog from "@/components/admin/AdminAuditLog";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { getAdministrativeRoles, hasAdministrativeAccess, type AppRole } from "@/lib/adminAuth";
+import SEO from "@/components/SEO";
 
 const sidebarLinks: Array<{ label: string; path: string; icon: typeof LayoutDashboard; roles: AppRole[] }> = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, roles: ["admin", "editor", "gerente"] },
@@ -141,6 +142,12 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background flex relative overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <SEO
+        title="Painel Admin — Macapaba"
+        description="Painel administrativo do Restaurante Macapaba."
+        noindex
+        hreflang={false}
+      />
       {/* Decorative background blobs for glassmorphism depth */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] rounded-full bg-primary/20 blur-[120px] animate-blob" />
