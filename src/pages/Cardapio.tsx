@@ -581,15 +581,15 @@ const Cardapio = () => {
                                       <div className="flex items-start justify-between gap-2">
                                         <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
                                         <div className="flex gap-1 shrink-0">
-                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
-                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
+                                        <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
+                                        <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
                                         </div>
                                       </div>
                                       {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1 mt-2">
                                         {item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
-                                            <AlertTriangle className="h-3 w-3" /> Esgotado hoje
+                                            <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out_today")}
                                           </span>
                                         )}
                                         {item.badge && (
@@ -605,7 +605,7 @@ const Cardapio = () => {
                                         )}
                                         {isAvailableNow(item) === true && !item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
-                                            <CheckCircle2 className="h-3 w-3" /> Agora
+                                            <CheckCircle2 className="h-3 w-3" /> {t("menu.now")}
                                           </span>
                                         )}
                                       </div>
@@ -670,7 +670,7 @@ const Cardapio = () => {
                                     <div className="flex flex-wrap gap-1 mt-1">
                                       {item.esgotado && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
-                                          <AlertTriangle className="h-2.5 w-2.5" /> Esgotado
+                                          <AlertTriangle className="h-2.5 w-2.5" /> {t("menu.sold_out")}
                                         </span>
                                       )}
                                       {item.badge && (
@@ -680,7 +680,7 @@ const Cardapio = () => {
                                       )}
                                       {avail === true && !item.esgotado && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
-                                          <CheckCircle2 className="h-2.5 w-2.5" /> Disponível agora
+                                          <CheckCircle2 className="h-2.5 w-2.5" /> {t("menu.available_now")}
                                         </span>
                                       )}
                                     </div>
@@ -705,7 +705,7 @@ const Cardapio = () => {
                             );
                           })}
                         </div>
-                        <p className="text-muted-foreground text-sm italic mt-8">* O cardápio pode variar.</p>
+                        <p className="text-muted-foreground text-sm italic mt-8">{t("menu.disclaimer")}</p>
                       </div>
 
                       <div className="hidden md:flex items-start justify-center flex-shrink-0">
@@ -739,15 +739,15 @@ const Cardapio = () => {
                                       <div className="flex items-start justify-between gap-2">
                                         <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
                                         <div className="flex gap-1.5 shrink-0">
-                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
-                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
+                                        <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
+                                        <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
                                         </div>
                                       </div>
                                       {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1.5 mt-2">
                                         {item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
-                                            <AlertTriangle className="h-3 w-3" /> Esgotado hoje
+                                            <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out_today")}
                                           </span>
                                         )}
                                         {item.badge && (
@@ -763,7 +763,7 @@ const Cardapio = () => {
                                         )}
                                         {isAvailableNow(item) === true && !item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
-                                            <CheckCircle2 className="h-3 w-3" /> Disponível agora
+                                            <CheckCircle2 className="h-3 w-3" /> {t("menu.available_now")}
                                           </span>
                                         )}
                                       </div>
@@ -794,16 +794,16 @@ const Cardapio = () => {
                   ) : (
                     <div className="w-full text-center py-8 text-muted-foreground">
                       {dayItemsAll.length === 0 ? (
-                        <p>Nenhum prato cadastrado para este dia.</p>
+                        <p>{t("menu.no_dishes_day")}</p>
                       ) : (
                         <div className="space-y-3">
-                          <p>Nenhum prato neste filtro.</p>
+                          <p>{t("menu.no_dishes_filter")}</p>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => { setQuerySemana(""); setActiveDiet(null); }}
                           >
-                            Limpar filtros
+                            {t("menu.clear_filters")}
                           </Button>
                         </div>
                       )}
