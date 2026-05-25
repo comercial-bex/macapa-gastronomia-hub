@@ -263,6 +263,7 @@ const dictionaries = {
     "a11y.logo_home": "Restaurante Macapaba — go to homepage",
     "a11y.nav_main": "Main navigation",
     "a11y.nav_mobile": "Mobile navigation",
+    "a11y.skip_to_content": "Skip to main content",
   },
   es: {
     "nav.home": "Inicio",
@@ -386,6 +387,7 @@ const dictionaries = {
     "a11y.logo_home": "Restaurante Macapaba — ir a la página de inicio",
     "a11y.nav_main": "Navegación principal",
     "a11y.nav_mobile": "Navegación móvil",
+    "a11y.skip_to_content": "Saltar al contenido principal",
   },
 } as const;
 
