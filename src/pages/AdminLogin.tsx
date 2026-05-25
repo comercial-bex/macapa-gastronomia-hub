@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { getAdministrativeRoles, hasAdministrativeAccess } from "@/lib/adminAuth";
+import SEO from "@/components/SEO";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
