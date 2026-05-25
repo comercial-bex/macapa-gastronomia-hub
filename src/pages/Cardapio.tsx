@@ -240,23 +240,9 @@ const Cardapio = () => {
     if (idx >= 0) setSelectedItemIndex(idx);
   }, [pratoParam, selectedItems]);
 
-  // Keep URL in sync with current selection so links can be shared.
-  useEffect(() => {
-    if (tab !== "semana") return;
-    const item = selectedItems[selectedItemIndex];
-    const day = days.find((d) => d.id === activeDay);
-    if (!item || !day) return;
-    const nextDia = day.dia_semana;
-    const nextPrato = slugify(item.prato);
-    if (searchParams.get("dia") === nextDia && searchParams.get("prato") === nextPrato) {
-      return;
-    }
-    const next = new URLSearchParams(searchParams);
-    next.set("dia", nextDia);
-    next.set("prato", nextPrato);
-    setSearchParams(next, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, selectedItemIndex, activeDay, selectedItems.length]);
+  // Note: URL is not auto-synced with current selection to avoid update loops
+  // with the fetch effect (which depends on `diaParam`). Share buttons build
+  // the full shareable URL on demand.
 
   // Share current dish via Web Share API, with WhatsApp + copy-link fallbacks.
   const shareCurrent = async () => {
