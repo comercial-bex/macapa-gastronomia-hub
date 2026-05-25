@@ -12,6 +12,7 @@ import { Briefcase, ArrowLeft, Upload, CheckCircle, DollarSign, FileText } from 
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import SEO from "@/components/SEO";
+import { useI18n } from "@/lib/i18n";
 
 interface Job {
   id: string;
@@ -29,6 +30,7 @@ interface UnitOption {
 }
 
 const TrabalheConosco = () => {
+  const { t } = useI18n();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ const TrabalheConosco = () => {
     e.preventDefault();
     if (!selectedJob) return;
     if (!form.nome.trim() || !form.telefone.trim() || !form.email.trim()) {
-      toast.error("Preencha nome, telefone e e-mail.");
+      toast.error(t("car.toast_required"));
       return;
     }
     setLoading(true);
@@ -83,12 +85,12 @@ const TrabalheConosco = () => {
         observacoes: form.observacoes.trim() || null,
       });
       if (error) throw error;
-      toast.success("Candidatura enviada com sucesso!");
+      toast.success(t("car.toast_success"));
       setSelectedJob(null);
       setForm({ nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "", unidade_pref: "" });
       setFile(null);
     } catch {
-      toast.error("Erro ao enviar candidatura. Tente novamente.");
+      toast.error(t("car.toast_error"));
     } finally {
       setLoading(false);
     }
@@ -105,15 +107,15 @@ const TrabalheConosco = () => {
   return (
     <Layout>
       <SEO
-        title="Trabalhe Conosco — Restaurante Macapaba | Vagas em Macapá"
-        description="Faça parte da equipe do Restaurante Macapaba em Macapá. Veja as vagas abertas, envie seu currículo e construa sua carreira na gastronomia amazônica."
+        title={t("seo.careers_title")}
+        description={t("seo.careers_desc")}
       />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-3xl">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Carreiras</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">Trabalhe Conosco</h1>
+              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("car.eyebrow")}</p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("car.title")}</h1>
             </div>
           </ScrollReveal>
 
@@ -149,7 +151,7 @@ const TrabalheConosco = () => {
                 </StaggerItem>
               ))}
               {jobs.length === 0 && (
-                <p className="text-center text-muted-foreground py-20">Nenhuma vaga disponível no momento.</p>
+                <p className="text-center text-muted-foreground py-20">{t("car.empty")}</p>
               )}
             </ScrollReveal>
           ) : (
@@ -159,7 +161,7 @@ const TrabalheConosco = () => {
                   onClick={() => setSelectedJob(null)}
                   className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 text-sm"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Voltar às vagas
+                  <ArrowLeft className="h-4 w-4" /> {t("car.back")}
                 </button>
 
                 <div className="bg-card border border-border rounded-lg p-8">
@@ -172,57 +174,57 @@ const TrabalheConosco = () => {
 
                   {selectedJob.requisitos && (
                     <div className="mb-6">
-                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><FileText className="h-4 w-4 text-primary" /> Requisitos</h4>
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><FileText className="h-4 w-4 text-primary" /> {t("car.requirements")}</h4>
                       <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(selectedJob.requisitos)}</ul>
                     </div>
                   )}
 
                   {selectedJob.funcoes && (
                     <div className="mb-8">
-                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Briefcase className="h-4 w-4 text-primary" /> Funções</h4>
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Briefcase className="h-4 w-4 text-primary" /> {t("car.duties")}</h4>
                       <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(selectedJob.funcoes)}</ul>
                     </div>
                   )}
 
                   <hr className="border-border mb-8" />
 
-                  <h4 className="font-display text-lg font-bold mb-4">Candidate-se</h4>
+                  <h4 className="font-display text-lg font-bold mb-4">{t("car.apply")}</h4>
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="nome">Nome *</Label>
+                        <Label htmlFor="nome">{t("car.name")} *</Label>
                         <Input id="nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required maxLength={100} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                       </div>
                       <div>
-                        <Label htmlFor="telefone">Telefone *</Label>
+                        <Label htmlFor="telefone">{t("car.phone")} *</Label>
                         <Input id="telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} required maxLength={20} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="email">E-mail *</Label>
+                      <Label htmlFor="email">{t("car.email")} *</Label>
                       <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required maxLength={255} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                     </div>
                     <div>
-                      <Label htmlFor="experiencia">Experiência</Label>
+                      <Label htmlFor="experiencia">{t("car.experience")}</Label>
                       <Textarea id="experiencia" value={form.experiencia} onChange={(e) => setForm({ ...form, experiencia: e.target.value })} rows={3} maxLength={1000} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                     </div>
                     <div>
-                      <Label htmlFor="disponibilidade">Disponibilidade</Label>
+                      <Label htmlFor="disponibilidade">{t("car.availability")}</Label>
                       <Select value={form.disponibilidade} onValueChange={(v) => setForm({ ...form, disponibilidade: v })}>
-                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder={t("car.av_select")} /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="integral">Integral</SelectItem>
-                          <SelectItem value="meio-periodo">Meio período</SelectItem>
-                          <SelectItem value="noturno">Noturno</SelectItem>
-                          <SelectItem value="fins-de-semana">Fins de semana</SelectItem>
+                          <SelectItem value="integral">{t("car.av_full")}</SelectItem>
+                          <SelectItem value="meio-periodo">{t("car.av_part")}</SelectItem>
+                          <SelectItem value="noturno">{t("car.av_night")}</SelectItem>
+                          <SelectItem value="fins-de-semana">{t("car.av_weekend")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     {units.length > 1 && (
                       <div>
-                        <Label htmlFor="unidade-pref">Unidade preferencial</Label>
+                        <Label htmlFor="unidade-pref">{t("car.unit_pref")}</Label>
                         <Select value={form.unidade_pref} onValueChange={(v) => setForm({ ...form, unidade_pref: v })}>
-                          <SelectTrigger><SelectValue placeholder="Selecione a unidade" /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder={t("car.unit_select")} /></SelectTrigger>
                           <SelectContent>
                             {units.map((u) => (
                               <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
@@ -232,21 +234,21 @@ const TrabalheConosco = () => {
                       </div>
                     )}
                     <div>
-                      <Label htmlFor="curriculo">Currículo (PDF/DOC)</Label>
+                      <Label htmlFor="curriculo">{t("car.resume")}</Label>
                       <div className="mt-1">
                         <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-primary transition-colors border border-dashed border-border rounded-lg p-4 hover:border-primary">
                           <Upload className="h-4 w-4" />
-                          {file ? file.name : "Selecionar arquivo"}
+                          {file ? file.name : t("car.pick_file")}
                           <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
                         </label>
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="observacoes">Observações</Label>
+                      <Label htmlFor="observacoes">{t("car.notes")}</Label>
                       <Textarea id="observacoes" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={2} maxLength={500} className="focus:ring-primary/30 focus:ring-2 transition-shadow" />
                     </div>
                     <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase tracking-wider hover:scale-[1.02] active:scale-95 transition-transform">
-                      {loading ? "Enviando..." : "Enviar Candidatura"}
+                      {loading ? t("car.sending") : t("car.submit")}
                     </Button>
                   </form>
                 </div>
