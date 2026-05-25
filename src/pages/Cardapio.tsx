@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { useI18n } from "@/lib/i18n";
 
 const SITE_URL = "https://restaurantemacapaba.com.br";
 
@@ -17,16 +18,16 @@ const slugify = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
-  "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
-  "vegetariano": { label: "Vegetariano", icon: Sprout, className: "bg-green-500/15 text-green-200 border-green-400/30" },
-  "sem-gluten": { label: "Sem glúten", icon: WheatOff, className: "bg-amber-500/15 text-amber-200 border-amber-400/30" },
-  "picante": { label: "Picante", icon: Flame, className: "bg-red-500/15 text-red-200 border-red-400/30" },
+const DIET_TAGS_META: Record<string, { labelKey: "menu.diet_vegan" | "menu.diet_veg" | "menu.diet_gf" | "menu.diet_spicy"; icon: LucideIcon; className: string }> = {
+  "vegano": { labelKey: "menu.diet_vegan", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
+  "vegetariano": { labelKey: "menu.diet_veg", icon: Sprout, className: "bg-green-500/15 text-green-200 border-green-400/30" },
+  "sem-gluten": { labelKey: "menu.diet_gf", icon: WheatOff, className: "bg-amber-500/15 text-amber-200 border-amber-400/30" },
+  "picante": { labelKey: "menu.diet_spicy", icon: Flame, className: "bg-red-500/15 text-red-200 border-red-400/30" },
 };
 
 // Elegant dark placeholder shown when a dish has no media yet.
 // Keeps the UI honest: the site reflects exactly what is in the CMS.
-const DishPlaceholder = ({ prato, dia, size = "lg" }: { prato: string; dia?: string; size?: "sm" | "lg" }) => {
+const DishPlaceholder = ({ prato, dia, size = "lg", soonLabel }: { prato: string; dia?: string; size?: "sm" | "lg"; soonLabel: string }) => {
   const Icon = getDishIcon(prato);
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background overflow-hidden">
@@ -37,7 +38,7 @@ const DishPlaceholder = ({ prato, dia, size = "lg" }: { prato: string; dia?: str
         </div>
         {dia && <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{dia}</p>}
         <h4 className={`font-display ${size === "lg" ? "text-lg" : "text-sm"} font-bold text-foreground/90 leading-tight`}>{prato}</h4>
-        <span className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/60">Foto em breve</span>
+        <span className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/60">{soonLabel}</span>
       </div>
     </div>
   );
@@ -102,6 +103,7 @@ interface Unit {
 }
 
 const Cardapio = () => {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const diaParam = searchParams.get("dia");
   const pratoParam = searchParams.get("prato");
