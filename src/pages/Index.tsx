@@ -197,8 +197,23 @@ const Index = () => {
   return (
     <Layout>
       <SEO
-        title="Restaurante Macapaba — Gastronomia Amazônica em Macapá"
-        description="Restaurante em Macapá desde 2009. Culinária amazônica autoral, peixes regionais, sushi e ambiente acolhedor. Reserve sua mesa no Macapaba."
+        title={t("seo.home_title")}
+        description={t("seo.home_desc")}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Restaurant",
+          name: "Restaurante Macapaba",
+          servesCuisine: ["Amazonian", "Brazilian", "Sushi"],
+          priceRange: "$$",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Macapá",
+            addressRegion: "AP",
+            addressCountry: "BR",
+          },
+          url: "https://restaurantemacapaba.com.br",
+          telephone: "+5596981054789",
+        }}
       />
       <ScrollProgress />
 
