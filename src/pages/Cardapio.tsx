@@ -143,9 +143,9 @@ const Cardapio = () => {
     const fetchData = async () => {
       const [catsRes, bevsRes, daysRes, itemsRes, unitsRes] = await Promise.all([
         supabase.from("beverage_categories").select("*").eq("ativo", true).order("ordem"),
-        supabase.from("beverages").select("*").eq("ativo", true).order("ordem"),
+        supabase.from("beverages").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
-        supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem"),
+        supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         supabase.from("units").select("id,nome,principal,ativo").eq("ativo", true).order("principal", { ascending: false }),
       ]);
       if (catsRes.data) setCategories(catsRes.data);
@@ -168,9 +168,9 @@ const Cardapio = () => {
       (async () => {
         const [catsRes, bevsRes, daysRes, itemsRes] = await Promise.all([
           supabase.from("beverage_categories").select("*").eq("ativo", true).order("ordem"),
-          supabase.from("beverages").select("*").eq("ativo", true).order("ordem"),
+          supabase.from("beverages").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
           supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
-          supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem"),
+          supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         ]);
         if (catsRes.data) setCategories(catsRes.data);
         if (bevsRes.data) setBeverages(bevsRes.data);
