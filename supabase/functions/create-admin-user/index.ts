@@ -62,8 +62,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: createError.message }), { status: 400, headers: corsHeaders });
     }
 
-    // Keep legacy profile compatibility and persist the canonical RBAC role.
-    await adminClient.from("profiles").update({ role: role === "admin" ? "admin" : "user", nome: nome || null }).eq("id", newUser.user.id);
+    // Persist the display name on the profile and the canonical RBAC role in user_roles.
+    if (nome) {
+      await adminClient.from("profiles").update({ nome }).eq("id", newUser.user.id);
+    }
     await adminClient.from("user_roles").insert({
       user_id: newUser.user.id,
       role,
