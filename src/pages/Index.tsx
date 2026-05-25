@@ -63,12 +63,12 @@ const specialties = [
 
 const testimonials = [
   { name: "Ana Carolina M.", text: "Uma experiência gastronômica incomparável. O peixe amazônico é simplesmente divino. Ambiente elegante e atendimento impecável.", rating: 5 },
-   { name: "Roberto S.", text: "Frequento o Macapaba desde a inauguração. Quase 30 anos de qualidade consistente — isso é raro. Minha família adora.", rating: 5 },
+   { name: "Roberto S.", text: "Frequento o Macapaba desde a inauguração. São 17 anos de qualidade consistente — isso é raro. Minha família adora.", rating: 5 },
   { name: "Juliana P.", text: "O melhor restaurante de Macapá, sem dúvida. O buffet é variado, tudo fresco, e o sushi é espetacular. Recomendo demais!", rating: 5 },
    { name: "Carlos Eduardo F.", text: "Levei clientes de São Paulo e ficaram impressionados. O Macapaba honra a gastronomia do Amapá. Nota 10.", rating: 5 },
 ];
 
-const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 2018  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
+const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 2009  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
 
 /* ── Scroll Progress Bar ── */
 const ScrollProgress = () => {
@@ -197,7 +197,7 @@ const Index = () => {
     <Layout>
       <SEO
         title="Restaurante Macapaba — Gastronomia Amazônica em Macapá"
-        description="Restaurante em Macapá desde 2018. Culinária amazônica autoral, peixes regionais, sushi e ambiente acolhedor. Reserve sua mesa no Macapaba."
+        description="Restaurante em Macapá desde 2009. Culinária amazônica autoral, peixes regionais, sushi e ambiente acolhedor. Reserve sua mesa no Macapaba."
       />
       <ScrollProgress />
 
@@ -230,7 +230,7 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="text-display font-display font-light text-white leading-[0.95] tracking-tight"
             >
-               {getSetting("hero_titulo", "Sabor e tradição em Macapá desde 2018")}
+               {getSetting("hero_titulo", "Sabor e tradição em Macapá desde 2009")}
             </motion.h1>
           </div>
 
@@ -284,7 +284,7 @@ const Index = () => {
                   viewport={{ once: true }}
                   className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-6"
                 >
-                  {getSetting("historia_subtitulo", "Desde 2018")}
+                  {getSetting("historia_subtitulo", "Desde 2009")}
                 </motion.p>
 
                 <h2 className="text-display font-display font-bold leading-[0.95] mb-10">
@@ -292,14 +292,14 @@ const Index = () => {
                 </h2>
 
                 <p className="text-muted-foreground leading-relaxed text-lg mb-16 max-w-md">
-                  {getSetting("historia_texto", "Inaugurado em abril de 2018, o Restaurante Macapaba nasceu do sonho de oferecer aos macapaenses uma experiência gastronômica única. Ao longo de mais de 25 anos, nos tornamos referência em culinária regional, combinando sabores amazônicos com técnicas contemporâneas. Nosso compromisso com a qualidade e o atendimento nos consolidou como um dos restaurantes mais tradicionais e queridos de Macapá.")}
+                  {getSetting("historia_texto", "Inaugurado em abril de 2009, o Restaurante Macapaba nasceu do sonho de oferecer aos macapaenses uma experiência gastronômica única. Ao longo desses anos, nos tornamos referência em culinária regional, combinando sabores amazônicos com técnicas contemporâneas. Nosso compromisso com a qualidade e o atendimento nos consolidou como um dos restaurantes mais queridos de Macapá.")}
                 </p>
 
                 {/* Big numbers — display style */}
                 <div className="flex gap-16 mb-12">
                   <div>
                     <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
-                      <AnimatedCounter target={7} suffix="" />
+                      <AnimatedCounter target={17} suffix="" />
                     </p>
                     <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Anos</p>
                   </div>
@@ -317,7 +317,7 @@ const Index = () => {
                   <div className="flex items-start gap-3">
                     <Award className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Desde 2018</p>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Desde 2009</p>
                       <p className="text-muted-foreground text-xs mt-1">Tradição construída em Macapá</p>
                     </div>
                   </div>
