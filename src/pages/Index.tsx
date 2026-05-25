@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import SEO from "@/components/SEO";
 import { z } from "zod";
 import { Award, Leaf, Heart, AlertCircle } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
  import pratoVariado from "@/assets/prato-variado.jpg";
  import sushi from "@/assets/sushi.jpg";
@@ -632,6 +633,7 @@ const Index = () => {
 
 /* ── Reserva Inline Component ── */
 const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "", unit_id: "" });
@@ -660,37 +662,37 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
     nome: z
       .string()
       .trim()
-      .min(2, { message: "Informe seu nome completo." })
-      .max(100, { message: "Nome deve ter no máximo 100 caracteres." }),
+      .min(2, { message: t("res.err_name_min") })
+      .max(100, { message: t("res.err_name_max") }),
     telefone: z
       .string()
       .trim()
       .regex(/^\(?\d{2}\)?\s?9?\d{4}-?\d{4}$/, {
-        message: "Telefone inválido. Use o formato (96) 99999-9999.",
+        message: t("res.err_phone"),
       }),
     data: z
       .string()
-      .min(1, { message: "Selecione uma data." })
-      .refine((v) => v >= today, { message: "A data não pode ser no passado." }),
+      .min(1, { message: t("res.err_date_req") })
+      .refine((v) => v >= today, { message: t("res.err_date_past") }),
     horario: z
       .string()
-      .regex(/^\d{2}:\d{2}$/, { message: "Selecione um horário válido." }),
+      .regex(/^\d{2}:\d{2}$/, { message: t("res.err_time") }),
     pessoas: z
       .string()
       .refine((v) => {
         const n = parseInt(v);
         return !isNaN(n) && n >= 1 && n <= 50;
-      }, { message: "Informe entre 1 e 50 pessoas." }),
+      }, { message: t("res.err_people") }),
     observacoes: z.string().max(500).optional(),
   });
 
   const fieldLabels: Record<string, string> = {
-    nome: "Nome",
-    telefone: "Telefone",
-    data: "Data",
-    horario: "Horário",
-    pessoas: "Nº de pessoas",
-    observacoes: "Observações",
+    nome: t("res.name"),
+    telefone: t("res.phone"),
+    data: t("res.date"),
+    horario: t("res.time"),
+    pessoas: t("res.people"),
+    observacoes: t("res.notes"),
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -703,7 +705,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
         if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
       });
       setErrors(fieldErrors);
-      toast.error("Verifique os campos destacados.");
+      toast.error(t("res.toast_invalid"));
       return;
     }
     setErrors({});
@@ -719,17 +721,17 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
         unit_id: form.unit_id || null,
       });
       if (error) throw error;
-      toast.success("Reserva enviada! Entraremos em contato em breve.");
+      toast.success(t("res.toast_success"));
       setSent(true);
     } catch (err: any) {
       const msg = err?.message || "";
       if (msg.includes("Horário sem disponibilidade") || msg.toLowerCase().includes("capacidade")) {
-        toast.error("Horário lotado", {
-          description: "Este horário já atingiu a capacidade. Tente outro horário ou data.",
+        toast.error(t("res.toast_full_title"), {
+          description: t("res.toast_full_desc"),
         });
-        setErrors({ horario: "Este horário não tem mais vagas. Escolha outro." });
+        setErrors({ horario: t("res.err_full_slot") });
       } else {
-        toast.error("Erro ao enviar reserva. Tente novamente.");
+        toast.error(t("res.toast_error"));
       }
     } finally {
       setLoading(false);
@@ -769,12 +771,12 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
       <div className="container mx-auto max-w-2xl">
         <ScrollReveal>
           <div className="text-center mb-16">
-            <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Reserva</p>
+            <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("res.eyebrow")}</p>
             <h2 className="text-display font-display font-bold leading-[0.95] mb-4">
-              {getSetting("cta_titulo", "Sua mesa espera por você")}
+              {getSetting("cta_titulo", t("res.title"))}
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {getSetting("cta_subtitulo", "Reserve em segundos e viva uma experiência inesquecível em Macapá.")}
+              {getSetting("cta_subtitulo", t("res.subtitle"))}
             </p>
           </div>
         </ScrollReveal>
@@ -793,7 +795,9 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-destructive mb-2">
-                      Corrija {Object.keys(errors).length === 1 ? "o campo abaixo" : `os ${Object.keys(errors).length} campos abaixo`} para continuar:
+                      {Object.keys(errors).length === 1
+                        ? t("res.fix_one")
+                        : t("res.fix_many").replace("{n}", String(Object.keys(errors).length))}
                     </p>
                     <ul className="text-xs text-destructive/90 space-y-1 list-disc list-inside">
                       {Object.entries(errors).map(([field, msg]) => (
@@ -814,7 +818,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
 
               {units.length > 1 && (
                 <div>
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-3 block">Unidade *</Label>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-3 block">{t("res.unit")} *</Label>
                   <div className="flex flex-wrap gap-2">
                     {units.map((u) => (
                       <button
@@ -836,7 +840,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
 
               <div className="grid sm:grid-cols-2 gap-8">
                 <div>
-                  <Label htmlFor="res-nome" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nome *</Label>
+                  <Label htmlFor="res-nome" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">{t("res.name")} *</Label>
                   <input
                     id="res-nome"
                     value={form.nome}
@@ -844,12 +848,12 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     required
                     maxLength={100}
                     className="input-underline"
-                    placeholder="Seu nome"
+                    placeholder={t("res.name_ph")}
                   />
                   {errors.nome && <p className="text-destructive text-xs mt-2">{errors.nome}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="res-telefone" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Telefone *</Label>
+                  <Label htmlFor="res-telefone" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">{t("res.phone")} *</Label>
                   <input
                     id="res-telefone"
                     type="tel"
@@ -859,14 +863,14 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                     required
                     maxLength={20}
                     className="input-underline"
-                    placeholder="(96) 99999-9999"
+                    placeholder={t("res.phone_ph")}
                   />
                   {errors.telefone && <p className="text-destructive text-xs mt-2">{errors.telefone}</p>}
                 </div>
               </div>
               <div className="grid sm:grid-cols-3 gap-8">
                 <div>
-                  <Label htmlFor="res-data" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Data *</Label>
+                  <Label htmlFor="res-data" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">{t("res.date")} *</Label>
                   <input
                     id="res-data"
                     type="date"
@@ -879,7 +883,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   {errors.data && <p className="text-destructive text-xs mt-2">{errors.data}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="res-horario" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Horário *</Label>
+                  <Label htmlFor="res-horario" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">{t("res.time")} *</Label>
                   <input
                     id="res-horario"
                     type="time"
@@ -891,7 +895,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   {errors.horario && <p className="text-destructive text-xs mt-2">{errors.horario}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="res-pessoas" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Nº Pessoas *</Label>
+                  <Label htmlFor="res-pessoas" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">{t("res.people")} *</Label>
                   <input
                     id="res-pessoas"
                     type="number"
@@ -909,12 +913,12 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
               <div className="flex items-start gap-2 py-3 border-b border-primary/20">
                 <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  A reserva garante sua mesa por até <strong className="text-foreground">15 minutos</strong> após o horário escolhido.
+                  {t("res.hold")} <strong className="text-foreground">{t("res.hold_minutes")}</strong> {t("res.hold_after")}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="res-obs" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Observações</Label>
+                <Label htmlFor="res-obs" className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">{t("res.notes")}</Label>
                 <textarea
                   id="res-obs"
                   value={form.observacoes}
@@ -922,7 +926,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                   rows={3}
                   maxLength={500}
                   className="input-underline resize-none"
-                  placeholder="Alguma observação especial?"
+                  placeholder={t("res.notes_ph")}
                 />
               </div>
 
@@ -931,13 +935,13 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 disabled={loading}
                 className="btn-fill-hover w-full"
               >
-                {loading ? "Enviando..." : "Garantir minha mesa"}
+                {loading ? t("res.sending") : t("res.submit")}
               </button>
 
               <div className="text-center pt-4">
-                <p className="text-muted-foreground/40 text-xs mb-4">ou</p>
+                <p className="text-muted-foreground/40 text-xs mb-4">{t("res.or")}</p>
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-green-500 transition-colors">
-                  <MessageCircle className="h-4 w-4" /> Reservar pelo WhatsApp
+                  <MessageCircle className="h-4 w-4" /> {t("res.whatsapp")}
                 </a>
               </div>
             </form>
@@ -951,17 +955,14 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-display text-2xl font-bold mb-2">Reserva recebida!</h3>
-                <p className="text-muted-foreground">
-                  Recebemos seu pedido e entraremos em contato em breve para confirmar.
-                  Para agilizar, confirme também pelo WhatsApp.
-                </p>
+                <h3 className="font-display text-2xl font-bold mb-2">{t("res.success_title")}</h3>
+                <p className="text-muted-foreground">{t("res.success_text")}</p>
               </div>
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-green-500 transition-colors">
-                <MessageCircle className="h-4 w-4" /> Confirmar pelo WhatsApp
+                <MessageCircle className="h-4 w-4" /> {t("res.success_confirm")}
               </a>
               <button onClick={resetForm} className="text-sm text-muted-foreground/50 hover:text-foreground transition-colors">
-                Fazer nova reserva
+                {t("res.new")}
               </button>
             </motion.div>
           )}
