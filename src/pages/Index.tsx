@@ -224,6 +224,7 @@ const Index = () => {
           <video
             src="/videos/hero.mp4"
             autoPlay muted loop playsInline
+            preload="auto"
             className="absolute inset-0 w-full h-full object-cover"
             poster={garcomServindo}
           />
@@ -234,6 +235,10 @@ const Index = () => {
           <motion.img
             src={logoMacapaba}
              alt="Restaurante Macapaba"
+            fetchPriority="high"
+            decoding="async"
+            width={320}
+            height={80}
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
