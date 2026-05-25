@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { useI18n } from "@/lib/i18n";
 
 const SITE_URL = "https://restaurantemacapaba.com.br";
 
@@ -17,16 +18,16 @@ const slugify = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-const DIET_TAGS_META: Record<string, { label: string; icon: LucideIcon; className: string }> = {
-  "vegano": { label: "Vegano", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
-  "vegetariano": { label: "Vegetariano", icon: Sprout, className: "bg-green-500/15 text-green-200 border-green-400/30" },
-  "sem-gluten": { label: "Sem glúten", icon: WheatOff, className: "bg-amber-500/15 text-amber-200 border-amber-400/30" },
-  "picante": { label: "Picante", icon: Flame, className: "bg-red-500/15 text-red-200 border-red-400/30" },
+const DIET_TAGS_META: Record<string, { labelKey: "menu.diet_vegan" | "menu.diet_veg" | "menu.diet_gf" | "menu.diet_spicy"; icon: LucideIcon; className: string }> = {
+  "vegano": { labelKey: "menu.diet_vegan", icon: Leaf, className: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30" },
+  "vegetariano": { labelKey: "menu.diet_veg", icon: Sprout, className: "bg-green-500/15 text-green-200 border-green-400/30" },
+  "sem-gluten": { labelKey: "menu.diet_gf", icon: WheatOff, className: "bg-amber-500/15 text-amber-200 border-amber-400/30" },
+  "picante": { labelKey: "menu.diet_spicy", icon: Flame, className: "bg-red-500/15 text-red-200 border-red-400/30" },
 };
 
 // Elegant dark placeholder shown when a dish has no media yet.
 // Keeps the UI honest: the site reflects exactly what is in the CMS.
-const DishPlaceholder = ({ prato, dia, size = "lg" }: { prato: string; dia?: string; size?: "sm" | "lg" }) => {
+const DishPlaceholder = ({ prato, dia, size = "lg", soonLabel }: { prato: string; dia?: string; size?: "sm" | "lg"; soonLabel: string }) => {
   const Icon = getDishIcon(prato);
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background overflow-hidden">
@@ -37,7 +38,7 @@ const DishPlaceholder = ({ prato, dia, size = "lg" }: { prato: string; dia?: str
         </div>
         {dia && <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{dia}</p>}
         <h4 className={`font-display ${size === "lg" ? "text-lg" : "text-sm"} font-bold text-foreground/90 leading-tight`}>{prato}</h4>
-        <span className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/60">Foto em breve</span>
+        <span className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground/60">{soonLabel}</span>
       </div>
     </div>
   );
@@ -102,6 +103,7 @@ interface Unit {
 }
 
 const Cardapio = () => {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const diaParam = searchParams.get("dia");
   const pratoParam = searchParams.get("prato");
@@ -261,7 +263,7 @@ const Cardapio = () => {
       await navigator.clipboard.writeText(url);
       // Lightweight toast via alert-ish, but Cardapio doesn't import sonner here; use console + browser.
       window.dispatchEvent(new CustomEvent("macapaba:copied", { detail: url }));
-      alert("Link copiado!");
+      alert(t("menu.copied"));
     } catch {
       window.open(url, "_blank");
     }
@@ -304,10 +306,10 @@ const Cardapio = () => {
   const currentDay = days.find((d) => d.id === activeDay);
   const dynamicTitle = tab === "semana" && currentItem && currentDay
     ? `${currentItem.prato} — ${currentDay.dia_semana} | Restaurante Macapaba`
-    : "Cardápio — Restaurante Macapaba | Macapá-AP";
+    : t("seo.menu_title");
   const dynamicDesc = tab === "semana" && currentItem
     ? (currentItem.descricao || `${currentItem.prato} no cardápio de ${currentDay?.dia_semana} do Restaurante Macapaba em Macapá-AP.`)
-    : "Confira o cardápio do Restaurante Macapaba: pratos da semana, especialidades amazônicas e seleção de bebidas em Macapá-AP.";
+    : t("seo.menu_desc");
   const dynamicImage = tab === "semana" && currentItem?.imagem_url && currentItem.tipo_midia !== "video"
     ? currentItem.imagem_url
     : undefined;
@@ -324,18 +326,18 @@ const Cardapio = () => {
         <div className="container mx-auto max-w-5xl">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Sabores</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">Cardápio</h1>
+              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("menu.eyebrow")}</p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("menu.title")}</h1>
             </div>
           </ScrollReveal>
 
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="w-full bg-secondary mb-8">
               <TabsTrigger value="bebidas" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Bebidas
+                {t("menu.tab_drinks")}
               </TabsTrigger>
               <TabsTrigger value="semana" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Cardápio da Semana
+                {t("menu.tab_week")}
               </TabsTrigger>
             </TabsList>
 
@@ -348,15 +350,15 @@ const Cardapio = () => {
                     type="search"
                     value={queryBev}
                     onChange={(e) => setQueryBev(e.target.value)}
-                    placeholder="Buscar bebida (ex: vinho, suco, água com gás)"
-                    aria-label="Buscar bebida"
+                    placeholder={t("menu.search_drink")}
+                    aria-label={t("menu.search_drink_aria")}
                     className="pl-9 pr-9 bg-secondary/40 border-border"
                   />
                   {queryBev && (
                     <button
                       type="button"
                       onClick={() => setQueryBev("")}
-                      aria-label="Limpar busca"
+                      aria-label={t("menu.clear_search")}
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
                     >
                       <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -411,7 +413,7 @@ const Cardapio = () => {
                                     {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
                                     {bev.esgotado && (
                                       <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
-                                        <AlertTriangle className="h-3 w-3" /> Esgotado
+                                        <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out")}
                                       </span>
                                     )}
                                     {bev.badge && (
@@ -439,11 +441,11 @@ const Cardapio = () => {
                 );
               })}
               {categories.length === 0 && (
-                <p className="text-center text-muted-foreground py-12">Nenhuma bebida cadastrada.</p>
+                <p className="text-center text-muted-foreground py-12">{t("menu.no_drinks")}</p>
               )}
               {categories.length > 0 && qBev && filteredBeverages.length === 0 && (
                 <p className="text-center text-muted-foreground py-8 text-sm">
-                  Nada encontrado para "<span className="text-foreground">{queryBev}</span>".
+                  {t("menu.no_results_for")} "<span className="text-foreground">{queryBev}</span>".
                 </p>
               )}
             </TabsContent>
@@ -451,14 +453,14 @@ const Cardapio = () => {
             <TabsContent value="semana">
               {units.length > 1 && (
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">Unidade:</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">{t("menu.unit")}</span>
                   <Button
                     variant={activeUnit === "all" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveUnit("all")}
                     className={activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
                   >
-                    Todas
+                    {t("menu.all")}
                   </Button>
                   {units.map((u) => (
                     <Button
@@ -496,15 +498,15 @@ const Cardapio = () => {
                     type="search"
                     value={querySemana}
                     onChange={(e) => setQuerySemana(e.target.value)}
-                    placeholder="Buscar prato"
-                    aria-label="Buscar prato"
+                    placeholder={t("menu.search_dish")}
+                    aria-label={t("menu.search_dish_aria")}
                     className="pl-9 pr-9 bg-secondary/40 border-border"
                   />
                   {querySemana && (
                     <button
                       type="button"
                       onClick={() => setQuerySemana("")}
-                      aria-label="Limpar busca"
+                      aria-label={t("menu.clear_search")}
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
                     >
                       <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -512,7 +514,7 @@ const Cardapio = () => {
                   )}
                 </div>
                 {Object.keys(DIET_TAGS_META).some((k) => dietCounts[k]) && (
-                  <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por restrição alimentar">
+                  <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("menu.diet_aria")}>
                     {Object.entries(DIET_TAGS_META).map(([key, meta]) => {
                       const count = dietCounts[key] || 0;
                       if (count === 0) return null;
@@ -528,7 +530,7 @@ const Cardapio = () => {
                             active ? meta.className : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
                           }`}
                         >
-                          <Icon className="h-3 w-3" /> {meta.label}
+                          <Icon className="h-3 w-3" /> {t(meta.labelKey)}
                           <span className="opacity-70">({count})</span>
                         </button>
                       );
@@ -564,7 +566,7 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
@@ -579,15 +581,15 @@ const Cardapio = () => {
                                       <div className="flex items-start justify-between gap-2">
                                         <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
                                         <div className="flex gap-1 shrink-0">
-                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
-                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
+                                        <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
+                                        <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
                                         </div>
                                       </div>
                                       {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1 mt-2">
                                         {item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
-                                            <AlertTriangle className="h-3 w-3" /> Esgotado hoje
+                                            <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out_today")}
                                           </span>
                                         )}
                                         {item.badge && (
@@ -603,20 +605,20 @@ const Cardapio = () => {
                                         )}
                                         {isAvailableNow(item) === true && !item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
-                                            <CheckCircle2 className="h-3 w-3" /> Agora
+                                            <CheckCircle2 className="h-3 w-3" /> {t("menu.now")}
                                           </span>
                                         )}
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
-                                          {item.tags.map((t) => {
-                                            const meta = DIET_TAGS_META[t];
+                                          {item.tags.map((tag) => {
+                                            const meta = DIET_TAGS_META[tag];
                                             if (!meta) return null;
                                             const Icon = meta.icon;
                                             return (
-                                              <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
+                                              <span key={tag} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
                                                 <Icon className="h-2.5 w-2.5" />
-                                                {meta.label}
+                                                {t(meta.labelKey)}
                                               </span>
                                             );
                                           })}
@@ -668,7 +670,7 @@ const Cardapio = () => {
                                     <div className="flex flex-wrap gap-1 mt-1">
                                       {item.esgotado && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
-                                          <AlertTriangle className="h-2.5 w-2.5" /> Esgotado
+                                          <AlertTriangle className="h-2.5 w-2.5" /> {t("menu.sold_out")}
                                         </span>
                                       )}
                                       {item.badge && (
@@ -678,21 +680,21 @@ const Cardapio = () => {
                                       )}
                                       {avail === true && !item.esgotado && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
-                                          <CheckCircle2 className="h-2.5 w-2.5" /> Disponível agora
+                                          <CheckCircle2 className="h-2.5 w-2.5" /> {t("menu.available_now")}
                                         </span>
                                       )}
                                     </div>
                                   )}
                                   {item.tags && item.tags.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">
-                                      {item.tags.map((t) => {
-                                        const meta = DIET_TAGS_META[t];
+                                      {item.tags.map((tag) => {
+                                        const meta = DIET_TAGS_META[tag];
                                         if (!meta) return null;
                                         const Icon = meta.icon;
                                         return (
-                                          <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
+                                          <span key={tag} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
                                             <Icon className="h-2.5 w-2.5" />
-                                            {meta.label}
+                                            {t(meta.labelKey)}
                                           </span>
                                         );
                                       })}
@@ -703,7 +705,7 @@ const Cardapio = () => {
                             );
                           })}
                         </div>
-                        <p className="text-muted-foreground text-sm italic mt-8">* O cardápio pode variar.</p>
+                        <p className="text-muted-foreground text-sm italic mt-8">{t("menu.disclaimer")}</p>
                       </div>
 
                       <div className="hidden md:flex items-start justify-center flex-shrink-0">
@@ -722,7 +724,7 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
@@ -737,15 +739,15 @@ const Cardapio = () => {
                                       <div className="flex items-start justify-between gap-2">
                                         <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
                                         <div className="flex gap-1.5 shrink-0">
-                                          <button onClick={shareWhatsApp} aria-label="Compartilhar no WhatsApp" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
-                                          <button onClick={shareCurrent} aria-label="Copiar link do prato" className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
+                                        <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
+                                        <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
                                         </div>
                                       </div>
                                       {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{item.descricao}</p>}
                                       <div className="flex flex-wrap gap-1.5 mt-2">
                                         {item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
-                                            <AlertTriangle className="h-3 w-3" /> Esgotado hoje
+                                            <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out_today")}
                                           </span>
                                         )}
                                         {item.badge && (
@@ -761,20 +763,20 @@ const Cardapio = () => {
                                         )}
                                         {isAvailableNow(item) === true && !item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
-                                            <CheckCircle2 className="h-3 w-3" /> Disponível agora
+                                            <CheckCircle2 className="h-3 w-3" /> {t("menu.available_now")}
                                           </span>
                                         )}
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">
-                                          {item.tags.map((t) => {
-                                            const meta = DIET_TAGS_META[t];
+                                          {item.tags.map((tag) => {
+                                            const meta = DIET_TAGS_META[tag];
                                             if (!meta) return null;
                                             const Icon = meta.icon;
                                             return (
-                                              <span key={t} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${meta.className}`}>
+                                              <span key={tag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${meta.className}`}>
                                                 <Icon className="h-3 w-3" />
-                                                {meta.label}
+                                                {t(meta.labelKey)}
                                               </span>
                                             );
                                           })}
@@ -792,16 +794,16 @@ const Cardapio = () => {
                   ) : (
                     <div className="w-full text-center py-8 text-muted-foreground">
                       {dayItemsAll.length === 0 ? (
-                        <p>Nenhum prato cadastrado para este dia.</p>
+                        <p>{t("menu.no_dishes_day")}</p>
                       ) : (
                         <div className="space-y-3">
-                          <p>Nenhum prato neste filtro.</p>
+                          <p>{t("menu.no_dishes_filter")}</p>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => { setQuerySemana(""); setActiveDiet(null); }}
                           >
-                            Limpar filtros
+                            {t("menu.clear_filters")}
                           </Button>
                         </div>
                       )}
