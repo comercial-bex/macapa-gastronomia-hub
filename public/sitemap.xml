@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://restaurantemacapaba.com.br/</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://restaurantemacapaba.com.br/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restaurantemacapaba.com.br/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://restaurantemacapaba.com.br/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restaurantemacapaba.com.br/" />
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://restaurantemacapaba.com.br/cardapio</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://restaurantemacapaba.com.br/cardapio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restaurantemacapaba.com.br/cardapio" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://restaurantemacapaba.com.br/cardapio" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restaurantemacapaba.com.br/cardapio" />
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://restaurantemacapaba.com.br/portfolio</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://restaurantemacapaba.com.br/portfolio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restaurantemacapaba.com.br/portfolio" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://restaurantemacapaba.com.br/portfolio" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restaurantemacapaba.com.br/portfolio" />
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://restaurantemacapaba.com.br/unidades</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://restaurantemacapaba.com.br/unidades" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restaurantemacapaba.com.br/unidades" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://restaurantemacapaba.com.br/unidades" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restaurantemacapaba.com.br/unidades" />
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -27,6 +44,10 @@
   </url>
   <url>
     <loc>https://restaurantemacapaba.com.br/trabalhe-conosco</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://restaurantemacapaba.com.br/trabalhe-conosco" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restaurantemacapaba.com.br/trabalhe-conosco" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://restaurantemacapaba.com.br/trabalhe-conosco" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restaurantemacapaba.com.br/trabalhe-conosco" />
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

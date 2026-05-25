@@ -7,6 +7,10 @@ interface SEOProps {
   image?: string;
   /** Optional JSON-LD structured-data object(s). Replaces any previous SEO-managed script. */
   jsonLd?: Record<string, any> | Record<string, any>[];
+  /** When true, adds <meta name="robots" content="noindex,nofollow"> for this route. */
+  noindex?: boolean;
+  /** When true (default), emits hreflang alternates for pt-BR / en / es / x-default based on canonical. */
+  hreflang?: boolean;
 }
 
 /**
@@ -14,8 +18,9 @@ interface SEOProps {
  * OpenGraph / Twitter / canonical tags on mount and whenever props change.
  */
 const DEFAULT_OG_IMAGE = "https://restaurantemacapaba.com.br/og-image.jpg";
+const SITE_ORIGIN = "https://restaurantemacapaba.com.br";
 
-const SEO = ({ title, description, canonical, image, jsonLd }: SEOProps) => {
+const SEO = ({ title, description, canonical, image, jsonLd, noindex, hreflang = true }: SEOProps) => {
   useEffect(() => {
     document.title = title;
 
@@ -45,6 +50,21 @@ const SEO = ({ title, description, canonical, image, jsonLd }: SEOProps) => {
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:image", image ?? DEFAULT_OG_IMAGE);
 
+    // Robots directive (per-route)
+    let robots = document.head.querySelector<HTMLMetaElement>(
+      'meta[name="robots"]',
+    );
+    if (noindex) {
+      if (!robots) {
+        robots = document.createElement("meta");
+        robots.setAttribute("name", "robots");
+        document.head.appendChild(robots);
+      }
+      robots.setAttribute("content", "noindex,nofollow");
+    } else if (robots) {
+      robots.setAttribute("content", "index,follow");
+    }
+
     const href =
       canonical ??
       (typeof window !== "undefined"
@@ -61,6 +81,27 @@ const SEO = ({ title, description, canonical, image, jsonLd }: SEOProps) => {
         document.head.appendChild(link);
       }
       link.setAttribute("href", href);
+      setMeta("property", "og:url", href);
+    }
+
+    // hreflang alternates — same URL for all locales (client-side i18n).
+    // Cleans any previous SEO-owned hreflang links first.
+    document.head
+      .querySelectorAll('link[rel="alternate"][data-seo-hreflang="true"]')
+      .forEach((n) => n.remove());
+    if (hreflang && href) {
+      const path = href.startsWith("http")
+        ? new URL(href).pathname + new URL(href).search
+        : href;
+      const fullUrl = href.startsWith("http") ? href : `${SITE_ORIGIN}${path}`;
+      (["pt-BR", "en", "es", "x-default"] as const).forEach((lang) => {
+        const l = document.createElement("link");
+        l.setAttribute("rel", "alternate");
+        l.setAttribute("hreflang", lang);
+        l.setAttribute("href", fullUrl);
+        l.dataset.seoHreflang = "true";
+        document.head.appendChild(l);
+      });
     }
 
     // Structured data (JSON-LD): keep a single SEO-owned <script> per page.
@@ -76,7 +117,7 @@ const SEO = ({ title, description, canonical, image, jsonLd }: SEOProps) => {
     } else if (existing) {
       existing.remove();
     }
-  }, [title, description, canonical, image, jsonLd]);
+  }, [title, description, canonical, image, jsonLd, noindex, hreflang]);
 
   return null;
 };
