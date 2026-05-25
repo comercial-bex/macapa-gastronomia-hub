@@ -326,18 +326,18 @@ const Cardapio = () => {
         <div className="container mx-auto max-w-5xl">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Sabores</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">Cardápio</h1>
+              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("menu.eyebrow")}</p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("menu.title")}</h1>
             </div>
           </ScrollReveal>
 
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="w-full bg-secondary mb-8">
               <TabsTrigger value="bebidas" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Bebidas
+                {t("menu.tab_drinks")}
               </TabsTrigger>
               <TabsTrigger value="semana" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Cardápio da Semana
+                {t("menu.tab_week")}
               </TabsTrigger>
             </TabsList>
 
@@ -350,15 +350,15 @@ const Cardapio = () => {
                     type="search"
                     value={queryBev}
                     onChange={(e) => setQueryBev(e.target.value)}
-                    placeholder="Buscar bebida (ex: vinho, suco, água com gás)"
-                    aria-label="Buscar bebida"
+                    placeholder={t("menu.search_drink")}
+                    aria-label={t("menu.search_drink_aria")}
                     className="pl-9 pr-9 bg-secondary/40 border-border"
                   />
                   {queryBev && (
                     <button
                       type="button"
                       onClick={() => setQueryBev("")}
-                      aria-label="Limpar busca"
+                      aria-label={t("menu.clear_search")}
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
                     >
                       <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -413,7 +413,7 @@ const Cardapio = () => {
                                     {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
                                     {bev.esgotado && (
                                       <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
-                                        <AlertTriangle className="h-3 w-3" /> Esgotado
+                                        <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out")}
                                       </span>
                                     )}
                                     {bev.badge && (
@@ -441,11 +441,11 @@ const Cardapio = () => {
                 );
               })}
               {categories.length === 0 && (
-                <p className="text-center text-muted-foreground py-12">Nenhuma bebida cadastrada.</p>
+                <p className="text-center text-muted-foreground py-12">{t("menu.no_drinks")}</p>
               )}
               {categories.length > 0 && qBev && filteredBeverages.length === 0 && (
                 <p className="text-center text-muted-foreground py-8 text-sm">
-                  Nada encontrado para "<span className="text-foreground">{queryBev}</span>".
+                  {t("menu.no_results_for")} "<span className="text-foreground">{queryBev}</span>".
                 </p>
               )}
             </TabsContent>
@@ -453,14 +453,14 @@ const Cardapio = () => {
             <TabsContent value="semana">
               {units.length > 1 && (
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">Unidade:</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">{t("menu.unit")}</span>
                   <Button
                     variant={activeUnit === "all" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveUnit("all")}
                     className={activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
                   >
-                    Todas
+                    {t("menu.all")}
                   </Button>
                   {units.map((u) => (
                     <Button
@@ -498,15 +498,15 @@ const Cardapio = () => {
                     type="search"
                     value={querySemana}
                     onChange={(e) => setQuerySemana(e.target.value)}
-                    placeholder="Buscar prato"
-                    aria-label="Buscar prato"
+                    placeholder={t("menu.search_dish")}
+                    aria-label={t("menu.search_dish_aria")}
                     className="pl-9 pr-9 bg-secondary/40 border-border"
                   />
                   {querySemana && (
                     <button
                       type="button"
                       onClick={() => setQuerySemana("")}
-                      aria-label="Limpar busca"
+                      aria-label={t("menu.clear_search")}
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
                     >
                       <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -514,7 +514,7 @@ const Cardapio = () => {
                   )}
                 </div>
                 {Object.keys(DIET_TAGS_META).some((k) => dietCounts[k]) && (
-                  <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por restrição alimentar">
+                  <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("menu.diet_aria")}>
                     {Object.entries(DIET_TAGS_META).map(([key, meta]) => {
                       const count = dietCounts[key] || 0;
                       if (count === 0) return null;
@@ -530,7 +530,7 @@ const Cardapio = () => {
                             active ? meta.className : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
                           }`}
                         >
-                          <Icon className="h-3 w-3" /> {meta.label}
+                          <Icon className="h-3 w-3" /> {t(meta.labelKey)}
                           <span className="opacity-70">({count})</span>
                         </button>
                       );
