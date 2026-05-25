@@ -263,7 +263,7 @@ const Cardapio = () => {
       await navigator.clipboard.writeText(url);
       // Lightweight toast via alert-ish, but Cardapio doesn't import sonner here; use console + browser.
       window.dispatchEvent(new CustomEvent("macapaba:copied", { detail: url }));
-      alert("Link copiado!");
+      alert(t("menu.copied"));
     } catch {
       window.open(url, "_blank");
     }
