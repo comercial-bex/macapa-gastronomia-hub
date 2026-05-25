@@ -611,12 +611,12 @@ const Cardapio = () => {
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
-                                          {item.tags.map((t) => {
-                                            const meta = DIET_TAGS_META[t];
+                                          {item.tags.map((tag) => {
+                                            const meta = DIET_TAGS_META[tag];
                                             if (!meta) return null;
                                             const Icon = meta.icon;
                                             return (
-                                              <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
+                                              <span key={tag} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
                                                 <Icon className="h-2.5 w-2.5" />
                                                 {t(meta.labelKey)}
                                               </span>
@@ -687,12 +687,12 @@ const Cardapio = () => {
                                   )}
                                   {item.tags && item.tags.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">
-                                      {item.tags.map((t) => {
-                                        const meta = DIET_TAGS_META[t];
+                                      {item.tags.map((tag) => {
+                                        const meta = DIET_TAGS_META[tag];
                                         if (!meta) return null;
                                         const Icon = meta.icon;
                                         return (
-                                          <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
+                                          <span key={tag} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
                                             <Icon className="h-2.5 w-2.5" />
                                             {t(meta.labelKey)}
                                           </span>
@@ -769,12 +769,12 @@ const Cardapio = () => {
                                       </div>
                                       {item.tags && item.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">
-                                          {item.tags.map((t) => {
-                                            const meta = DIET_TAGS_META[t];
+                                          {item.tags.map((tag) => {
+                                            const meta = DIET_TAGS_META[tag];
                                             if (!meta) return null;
                                             const Icon = meta.icon;
                                             return (
-                                              <span key={t} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${meta.className}`}>
+                                              <span key={tag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${meta.className}`}>
                                                 <Icon className="h-3 w-3" />
                                                 {t(meta.labelKey)}
                                               </span>
