@@ -178,7 +178,7 @@ const Index = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       const { data: days } = await supabase.from("weekly_menu_days").select("*").order("ordem");
-      const { data: items } = await supabase.from("weekly_menu_items").select("*").eq("ativo", true).order("ordem");
+      const { data: items } = await supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem");
       if (days && days.length > 0) {
         setMenuDays(days);
         const jsDay = new Date().getDay();
