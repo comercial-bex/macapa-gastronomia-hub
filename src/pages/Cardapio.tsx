@@ -566,7 +566,7 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
@@ -618,7 +618,7 @@ const Cardapio = () => {
                                             return (
                                               <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
                                                 <Icon className="h-2.5 w-2.5" />
-                                                {meta.label}
+                                                {t(meta.labelKey)}
                                               </span>
                                             );
                                           })}
@@ -694,7 +694,7 @@ const Cardapio = () => {
                                         return (
                                           <span key={t} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
                                             <Icon className="h-2.5 w-2.5" />
-                                            {meta.label}
+                                            {t(meta.labelKey)}
                                           </span>
                                         );
                                       })}
@@ -724,7 +724,7 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" />;
+                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
@@ -776,7 +776,7 @@ const Cardapio = () => {
                                             return (
                                               <span key={t} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${meta.className}`}>
                                                 <Icon className="h-3 w-3" />
-                                                {meta.label}
+                                                {t(meta.labelKey)}
                                               </span>
                                             );
                                           })}
