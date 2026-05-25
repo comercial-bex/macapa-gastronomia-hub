@@ -139,6 +139,7 @@ const dictionaries = {
     "a11y.logo_home": "Restaurante Macapaba — ir para a página inicial",
     "a11y.nav_main": "Navegação principal",
     "a11y.nav_mobile": "Navegação móvel",
+    "a11y.skip_to_content": "Pular para o conteúdo principal",
   },
   en: {
     "nav.home": "Home",
