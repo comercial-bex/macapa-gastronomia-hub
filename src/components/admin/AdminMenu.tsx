@@ -758,9 +758,12 @@ const AdminMenu = () => {
             </div>
           </div>
 
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <div className={`grid gap-6 ${livePreviewOpen ? "lg:grid-cols-[1fr_380px]" : "lg:grid-cols-1"}`}>
+            {/* Left column: management */}
+            <div className="min-w-0">
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={visibleItems.map((i) => i.id)} strategy={rectSortingStrategy}>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={`grid gap-4 ${livePreviewOpen ? "sm:grid-cols-2 xl:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-3"}`}>
                 {visibleItems.map((item) => (
                   <SortableItem key={item.id} id={item.id} className="glass-effect rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {/* Media preview */}
@@ -882,17 +885,90 @@ const AdminMenu = () => {
             </SortableContext>
           </DndContext>
 
-          {dayItems.length === 0 && (
-            <div className="text-center py-12">
-              <UtensilsCrossed className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground text-sm">Nenhum prato cadastrado para {activeDayName}.</p>
+            {dayItems.length === 0 && (
+              <div className="relative overflow-hidden rounded-2xl border border-dashed border-primary/30 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 py-16 px-6 text-center">
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-5">
+                  <UtensilsCrossed className="h-7 w-7 text-primary" />
+                </div>
+                <h3 className="font-display text-xl text-foreground mb-2">
+                  {activeDayName} ainda sem pratos
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+                  Comece criando o primeiro prato deste dia. Você pode adicionar nome, categoria, descrição e mídia.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button onClick={() => setAddDialogOpen(true)} className="gap-1.5">
+                    <Plus className="h-4 w-4" /> Adicionar primeiro prato
+                  </Button>
+                  {days.filter((d) => d.id !== activeDay && items.some((i) => i.day_id === d.id)).length > 0 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setCopyDialog({ open: true, targetDayId: "", mode: "merge" })}
+                      className="gap-1.5"
+                    >
+                      <CopyPlus className="h-4 w-4" /> Copiar de outro dia
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+            {dayItems.length > 0 && visibleItems.length === 0 && (
+              <div className="text-center py-10 rounded-xl border border-dashed border-border bg-secondary/20">
+                <p className="text-sm text-muted-foreground">Nenhum prato neste filtro.</p>
+                <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={() => setFilter("todos")}>
+                  Limpar filtro
+                </Button>
+              </div>
+            )}
             </div>
-          )}
-          {dayItems.length > 0 && visibleItems.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Nenhum prato neste filtro.
-            </div>
-          )}
+
+            {/* Right column: live preview iframe */}
+            {livePreviewOpen && (
+              <aside className="hidden lg:block">
+                <div className="sticky top-4">
+                  <div className="rounded-xl border border-border bg-secondary/20 overflow-hidden shadow-lg">
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-background/40">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                        <span className="font-medium text-foreground">Prévia ao vivo</span>
+                        <span className="text-muted-foreground/70">— {activeDayName}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewKey((k) => k + 1)}
+                          title="Atualizar prévia"
+                          className="text-[11px] text-muted-foreground hover:text-primary transition-colors px-1.5"
+                        >
+                          Atualizar
+                        </button>
+                        <a
+                          href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Abrir em nova aba"
+                          className="text-muted-foreground hover:text-primary p-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                    <iframe
+                      key={previewKey}
+                      src={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}&preview=1`}
+                      title={`Prévia ${activeDayName}`}
+                      className="w-full bg-background block"
+                      style={{ height: "calc(100vh - 9rem)", minHeight: 600 }}
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/70 mt-2 text-center">
+                    A prévia atualiza automaticamente ao salvar alterações.
+                  </p>
+                </div>
+              </aside>
+            )}
+          </div>
         </div>
       )}
 
