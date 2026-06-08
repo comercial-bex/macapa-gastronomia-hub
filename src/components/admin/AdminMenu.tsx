@@ -878,6 +878,7 @@ const AdminMenu = () => {
       )}
 
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        {/* placeholder to keep diff context stable */}
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir prato?</AlertDialogTitle>
