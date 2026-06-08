@@ -1079,9 +1079,6 @@ const AdminMenu = () => {
               <p className="text-[11px] text-muted-foreground mt-1">Aparece no site. Máx. 240 caracteres.</p>
             </div>
 
-            <p className="text-[11px] text-muted-foreground/80">
-              Você poderá adicionar a foto/vídeo, alérgenos e horário depois, no card do prato.
-            </p>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddDialogOpen(false)} disabled={savingNew}>Cancelar</Button>
