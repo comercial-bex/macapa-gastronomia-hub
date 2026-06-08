@@ -877,8 +877,104 @@ const AdminMenu = () => {
         </div>
       )}
 
+      {/* Novo prato dialog */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="glass-effect max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" /> Novo prato — {activeDayName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome do prato *</Label>
+              <Input
+                autoFocus
+                value={newPrato}
+                maxLength={80}
+                onChange={(e) => setNewPrato(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addItem(); } }}
+                placeholder="Ex: Maniçoba tradicional"
+              />
+            </div>
+
+            <div>
+              <Label>Categoria</Label>
+              <div className="flex flex-wrap gap-2 mt-1.5">
+                {CATEGORIAS.map((c) => {
+                  const active = newCategoria === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setNewCategoria(c)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize border transition-colors ${
+                        active
+                          ? "bg-primary/15 text-primary border-primary/40"
+                          : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Unidade</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
+                  value={newUnitId}
+                  onChange={(e) => setNewUnitId(e.target.value)}
+                >
+                  <option value="">Todas unidades</option>
+                  {units.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>Badge (opcional)</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
+                  value={newBadge}
+                  onChange={(e) => setNewBadge(e.target.value)}
+                >
+                  <option value="">Nenhuma</option>
+                  <option value="novo">Novo</option>
+                  <option value="destaque">Destaque</option>
+                  <option value="chef">Sugestão do chef</option>
+                  <option value="promocao">Promoção</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Descrição curta (opcional)</Label>
+              <Textarea
+                rows={2}
+                maxLength={240}
+                value={newDescricao}
+                onChange={(e) => setNewDescricao(e.target.value)}
+                placeholder="Ex: Tucunaré grelhado com purê de macaxeira e farofa de banana."
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Aparece no site. Máx. 240 caracteres.</p>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground/80">
+              Você poderá adicionar a foto/vídeo, alérgenos e horário depois, no card do prato.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAddDialogOpen(false)} disabled={savingNew}>Cancelar</Button>
+            <Button onClick={addItem} disabled={savingNew || !newPrato.trim()} className="gap-1.5">
+              <Plus className="h-4 w-4" /> {savingNew ? "Adicionando..." : "Adicionar prato"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
-        {/* placeholder to keep diff context stable */}
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir prato?</AlertDialogTitle>
