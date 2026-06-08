@@ -94,8 +94,10 @@ const AdminMenu = () => {
 
   const addItem = async () => {
     const nome = newPrato.trim();
-    if (!nome) { toast.error("Informe o nome do prato."); return; }
+    if (!nome) { setNameError("Informe o nome do prato."); return; }
+    if (nome.length > 80) { setNameError("Nome muito longo (máx. 80 caracteres)."); return; }
     if (!activeDay) { toast.error("Selecione um dia antes de adicionar."); return; }
+    setNameError(null);
     const dayItems = items.filter((i) => i.day_id === activeDay);
     setSavingNew(true);
     try {
