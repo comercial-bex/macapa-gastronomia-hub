@@ -973,28 +973,44 @@ const AdminMenu = () => {
       )}
 
       {/* Novo prato dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+      <Dialog open={addDialogOpen} onOpenChange={(o) => { setAddDialogOpen(o); if (!o) setNameError(null); }}>
         <DialogContent className="glass-effect max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display flex items-center gap-2">
               <Plus className="h-5 w-5 text-primary" /> Novo prato — {activeDayName}
             </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Preencha o essencial. Mídia, alérgenos e horário você adiciona depois no card do prato.
+            </p>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Nome do prato *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="novo-prato-nome">Nome do prato <span className="text-destructive">*</span></Label>
+                <span className="text-[10px] text-muted-foreground/70">{newPrato.length}/80</span>
+              </div>
               <Input
+                id="novo-prato-nome"
                 autoFocus
                 value={newPrato}
                 maxLength={80}
-                onChange={(e) => setNewPrato(e.target.value)}
+                onChange={(e) => { setNewPrato(e.target.value); if (nameError) setNameError(null); }}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addItem(); } }}
                 placeholder="Ex: Maniçoba tradicional"
+                aria-invalid={!!nameError}
+                className={nameError ? "border-destructive focus-visible:ring-destructive" : ""}
               />
+              {nameError ? (
+                <p className="text-[11px] text-destructive mt-1 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> {nameError}
+                </p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground mt-1">Será exibido no site exatamente como digitado.</p>
+              )}
             </div>
 
             <div>
-              <Label>Categoria</Label>
+              <Label>Tipo do prato</Label>
               <div className="flex flex-wrap gap-2 mt-1.5">
                 {CATEGORIAS.map((c) => {
                   const active = newCategoria === c;
@@ -1014,6 +1030,7 @@ const AdminMenu = () => {
                   );
                 })}
               </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Selecione onde o prato se encaixa no cardápio.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1027,6 +1044,7 @@ const AdminMenu = () => {
                   <option value="">Todas unidades</option>
                   {units.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
                 </select>
+                <p className="text-[11px] text-muted-foreground mt-1">Em qual unidade o prato é servido.</p>
               </div>
               <div>
                 <Label>Badge (opcional)</Label>
@@ -1041,12 +1059,17 @@ const AdminMenu = () => {
                   <option value="chef">Sugestão do chef</option>
                   <option value="promocao">Promoção</option>
                 </select>
+                <p className="text-[11px] text-muted-foreground mt-1">Selo destacado no card público.</p>
               </div>
             </div>
 
             <div>
-              <Label>Descrição curta (opcional)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="novo-prato-desc">Descrição curta (opcional)</Label>
+                <span className="text-[10px] text-muted-foreground/70">{newDescricao.length}/240</span>
+              </div>
               <Textarea
+                id="novo-prato-desc"
                 rows={2}
                 maxLength={240}
                 value={newDescricao}
