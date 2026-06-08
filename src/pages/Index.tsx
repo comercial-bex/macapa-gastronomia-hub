@@ -491,9 +491,24 @@ const Index = () => {
                           {(() => {
                             const item = selectedItems[selectedItemIndex];
                             if (!item) return null;
-                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const mediaUrl = item.imagem_url;
+                            const mediaTipo = item.tipo_midia;
                             const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            const DishIcon = getDishIcon(item.prato);
+                            if (!mediaUrl) {
+                              return (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background">
+                                  <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_hsl(var(--primary)/0.25),_transparent_60%)]" />
+                                  <div className="relative flex flex-col items-center text-center px-6">
+                                    <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20">
+                                      <DishIcon className="h-10 w-10 text-primary" />
+                                    </div>
+                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
+                                    <h3 className="font-display text-lg font-bold text-foreground/90">{item.prato}</h3>
+                                  </div>
+                                </div>
+                              );
+                            }
                             return (
                               <>
                                 {mediaTipo === 'video' ? (
@@ -550,9 +565,24 @@ const Index = () => {
                           {(() => {
                             const item = selectedItems[selectedItemIndex];
                             if (!item) return null;
-                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const mediaUrl = item.imagem_url;
+                            const mediaTipo = item.tipo_midia;
                             const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            const DishIcon = getDishIcon(item.prato);
+                            if (!mediaUrl) {
+                              return (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background">
+                                  <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_hsl(var(--primary)/0.25),_transparent_60%)]" />
+                                  <div className="relative flex flex-col items-center text-center px-6">
+                                    <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20">
+                                      <DishIcon className="h-10 w-10 text-primary" />
+                                    </div>
+                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
+                                    <h3 className="font-display text-2xl font-bold text-foreground/90">{item.prato}</h3>
+                                  </div>
+                                </div>
+                              );
+                            }
                             return (
                               <>
                                 {mediaTipo === 'video' ? (
