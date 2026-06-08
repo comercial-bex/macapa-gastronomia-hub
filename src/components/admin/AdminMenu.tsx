@@ -83,42 +83,50 @@ const AdminMenu = () => {
   useRealtimeRefresh(["weekly_menu_items", "weekly_menu_days"], fetchData);
 
   const addItem = async () => {
-    if (!newPrato.trim() || !activeDay) return;
+    const nome = newPrato.trim();
+    if (!nome) { toast.error("Informe o nome do prato."); return; }
+    if (!activeDay) { toast.error("Selecione um dia antes de adicionar."); return; }
     const dayItems = items.filter((i) => i.day_id === activeDay);
-    await supabase.from("weekly_menu_items").insert({
+    const { error } = await supabase.from("weekly_menu_items").insert({
       day_id: activeDay,
-      prato: newPrato.trim(),
+      prato: nome,
       ordem: dayItems.length,
       ativo: true,
       categoria: newCategoria,
       unit_id: newUnitId || null,
     } as any);
+    if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
     const dayName = days.find(d => d.id === activeDay)?.dia_semana;
-    await logAction("cardapio", "criou", `Adicionou prato '${newPrato.trim()}' em ${dayName}`);
+    await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
     setNewPrato("");
     toast.success("Adicionado!");
     fetchData();
   };
 
   const updateCategoria = async (id: string, categoria: string) => {
-    await supabase.from("weekly_menu_items").update({ categoria } as any).eq("id", id);
+    const { error } = await supabase.from("weekly_menu_items").update({ categoria } as any).eq("id", id);
+    if (error) { toast.error("Falha: " + error.message); return; }
     fetchData();
   };
 
   const updateUnit = async (id: string, unit_id: string | null) => {
-    await supabase.from("weekly_menu_items").update({ unit_id } as any).eq("id", id);
+    const { error } = await supabase.from("weekly_menu_items").update({ unit_id } as any).eq("id", id);
+    if (error) { toast.error("Falha: " + error.message); return; }
     fetchData();
   };
 
   const toggleTag = async (item: any, tagKey: string) => {
     const current: string[] = item.tags || [];
     const next = current.includes(tagKey) ? current.filter((t) => t !== tagKey) : [...current, tagKey];
-    await supabase.from("weekly_menu_items").update({ tags: next } as any).eq("id", item.id);
+    const { error } = await supabase.from("weekly_menu_items").update({ tags: next } as any).eq("id", item.id);
+    if (error) { toast.error("Falha: " + error.message); return; }
     fetchData();
   };
 
   const toggleActive = async (id: string, ativo: boolean) => {
-    await supabase.from("weekly_menu_items").update({ ativo: !ativo }).eq("id", id);
+    const { error } = await supabase.from("weekly_menu_items").update({ ativo: !ativo }).eq("id", id);
+    if (error) { toast.error("Falha: " + error.message); return; }
+    toast.success(!ativo ? "Prato publicado" : "Prato ocultado do site");
     fetchData();
   };
 
@@ -493,13 +501,13 @@ const AdminMenu = () => {
   // ===== Day management =====
   const addDay = async () => {
     const nome = newDayName.trim();
-    if (!nome) return;
+    if (!nome) { toast.error("Informe o nome do dia."); return; }
     const { error } = await supabase.from("weekly_menu_days").insert({
       dia_semana: nome,
       ordem: days.length,
       ativo: true,
     } as any);
-    if (error) return toast.error("Erro ao criar dia");
+    if (error) { toast.error("Erro ao criar dia: " + error.message); return; }
     await logAction("cardapio", "criou", `Adicionou dia '${nome}'`);
     setNewDayName("");
     toast.success("Dia criado");
@@ -509,13 +517,16 @@ const AdminMenu = () => {
   const renameDay = async (id: string, novo: string) => {
     const v = novo.trim();
     if (!v) return;
-    await supabase.from("weekly_menu_days").update({ dia_semana: v } as any).eq("id", id);
+    const { error } = await supabase.from("weekly_menu_days").update({ dia_semana: v } as any).eq("id", id);
+    if (error) { toast.error("Falha ao renomear dia: " + error.message); return; }
     setDays((prev) => prev.map((d) => (d.id === id ? { ...d, dia_semana: v } : d)));
   };
 
   const toggleDayActive = async (id: string, ativo: boolean) => {
-    await supabase.from("weekly_menu_days").update({ ativo: !ativo } as any).eq("id", id);
+    const { error } = await supabase.from("weekly_menu_days").update({ ativo: !ativo } as any).eq("id", id);
+    if (error) { toast.error("Falha: " + error.message); return; }
     setDays((prev) => prev.map((d) => (d.id === id ? { ...d, ativo: !ativo } : d)));
+    toast.success(!ativo ? "Dia visível no site" : "Dia oculto do site");
   };
 
   const deleteDay = async (id: string) => {
@@ -524,8 +535,10 @@ const AdminMenu = () => {
       toast.error(`Mova ou apague os ${dayItemsCount} prato(s) antes de excluir o dia.`);
       return;
     }
-    await supabase.from("weekly_menu_days").delete().eq("id", id);
+    const { error } = await supabase.from("weekly_menu_days").delete().eq("id", id);
+    if (error) { toast.error("Falha: " + error.message); return; }
     if (activeDay === id) setActiveDay(days.find((d) => d.id !== id)?.id || "");
+    toast.success("Dia removido");
     fetchData();
   };
 

@@ -28,12 +28,6 @@ import { useI18n } from "@/lib/i18n";
  import clientesRestaurante from "@/assets/clientes-restaurante.jpg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpg";
 
-import foodDemo1 from "@/assets/food-demo-1.jpeg";
-import foodDemo2 from "@/assets/food-demo-2.jpeg";
-import foodDemo3 from "@/assets/food-demo-3.jpeg";
-
-const demoImages = [foodDemo1, foodDemo2, foodDemo3];
-
 const weekDayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const getDishIcon = (name: string): LucideIcon => {
@@ -177,7 +171,7 @@ const Index = () => {
 
   useEffect(() => {
     const fetchMenu = async () => {
-      const { data: days } = await supabase.from("weekly_menu_days").select("*").order("ordem");
+      const { data: days } = await supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem");
       const { data: items } = await supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem");
       if (days && days.length > 0) {
         setMenuDays(days);
@@ -491,9 +485,24 @@ const Index = () => {
                           {(() => {
                             const item = selectedItems[selectedItemIndex];
                             if (!item) return null;
-                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const mediaUrl = item.imagem_url;
+                            const mediaTipo = item.tipo_midia;
                             const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            const DishIcon = getDishIcon(item.prato);
+                            if (!mediaUrl) {
+                              return (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background">
+                                  <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_hsl(var(--primary)/0.25),_transparent_60%)]" />
+                                  <div className="relative flex flex-col items-center text-center px-6">
+                                    <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20">
+                                      <DishIcon className="h-10 w-10 text-primary" />
+                                    </div>
+                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
+                                    <h3 className="font-display text-lg font-bold text-foreground/90">{item.prato}</h3>
+                                  </div>
+                                </div>
+                              );
+                            }
                             return (
                               <>
                                 {mediaTipo === 'video' ? (
@@ -550,9 +559,24 @@ const Index = () => {
                           {(() => {
                             const item = selectedItems[selectedItemIndex];
                             if (!item) return null;
-                            const mediaUrl = item.imagem_url || demoImages[selectedItemIndex % 3];
-                            const mediaTipo = item.imagem_url ? item.tipo_midia : 'imagem';
+                            const mediaUrl = item.imagem_url;
+                            const mediaTipo = item.tipo_midia;
                             const currentDay = menuDays.find((d) => d.id === selectedDayId);
+                            const DishIcon = getDishIcon(item.prato);
+                            if (!mediaUrl) {
+                              return (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-secondary via-background to-background">
+                                  <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_hsl(var(--primary)/0.25),_transparent_60%)]" />
+                                  <div className="relative flex flex-col items-center text-center px-6">
+                                    <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20">
+                                      <DishIcon className="h-10 w-10 text-primary" />
+                                    </div>
+                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
+                                    <h3 className="font-display text-2xl font-bold text-foreground/90">{item.prato}</h3>
+                                  </div>
+                                </div>
+                              );
+                            }
                             return (
                               <>
                                 {mediaTipo === 'video' ? (
