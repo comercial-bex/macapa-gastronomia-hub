@@ -652,30 +652,55 @@ const AdminMenu = () => {
 
       {activeDay && (
         <div>
-          {/* Day-level sync status + open-on-site link */}
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-3 py-2 rounded-lg bg-secondary/40 border border-border">
+          {/* Day toolbar: status à esquerda, ações + Novo prato à direita */}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs text-muted-foreground">
-              <span className="text-foreground font-semibold">{dayItemsComFoto}</span> de <span className="text-foreground font-semibold">{dayItems.length}</span> pratos com foto em <span className="text-primary font-medium">{activeDayName}</span>
+              <span className="font-display text-base text-foreground">{activeDayName}</span>
+              <span className="mx-2 text-muted-foreground/50">·</span>
+              <span className="text-foreground font-medium">{dayItems.length}</span> prato{dayItems.length === 1 ? "" : "s"}
+              <span className="mx-2 text-muted-foreground/50">·</span>
+              <span className="text-foreground font-medium">{dayItemsComFoto}</span> com foto
+              {dayItemsEsgotados > 0 && (
+                <>
+                  <span className="mx-2 text-muted-foreground/50">·</span>
+                  <span className="text-destructive font-medium">{dayItemsEsgotados}</span> esgotado{dayItemsEsgotados === 1 ? "" : "s"}
+                </>
+              )}
             </div>
             <div className="flex items-center gap-2">
-              <a
-                href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-                title="Abrir essa página no site público"
-              >
-                <ExternalLink className="h-3 w-3" /> Ver no site
-              </a>
+              {/* Filter dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
-                    Ações do dia <ChevronDown className="h-3 w-3" />
+                  <Button size="sm" variant="outline" className="h-9 gap-1.5 text-xs">
+                    {filter === "todos" && `Todos (${dayItems.length})`}
+                    {filter === "sem-foto" && `Sem foto (${dayItemsSemFoto})`}
+                    {filter === "esgotados" && `Esgotados (${dayItemsEsgotados})`}
+                    {filter === "novos" && `Novos / Destaque (${dayItemsNovos})`}
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setFilter("todos")}>Todos ({dayItems.length})</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilter("sem-foto")}>Sem foto ({dayItemsSemFoto})</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilter("esgotados")}>Esgotados ({dayItemsEsgotados})</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilter("novos")}>Novos / Destaque ({dayItemsNovos})</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Ações do dia */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-9 gap-1.5 text-xs">
+                    Ações <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>{activeDayName}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => bulkInputRef.current?.click()} disabled={bulkUploading || dayItems.length === 0}>
+                    <Images className="h-3.5 w-3.5 mr-2" />
+                    {bulkUploading ? `Enviando ${bulkProgress.done}/${bulkProgress.total}...` : "Upload em massa"}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setCopyDialog({ open: true, targetDayId: "", mode: "merge" })}>
                     <CopyPlus className="h-3.5 w-3.5 mr-2" /> Copiar dia para…
                   </DropdownMenuItem>
@@ -685,66 +710,23 @@ const AdminMenu = () => {
                   <DropdownMenuItem onClick={printDay}>
                     <Printer className="h-3.5 w-3.5 mr-2" /> Imprimir / PDF
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a
+                      href={`/cardapio?dia=${encodeURIComponent(activeDayName || "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-pointer"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 mr-2" /> Ver no site
+                    </a>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          </div>
 
-          {/* Quick filters */}
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            {[
-              { key: "todos", label: `Todos (${dayItems.length})` },
-              { key: "sem-foto", label: `Sem foto (${dayItemsSemFoto})` },
-              { key: "esgotados", label: `Esgotados hoje (${dayItemsEsgotados})` },
-              { key: "novos", label: `Novos / Destaque (${dayItemsNovos})` },
-            ].map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key as any)}
-                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                  filter === f.key
-                    ? "bg-primary/15 text-primary border-primary/30"
-                    : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-            <span className="text-[11px] text-muted-foreground/70 ml-auto">Arraste pelo punho ⠿ para reordenar.</span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 mb-6">
-            <Input value={newPrato} onChange={(e) => setNewPrato(e.target.value)} placeholder="Nome do prato" onKeyDown={(e) => e.key === "Enter" && addItem()} className="flex-1" />
-            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={newCategoria} onChange={(e) => setNewCategoria(e.target.value)}>
-              {CATEGORIAS.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={newUnitId} onChange={(e) => setNewUnitId(e.target.value)}>
-              <option value="">Todas unidades</option>
-              {units.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
-            </select>
-            <Button onClick={addItem} className="gap-2"><Plus className="h-4 w-4" /> Adicionar</Button>
-          </div>
-
-          {/* Bulk upload */}
-          <div className="mb-6 p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm font-medium flex items-center gap-2">
-                  <Images className="h-4 w-4 text-primary" /> Upload em massa de fotos
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Selecione várias fotos e elas serão atribuídas automaticamente ao prato cujo nome aparece no arquivo. Ex: <code className="px-1 rounded bg-muted">maniçoba.jpg</code>.
-                </p>
-              </div>
-              <Button
-                onClick={() => bulkInputRef.current?.click()}
-                disabled={bulkUploading || dayItems.length === 0}
-                variant="outline"
-                className="gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                {bulkUploading ? `Enviando ${bulkProgress.done}/${bulkProgress.total}...` : "Selecionar fotos"}
+              {/* Primary action */}
+              <Button onClick={() => setAddDialogOpen(true)} className="gap-1.5 h-9">
+                <Plus className="h-4 w-4" /> Novo prato
               </Button>
               <input
                 ref={bulkInputRef}
