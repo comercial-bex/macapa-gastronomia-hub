@@ -28,12 +28,6 @@ import { useI18n } from "@/lib/i18n";
  import clientesRestaurante from "@/assets/clientes-restaurante.jpg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpg";
 
-import foodDemo1 from "@/assets/food-demo-1.jpeg";
-import foodDemo2 from "@/assets/food-demo-2.jpeg";
-import foodDemo3 from "@/assets/food-demo-3.jpeg";
-
-const demoImages = [foodDemo1, foodDemo2, foodDemo3];
-
 const weekDayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const getDishIcon = (name: string): LucideIcon => {
