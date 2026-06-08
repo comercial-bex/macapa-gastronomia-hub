@@ -731,6 +731,18 @@ const AdminMenu = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* Live preview toggle (only on lg+) */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 gap-1.5 text-xs hidden lg:inline-flex"
+                onClick={() => setLivePreviewOpen((v) => !v)}
+                title={livePreviewOpen ? "Ocultar prévia ao vivo" : "Mostrar prévia ao vivo"}
+              >
+                {livePreviewOpen ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                Prévia
+              </Button>
+
               {/* Primary action */}
               <Button onClick={() => setAddDialogOpen(true)} className="gap-1.5 h-9">
                 <Plus className="h-4 w-4" /> Novo prato
