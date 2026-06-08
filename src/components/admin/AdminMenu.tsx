@@ -70,6 +70,10 @@ const AdminMenu = () => {
   const [newDescricao, setNewDescricao] = useState("");
   const [newBadge, setNewBadge] = useState("");
   const [savingNew, setSavingNew] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  // Live preview panel (only visible on lg+). User can toggle off.
+  const [livePreviewOpen, setLivePreviewOpen] = useState(true);
+  const [previewKey, setPreviewKey] = useState(0); // bump to force iframe reload after edits
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
