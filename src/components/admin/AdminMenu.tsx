@@ -65,6 +65,12 @@ const AdminMenu = () => {
   const [dayManagerOpen, setDayManagerOpen] = useState(false);
   const [newDayName, setNewDayName] = useState("");
 
+  // New "Adicionar prato" dialog state.
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newDescricao, setNewDescricao] = useState("");
+  const [newBadge, setNewBadge] = useState("");
+  const [savingNew, setSavingNew] = useState(false);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const fetchData = async () => {
@@ -87,20 +93,32 @@ const AdminMenu = () => {
     if (!nome) { toast.error("Informe o nome do prato."); return; }
     if (!activeDay) { toast.error("Selecione um dia antes de adicionar."); return; }
     const dayItems = items.filter((i) => i.day_id === activeDay);
-    const { error } = await supabase.from("weekly_menu_items").insert({
-      day_id: activeDay,
-      prato: nome,
-      ordem: dayItems.length,
-      ativo: true,
-      categoria: newCategoria,
-      unit_id: newUnitId || null,
-    } as any);
-    if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
-    const dayName = days.find(d => d.id === activeDay)?.dia_semana;
-    await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
-    setNewPrato("");
-    toast.success("Adicionado!");
-    fetchData();
+    setSavingNew(true);
+    try {
+      const { error } = await supabase.from("weekly_menu_items").insert({
+        day_id: activeDay,
+        prato: nome,
+        ordem: dayItems.length,
+        ativo: true,
+        categoria: newCategoria,
+        unit_id: newUnitId || null,
+        descricao: newDescricao.trim() || null,
+        badge: newBadge || null,
+      } as any);
+      if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
+      const dayName = days.find(d => d.id === activeDay)?.dia_semana;
+      await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
+      setNewPrato("");
+      setNewDescricao("");
+      setNewBadge("");
+      setNewCategoria("principal");
+      setNewUnitId("");
+      setAddDialogOpen(false);
+      toast.success("Prato adicionado!");
+      fetchData();
+    } finally {
+      setSavingNew(false);
+    }
   };
 
   const updateCategoria = async (id: string, categoria: string) => {
