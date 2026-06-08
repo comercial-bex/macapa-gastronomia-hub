@@ -11,15 +11,22 @@ export const SortableItem = ({ id, children, className = "" }: { id: string; chi
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.85 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style} className={`relative ${className}`}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative ${className} ${
+        isDragging
+          ? "ring-2 ring-primary/60 shadow-2xl shadow-primary/30 scale-[1.02] rotate-[0.5deg]"
+          : "hover:ring-1 hover:ring-primary/20"
+      } transition-[box-shadow,transform] duration-150`}
+    >
       <button
         type="button"
         {...attributes}
         {...listeners}
-        className="absolute top-2 left-2 z-20 w-7 h-7 rounded-md bg-black/60 hover:bg-black/80 text-white/90 flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="absolute top-2 left-2 z-20 w-7 h-7 rounded-md bg-black/60 hover:bg-primary/80 text-white/90 flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors"
         title="Arrastar para reordenar"
         aria-label="Arrastar"
       >
