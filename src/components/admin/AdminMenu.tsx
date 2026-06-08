@@ -86,6 +86,7 @@ const AdminMenu = () => {
     if (d.data) { setDays(d.data); if (!activeDay && d.data.length) setActiveDay(d.data[0].id); }
     if (i.data) setItems(i.data);
     if (u.data) setUnits(u.data);
+    setPreviewKey((k) => k + 1);
   };
 
   useEffect(() => { fetchData(); }, []);
