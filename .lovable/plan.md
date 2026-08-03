@@ -1,100 +1,33 @@
-# Redesign — /admin/cardapio
+# Internacionalização completa (PT-BR · EN · ES · FR)
 
-Skill atuante: **Pax (Frontend)** com validação de **Quinn (QA)**. Sem mudanças de banco, sem alteração de regras de negócio.
+O site já tem um sistema de tradução próprio (`src/lib/i18n.tsx`) com PT/EN/ES parcialmente aplicado. O plano amplia esse sistema para quatro idiomas e elimina os textos ainda fixos em português, sem trocar de biblioteca e sem alterar o design.
 
-## Diagnóstico do estado atual
+## O que será entregue
 
-A página hoje empilha tudo em uma única coluna, criando ruído visual:
+1. **Quatro idiomas completos** — pt-BR, en, es, fr, com fallback para pt-BR.
+2. **Seletor no cabeçalho** (globo + sigla PT/EN/ES/FR), funcionando em desktop, tablet e menu mobile, com teclado, `aria-label`, marcação do idioma ativo e fechamento ao clicar fora.
+3. **Persistência** em `localStorage` na chave `macapaba_language`; ordem de prioridade: escolha salva → idioma do navegador → pt-BR. Depois de uma escolha manual, o idioma não muda sozinho. `<html lang>` atualizado.
+4. **Zero texto fixo em português** nas páginas públicas: Home, Portfólio, Cardápio, Unidades, Trabalhe Conosco, Reserva, 404 e componentes compartilhados (cabeçalho, rodapé, menu mobile, indicador offline, transições, estados vazios e de carregamento).
+5. **Conteúdo do banco** traduzido por glossário no código (decisão confirmada): dicionário PT → EN/ES/FR com os nomes de pratos, acompanhamentos e categorias listados no pedido. Nomes sem correspondência mantêm o original, preservando a identidade cultural; nada é inventado. O banco e o painel admin não mudam.
+6. **Dias da semana** com chaves internas fixas (`monday`…`sunday`) e nomes/abreviações traduzidos na exibição, incluindo as abas do cardápio.
+7. **SEO por idioma** — title, description, Open Graph, Twitter Card e JSON-LD traduzidos por rota; hreflang para pt-BR, en, es, fr e x-default. URLs permanecem as atuais (decisão confirmada); a troca de idioma mantém o usuário na mesma página.
+8. **Formatação local** com `Intl.DateTimeFormat` / `Intl.NumberFormat` e plural correto nos quatro idiomas (ex.: 1 pessoa / 2 pessoas, 1 guest / 2 guests, 1 personne / 2 personnes).
+9. **Acessibilidade traduzida** — `aria-label`, `title`, `alt`, controles da galeria, abrir/fechar menu, próxima/anterior imagem.
 
-1. Barra de "dias da semana" como botões grandes com contadores entre parênteses.
-2. Banner amarelo de "X pratos sem foto".
-3. Faixa de sincronia + dropdown "Ações do dia".
-4. Linha de filtros rápidos (Todos / Sem foto / Esgotados / Novos).
-5. **Formulário inline sempre visível**: input + select categoria + select unidade + botão "Adicionar". Confuso e ocupa espaço sem motivo.
-6. Card pontilhado de "Upload em massa".
-7. Grid de cards.
+## Textos oficiais
 
-O usuário pediu: botão único de **Adicionar** que abre **modal** com o formulário (nome obrigatório, e opcionalmente descrição, categoria — entrada/principal/sobremesa — e unidade). E uma interface mais sóbria, "benchmarking" UX.
+Serão usados exatamente os textos fornecidos para: menu de navegação, seção História (Desde 2009, 17 anos, Mais de 50 pratos, blocos Amazônia/AP e Feito à mão), Galeria, Cardápio da Semana, dias da semana, unidades, reserva de mesa, trabalhe conosco e acessibilidade.
 
-## O que vamos construir
+## Detalhes técnicos
 
-### 1. Cabeçalho do dia (topo limpo, uma única linha)
+- **Biblioteca**: mantém-se o provider próprio em `src/lib/i18n.tsx` (já integrado a Header, Footer, Layout, Index, Cardápio, TrabalheConosco). Ampliação para quatro idiomas, tipo `Locale = "pt-BR" | "en" | "es" | "fr"`, com migração transparente do valor antigo salvo (`pt`/`en`/`es`) e da chave antiga (`macapaba.locale` → `macapaba_language`).
+- **Organização dos dicionários**: os textos saem do arquivo único e passam a viver em `src/i18n/locales/pt-BR.ts`, `en.ts`, `es.ts`, `fr.ts`, carregados por `src/i18n/index.ts`. Chaves ausentes caem em pt-BR — nunca aparece a chave técnica na tela.
+- **Glossário gastronômico**: `src/i18n/menuGlossary.ts` com normalização (minúsculas/acentos) e função `translateDish(nome, locale)` usada no Cardápio, na Home e nos visualizadores; devolve o nome original quando não há entrada.
+- **Plural e datas**: helpers `formatNumber`, `formatDate`, `plural` no módulo i18n, usados na reserva, nas abas de dias e nos contadores.
+- **SEO**: `src/components/SEO.tsx` passa a receber os textos já traduzidos pelo hook; `index.html` mantém o conteúdo pt-BR como base estática e ganha `hreflang` para `fr`; `public/sitemap.xml` recebe o alternate `fr`.
+- **Layout**: apenas ajustes pontuais de espaçamento/quebra para acomodar palavras mais longas (cabeçalho, abas de dias com rolagem horizontal no mobile, botões e cards). Cores, fontes, imagens e animações permanecem intactas.
+- **Sem alteração no banco de dados** e sem duplicação de páginas ou rotas.
 
-```text
-[ Segunda  Terça  Quarta  Quinta  Sexta  Sábado  Domingo  +Gerenciar ]
-                                              [ Ver no site ] [ Ações do dia ▾ ] [ + Novo prato ]
-```
+## Validação
 
-- Pílulas dos dias com tipografia serif (Playfair), contador discreto em superscript, dia ativo com borda dourada e leve glow (já temos tokens).
-- Dia inativo: opacidade reduzida + ícone olho-cortado pequeno.
-- Botão **"+ Novo prato"** dourado (primary) abre o modal — é a única ação de adicionar visível.
-
-### 2. Modal "Novo prato" (substitui o form inline)
-
-Campos:
-
-- **Nome do prato** (obrigatório, autofocus, máx. 80).
-- **Categoria** — chips selecionáveis: Entrada · Principal · Acompanhamento · Sobremesa (default: Principal).
-- **Unidade** — select com "Todas unidades" como padrão.
-- **Descrição curta** (opcional, textarea 2 linhas, máx. 240) — explicação curta.
-- **Badge** (opcional) — Nenhuma / Novo / Destaque / Sugestão do chef / Promoção.
-
-Rodapé: `Cancelar` e `Adicionar prato`. Enter no campo nome envia. Após salvar, toast e modal fecha; mídia continua sendo adicionada pelo card (fluxo atual já funciona bem).
-
-Reusa `handleAddItem` existente, só estendido para gravar `descricao` e `badge` no mesmo INSERT (campos já existem na tabela).
-
-### 3. Barra de status do dia (mais sutil)
-
-Combina o alerta de "sem foto" + contagem em uma única linha clean:
-
-```text
-Segunda · 8 pratos · 6 com foto · 1 esgotado            [ Filtros ▾ ]
-```
-
-- Filtros (Todos / Sem foto / Esgotados / Novos) viram um dropdown compacto à direita, em vez de 4 botões.
-- Alerta amarelo de "sem foto" só aparece quando relevante e em formato inline pequeno, não como banner ocupando largura total.
-
-### 4. Upload em massa colapsado
-
-Vira um botão discreto `Upload em massa de fotos` ao lado de "Ações do dia". Ao clicar, abre o file picker direto (sem o card pontilhado de 80px).
-
-### 5. Cards de prato — refinamento visual
-
-Mantém estrutura, mas:
-
-- Tipografia do título em Playfair Display.
-- Categoria + unidade viram **chips read-only com ícone**, e a edição passa a ser via botão "Detalhes" (modal existente recebe esses campos também). Remove os dois `<select>` no rodapé do card, que poluem.
-- Tags de dieta com ícone monocromático dourado quando ativas (em vez das cores berrantes verde/âmbar/vermelho atuais), preservando hierarquia.
-- Switch ativo/inativo + duplicar + excluir agrupados em um menu kebab (⋮) no canto, libera espaço no topo do card.
-
-### 6. Modal "Gerenciar dias"
-
-Mantém funcionalidade atual (adicionar/renomear/ativar/excluir dia), só aplicando o mesmo padrão visual glassmorphism gold do restante do admin.
-
-## Pontos técnicos
-
-- Arquivo principal: `src/components/admin/AdminMenu.tsx` (1073 linhas — vamos refatorar extraindo dois componentes para ficar abaixo do limite de 150 linhas por componente):
-  - `AdminMenuDayTabs.tsx` — pílulas + botão gerenciar.
-  - `AdminMenuAddDialog.tsx` — modal de novo prato.
-  - `AdminMenuItemCard.tsx` — card individual com menu kebab.
-- Sem migration (campos `descricao` e `badge` já existem).
-- Sem mudança em `/cardapio` público nem em `Index.tsx`.
-- Tokens semânticos: usar `--primary` (dourado), `--background`, `--muted`, `--border`. Zero cor hardcoded.
-- Animações sutis via Framer Motion: fade+slide do modal, fade nas pílulas de dia ao trocar.
-- Mantém todos os estados (loading/error/empty/success) que já existem.
-- Acessibilidade: foco visível no modal, ESC fecha, labels em todos campos.
-
-## Validação (Quinn)
-
-1. Adicionar prato pelo modal — aparece imediatamente no grid e em `/cardapio`.
-2. Adicionar com descrição + badge — campos persistidos.
-3. Trocar de dia — pílula ativa atualiza, grid recarrega.
-4. Filtros via dropdown — funcionam para todos / sem foto / esgotados / novos.
-5. Excluir, duplicar, ativar/desativar, upload e remoção de mídia — sem regressão.
-6. Mobile (360–768px) — pílulas em scroll horizontal, modal fullscreen.
-
-## Fora de escopo
-
-- Página pública `/cardapio` e Home.
-- CRUD de bebidas (`/admin/bebidas`).
-- Mudanças de RLS ou schema.
+Verificação em navegador headless das páginas públicas nos quatro idiomas, nas larguras 375px, 768px e 1440px, checando: ausência de mistura de idiomas, ausência de chaves técnicas, textos não cortados, seletor funcionando no desktop e no mobile, e persistência após recarregar.
