@@ -1,8 +1,10 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import SEO from "@/components/SEO";
+import { useI18n } from "@/lib/i18n";
 
 const NotFound = () => {
+  const { t } = useI18n();
   const location = useLocation();
 
   useEffect(() => {
@@ -12,16 +14,17 @@ const NotFound = () => {
   return (
     <>
       <SEO
-        title="Página não encontrada — Restaurante Macapaba"
-        description="A página que você procura não existe. Volte ao início para conhecer o Restaurante Macapaba."
+        title={t("seo.404_title")}
+        description={t("seo.404_desc")}
         noindex
       />
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <div className="text-center">
         <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-muted-foreground">Oops! Page not found</p>
+        <p className="mb-2 text-xl font-semibold">{t("nf.title")}</p>
+        <p className="mb-4 text-muted-foreground">{t("nf.text")}</p>
         <a href="/" className="text-primary underline hover:text-primary/90">
-          Return to Home
+          {t("nf.back")}
         </a>
       </div>
     </div>

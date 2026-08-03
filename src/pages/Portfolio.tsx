@@ -7,6 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
+import { useI18n } from "@/lib/i18n";
 
 import pratoVariado from "@/assets/prato-variado.jpeg";
 import sushi from "@/assets/sushi.jpeg";
@@ -36,9 +37,10 @@ const fallbackItems: PortfolioItem[] = [
 ];
 
 const Portfolio = () => {
+  const { t } = useI18n();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [activeFilter, setActiveFilter] = useState("Todos");
+  const [activeFilter, setActiveFilter] = useState("__all__");
   const [lightbox, setLightbox] = useState<PortfolioItem | null>(null);
   const [isFallback, setIsFallback] = useState(false);
 
@@ -52,33 +54,33 @@ const Portfolio = () => {
       if (data && data.length > 0) {
         setItems(data);
         const cats = [...new Set(data.map((item) => item.categoria))];
-        setCategories(["Todos", ...cats]);
+        setCategories(["__all__", ...cats]);
       } else {
         setItems(fallbackItems);
         const cats = [...new Set(fallbackItems.map((item) => item.categoria))];
-        setCategories(["Todos", ...cats]);
+        setCategories(["__all__", ...cats]);
         setIsFallback(true);
       }
     };
     fetchItems();
   }, []);
 
-  const filtered = activeFilter === "Todos" ? items : items.filter((i) => i.categoria === activeFilter);
+  const filtered = activeFilter === "__all__" ? items : items.filter((i) => i.categoria === activeFilter);
 
   return (
     <Layout>
       <SEO
-        title="Portfólio — Restaurante Macapaba | Restaurante em Macapá"
-        description="Conheça o portfólio do Restaurante Macapaba: pratos da culinária amazônica, ambiente acolhedor e momentos especiais em Macapá-AP."
+        title={t("seo.portfolio_title")}
+        description={t("seo.portfolio_desc")}
       />
       <section className="py-24 px-4">
         <div className="container mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Galeria</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">Nosso Portfólio</h1>
+              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("portfolio.eyebrow")}</p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("portfolio.title")}</h1>
               {isFallback && (
-                <p className="text-muted-foreground text-sm mt-4">Adicione itens pelo painel administrativo para personalizar o portfólio.</p>
+                <p className="text-muted-foreground text-sm mt-4">{t("portfolio.hint")}</p>
               )}
             </div>
           </ScrollReveal>
@@ -88,13 +90,13 @@ const Portfolio = () => {
               <div className="flex flex-wrap justify-center gap-2 mb-12">
                 {categories.map((cat) => (
                   <Button
-                    key={cat}
+                    key={cat === "__all__" ? t("portfolio.all") : cat}
                     variant={activeFilter === cat ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveFilter(cat)}
                     className={activeFilter === cat ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
                   >
-                    {cat}
+                    {cat === "__all__" ? t("portfolio.all") : cat}
                   </Button>
                 ))}
               </div>
@@ -137,14 +139,14 @@ const Portfolio = () => {
           </motion.div>
 
           {filtered.length === 0 && (
-            <p className="text-center text-muted-foreground py-20">Nenhum item encontrado no portfólio.</p>
+            <p className="text-center text-muted-foreground py-20">{t("portfolio.empty")}</p>
           )}
         </div>
       </section>
 
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
         <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-md border-border p-2">
-          <button onClick={() => setLightbox(null)} aria-label="Fechar visualização" className="absolute top-4 right-4 z-50 text-foreground hover:text-primary">
+          <button onClick={() => setLightbox(null)} aria-label={t("portfolio.close")} className="absolute top-4 right-4 z-50 text-foreground hover:text-primary">
             <X className="h-6 w-6" />
           </button>
           {lightbox && (

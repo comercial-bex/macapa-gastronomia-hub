@@ -94,7 +94,7 @@ const SEO = ({ title, description, canonical, image, jsonLd, noindex, hreflang =
         ? new URL(href).pathname + new URL(href).search
         : href;
       const fullUrl = href.startsWith("http") ? href : `${SITE_ORIGIN}${path}`;
-      (["pt-BR", "en", "es", "x-default"] as const).forEach((lang) => {
+      (["pt-BR", "en", "es", "fr", "x-default"] as const).forEach((lang) => {
         const l = document.createElement("link");
         l.setAttribute("rel", "alternate");
         l.setAttribute("hreflang", lang);

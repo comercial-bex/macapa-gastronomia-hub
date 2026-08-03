@@ -6,6 +6,7 @@ import { MapPin, Phone, Clock, Star, Navigation, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
+import { useI18n } from "@/lib/i18n";
 
 interface Unit {
   id: string;
@@ -19,6 +20,7 @@ interface Unit {
 }
 
 const Unidades = () => {
+  const { t } = useI18n();
   const [units, setUnits] = useState<Unit[]>([]);
 
   useEffect(() => {
@@ -41,15 +43,15 @@ const Unidades = () => {
   return (
     <Layout>
       <SEO
-        title="Unidades — Restaurante Macapaba | Endereços em Macapá"
-        description="Encontre as unidades do Restaurante Macapaba em Macapá-AP: endereços, telefones, horários de funcionamento e como chegar."
+        title={t("seo.units_title")}
+        description={t("seo.units_desc")}
       />
       <section className="py-24 px-4">
         <div className="container mx-auto max-w-4xl">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">Onde Estamos</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">Nossas Unidades</h1>
+              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("units.eyebrow")}</p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("units.title")}</h1>
             </div>
           </ScrollReveal>
 
@@ -82,7 +84,7 @@ const Unidades = () => {
                   <div className="p-8">
                     {unit.principal && (
                       <div className="flex items-center gap-1 text-primary text-xs font-semibold uppercase mb-3">
-                        <Star className="h-4 w-4 fill-primary" /> Principal
+                        <Star className="h-4 w-4 fill-primary" /> {t("units.main")}
                       </div>
                     )}
                     <h2 className="font-display text-2xl font-bold mb-4">{unit.nome}</h2>
@@ -123,7 +125,7 @@ const Unidades = () => {
           </motion.div>
 
           {units.length === 0 && (
-            <p className="text-center text-muted-foreground py-20">Nenhuma unidade cadastrada.</p>
+            <p className="text-center text-muted-foreground py-20">{t("units.empty")}</p>
           )}
         </div>
       </section>
