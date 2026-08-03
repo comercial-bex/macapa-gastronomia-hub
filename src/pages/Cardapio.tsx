@@ -103,7 +103,7 @@ interface Unit {
 }
 
 const Cardapio = () => {
-  const { t } = useI18n();
+  const { t, tDish, tCategory, tDay, locale } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const diaParam = searchParams.get("dia");
   const pratoParam = searchParams.get("prato");
@@ -252,7 +252,7 @@ const Cardapio = () => {
     const day = days.find((d) => d.id === activeDay);
     if (!item || !day) return;
     const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
-    const text = `${item.prato} — ${day.dia_semana} no Restaurante Macapaba`;
+    const text = t("menu.share_text", { dish: tDish(item.prato), day: tDay(day.dia_semana) });
     try {
       if (navigator.share) {
         await navigator.share({ title: item.prato, text, url });
@@ -274,7 +274,7 @@ const Cardapio = () => {
     const day = days.find((d) => d.id === activeDay);
     if (!item || !day) return;
     const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
-    const text = `🍽️ *${item.prato}* — ${day.dia_semana}\nNo Restaurante Macapaba: ${url}`;
+    const text = `🍽️ ${t("menu.share_text", { dish: `*${tDish(item.prato)}*`, day: tDay(day.dia_semana) })}\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
   };
 
@@ -283,12 +283,12 @@ const Cardapio = () => {
     if (days.length === 0 || menuItems.length === 0) return undefined;
     const sections = days.map((d) => ({
       "@type": "MenuSection",
-      name: d.dia_semana,
+      name: tDay(d.dia_semana),
       hasMenuItem: menuItems
         .filter((i) => i.day_id === d.id)
         .map((i) => ({
           "@type": "MenuItem",
-          name: i.prato,
+          name: tDish(i.prato),
           ...(i.descricao ? { description: i.descricao } : {}),
           ...(i.imagem_url && i.tipo_midia !== "video" ? { image: i.imagem_url } : {}),
         })),
@@ -296,19 +296,23 @@ const Cardapio = () => {
     return {
       "@context": "https://schema.org",
       "@type": "Menu",
-      name: "Cardápio Restaurante Macapaba",
-      inLanguage: "pt-BR",
+      name: `${t("menu.title")} — Restaurante Macapaba`,
+      inLanguage: locale,
       hasMenuSection: sections,
     };
-  }, [days, menuItems]);
+  }, [days, menuItems, locale]);
 
   const currentItem = selectedItems[selectedItemIndex];
   const currentDay = days.find((d) => d.id === activeDay);
   const dynamicTitle = tab === "semana" && currentItem && currentDay
-    ? `${currentItem.prato} — ${currentDay.dia_semana} | Restaurante Macapaba`
+    ? `${tDish(currentItem.prato)} — ${tDay(currentDay.dia_semana)} | Restaurante Macapaba`
     : t("seo.menu_title");
   const dynamicDesc = tab === "semana" && currentItem
-    ? (currentItem.descricao || `${currentItem.prato} no cardápio de ${currentDay?.dia_semana} do Restaurante Macapaba em Macapá-AP.`)
+    ? (currentItem.descricao ||
+        t("menu.share_text", {
+          dish: tDish(currentItem.prato),
+          day: currentDay ? tDay(currentDay.dia_semana) : "",
+        }))
     : t("seo.menu_desc");
   const dynamicImage = tab === "semana" && currentItem?.imagem_url && currentItem.tipo_midia !== "video"
     ? currentItem.imagem_url
@@ -376,7 +380,7 @@ const Cardapio = () => {
                           href={`#cat-${cat.id}`}
                           className="px-2.5 py-1 rounded-full text-xs border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
                         >
-                          {cat.nome} <span className="opacity-60">({count})</span>
+                          {tCategory(cat.nome)} <span className="opacity-60">({count})</span>
                         </a>
                       );
                     })}
@@ -389,7 +393,7 @@ const Cardapio = () => {
                 return (
                   <ScrollReveal key={cat.id}>
                     <div id={`cat-${cat.id}`} className="mb-10 scroll-mt-24">
-                      <h2 className="font-display text-2xl font-bold mb-4 text-primary">{cat.nome}</h2>
+                      <h2 className="font-display text-2xl font-bold mb-4 text-primary">{tCategory(cat.nome)}</h2>
                       <ScrollReveal stagger className="space-y-0">
                         {items.map((bev) => (
                           <StaggerItem key={bev.id}>
@@ -402,14 +406,14 @@ const Cardapio = () => {
                                 {bev.imagem_url && (
                                   <img
                                     src={bev.imagem_url}
-                                    alt={bev.nome}
+                                    alt={tDish(bev.nome)}
                                     loading="lazy"
                                     className="h-12 w-12 rounded-md object-cover flex-shrink-0 border border-border/40"
                                   />
                                 )}
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{bev.nome}</span>
+                                    <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{tDish(bev.nome)}</span>
                                     {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
                                     {bev.esgotado && (
                                       <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
@@ -485,7 +489,7 @@ const Cardapio = () => {
                     onClick={() => setActiveDay(day.id)}
                     className={activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
                   >
-                    {day.dia_semana.slice(0, 3)}
+                    {tDay(day.dia_semana, true)}
                   </Button>
                 ))}
               </div>
@@ -566,20 +570,20 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" soonLabel={t("menu.photo_soon")} />;
+                                  return <DishPlaceholder prato={tDish(item.prato)} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
                                     {item.tipo_midia === 'video' ? (
                                       <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={item.imagem_url} alt={item.prato} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={tDish(item.prato)} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-                                      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
+                                      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
                                       <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-display text-xl font-bold text-white">{item.prato}</h2>
+                                        <h2 className="font-display text-xl font-bold text-white">{tDish(item.prato)}</h2>
                                         <div className="flex gap-1 shrink-0">
                                         <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
                                         <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
@@ -635,7 +639,7 @@ const Cardapio = () => {
 
                       <div className="flex-1 min-w-0">
                         <h2 className="font-display text-2xl font-bold mb-6">
-                          {days.find((d) => d.id === activeDay)?.dia_semana}
+                          {(() => { const d = days.find((x) => x.id === activeDay); return d ? tDay(d.dia_semana) : ""; })()}
                         </h2>
                         <div className="space-y-1">
                           {selectedItems.map((item, index) => {
@@ -647,7 +651,7 @@ const Cardapio = () => {
                                 key={item.id}
                                 onClick={() => setSelectedItemIndex(index)}
                                 aria-current={isActive ? "true" : undefined}
-                                aria-label={`${item.prato}${item.esgotado ? " (esgotado)" : ""}`}
+                                aria-label={`${tDish(item.prato)}${item.esgotado ? ` ${t("menu.sold_out_paren")}` : ""}`}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
                                   isActive
                                     ? "bg-primary/10 border-l-4 border-primary shadow-sm"
@@ -661,7 +665,7 @@ const Cardapio = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <span className={`text-sm font-medium transition-colors duration-300 block ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                                    {item.prato}
+                                    {tDish(item.prato)}
                                   </span>
                                   {item.descricao && (
                                     <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-2">{item.descricao}</p>
@@ -724,20 +728,20 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={item.prato} dia={currentDay?.dia_semana} size="lg" soonLabel={t("menu.photo_soon")} />;
+                                  return <DishPlaceholder prato={tDish(item.prato)} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
                                     {item.tipo_midia === 'video' ? (
                                       <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={item.imagem_url} alt={item.prato} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={tDish(item.prato)} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                                      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
+                                      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
                                       <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-display text-2xl font-bold text-white">{item.prato}</h2>
+                                        <h2 className="font-display text-2xl font-bold text-white">{tDish(item.prato)}</h2>
                                         <div className="flex gap-1.5 shrink-0">
                                         <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
                                         <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>

@@ -28,8 +28,6 @@ import { useI18n } from "@/lib/i18n";
  import clientesRestaurante from "@/assets/clientes-restaurante.jpg";
 import salaoRestaurante from "@/assets/salao-restaurante.jpg";
 
-const weekDayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-
 const getDishIcon = (name: string): LucideIcon => {
   const n = name.toLowerCase();
   if (n.includes("peixe") || n.includes("salmão") || n.includes("bacalhau")) return Fish;
@@ -41,29 +39,27 @@ const getDishIcon = (name: string): LucideIcon => {
   return UtensilsCrossed;
 };
 
-const portfolioImages = [
-  { src: pratoVariado, alt: "Prato variado amazônico do Restaurante Macapaba" },
-  { src: sushi, alt: "Sushi artesanal preparado no Macapaba" },
-  { src: garcomServindo, alt: "Garçom servindo clientes no salão" },
-  { src: clientesRestaurante, alt: "Clientes desfrutando experiência gastronômica" },
-  { src: salaoRestaurante, alt: "Ambiente acolhedor do salão principal" },
-  { src: pratoVariado, alt: "Especialidade da casa Macapaba" },
-];
+const galleryImages = [
+  { src: pratoVariado, altKey: "home.alt_g1" },
+  { src: sushi, altKey: "home.alt_g2" },
+  { src: garcomServindo, altKey: "home.alt_g3" },
+  { src: clientesRestaurante, altKey: "home.alt_g4" },
+  { src: salaoRestaurante, altKey: "home.alt_g5" },
+  { src: pratoVariado, altKey: "home.alt_g6" },
+] as const;
 
-const specialties = [
-  { title: "Culinária Amazônica", desc: "Sabores autênticos da floresta, peixes nobres e ingredientes regionais únicos.", image: pratoVariado },
-  { title: "Grelhados Premium", desc: "Cortes selecionados preparados no ponto perfeito, com acompanhamentos artesanais.", image: garcomServindo },
-  { title: "Sushi & Sashimi", desc: "Peças frescas preparadas por chefs especializados com técnica oriental refinada.", image: sushi },
-];
+const specialtyDefs = [
+  { titleKey: "home.spec1_title", descKey: "home.spec1_desc", image: pratoVariado },
+  { titleKey: "home.spec2_title", descKey: "home.spec2_desc", image: garcomServindo },
+  { titleKey: "home.spec3_title", descKey: "home.spec3_desc", image: sushi },
+] as const;
 
-const testimonials = [
-  { name: "Ana Carolina M.", text: "Uma experiência gastronômica incomparável. O peixe amazônico é simplesmente divino. Ambiente elegante e atendimento impecável.", rating: 5 },
-    { name: "Roberto S.", text: "Frequento o Macapaba desde a inauguração. São 17 anos de qualidade consistente — isso é raro. Minha família adora.", rating: 5 },
-  { name: "Juliana P.", text: "O melhor restaurante de Macapá, sem dúvida. O buffet é variado, tudo fresco, e o sushi é espetacular. Recomendo demais!", rating: 5 },
-   { name: "Carlos Eduardo F.", text: "Levei clientes de São Paulo e ficaram impressionados. O Macapaba honra a gastronomia do Amapá. Nota 10.", rating: 5 },
-];
-
-const marqueeText = "GASTRONOMIA AMAZÔNICA  ✦  DESDE 2009  ✦  MACAPÁ  ✦  CULINÁRIA DE AUTOR  ✦  EXPERIÊNCIA ÚNICA  ✦  ";
+const testimonialDefs = [
+  { name: "Ana Carolina M.", textKey: "home.t1_text", rating: 5 },
+  { name: "Roberto S.", textKey: "home.t2_text", rating: 5 },
+  { name: "Juliana P.", textKey: "home.t3_text", rating: 5 },
+  { name: "Carlos Eduardo F.", textKey: "home.t4_text", rating: 5 },
+] as const;
 
 /* ── Scroll Progress Bar ── */
 const ScrollProgress = () => {
@@ -78,7 +74,10 @@ const ScrollProgress = () => {
 };
 
 /* ── Infinite Marquee ── */
-const InfiniteMarquee = () => (
+const InfiniteMarquee = () => {
+  const { t } = useI18n();
+  const marqueeText = t("home.marquee");
+  return (
   <div className="py-8 md:py-12 overflow-hidden border-y border-border/30">
     <div className="marquee-track">
       <span className="marquee-content font-display text-2xl md:text-4xl lg:text-5xl font-bold text-primary/20 whitespace-nowrap select-none">
@@ -89,10 +88,12 @@ const InfiniteMarquee = () => (
       </span>
     </div>
   </div>
-);
+  );
+};
 
 /* ── Pinned Horizontal Scroll for Specialties ── */
 const HorizontalScrollSection = ({ specialties: items }: { specialties: { title: string; desc: string; image: string }[] }) => {
+  const { t } = useI18n();
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -113,11 +114,11 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
         <div className="container mx-auto px-4 pt-20 pb-10 flex-shrink-0">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Especialidades</p>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[0.95]">Nossos<br />Destaques</h2>
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("home.spec_eyebrow")}</p>
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[0.95]">{t("home.spec_title_1")}<br />{t("home.spec_title_2")}</h2>
             </div>
             <Link to="/cardapio" className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
-              Ver cardápio <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              {t("home.see_menu")} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -150,7 +151,9 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
 
 const Index = () => {
   const { getSetting } = useSiteSettings();
-  const { t } = useI18n();
+  const { t, tDish, tDay, tContent } = useI18n();
+  const specialties = specialtyDefs.map((s) => ({ title: t(s.titleKey), desc: t(s.descKey), image: s.image }));
+  const testimonials = testimonialDefs.map((tt) => ({ name: tt.name, text: t(tt.textKey), rating: tt.rating }));
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
@@ -165,7 +168,7 @@ const Index = () => {
   // Testimonial carousel
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => setActiveTestimonial((p) => (p + 1) % testimonials.length), 5000);
+    const timer = setInterval(() => setActiveTestimonial((p) => (p + 1) % testimonialDefs.length), 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -228,7 +231,7 @@ const Index = () => {
         <motion.div style={{ opacity: heroOpacity }} className="relative z-20 text-center px-4 max-w-5xl mx-auto">
           <motion.img
             src={logoMacapaba}
-             alt="Restaurante Macapaba"
+             alt={t("a11y.logo_home")}
             fetchPriority="high"
             decoding="async"
             width={320}
@@ -246,7 +249,7 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="text-display font-display font-light text-white leading-[0.95] tracking-tight"
             >
-               {getSetting("hero_titulo", "Sabor e tradição em Macapá desde 2009")}
+               {tContent("home.hero_title", getSetting("hero_titulo", ""))}
             </motion.h1>
           </div>
 
@@ -263,7 +266,7 @@ const Index = () => {
             transition={{ duration: 0.8, delay: 1.5 }}
             className="text-base md:text-lg text-white/60 max-w-xl mx-auto font-light tracking-wide"
           >
-            {getSetting("hero_subtitulo", "Uma casa feita de encontros, histórias e pratos que viram memória.")}
+            {tContent("home.hero_subtitle", getSetting("hero_subtitulo", ""))}
           </motion.p>
         </motion.div>
 
@@ -274,7 +277,7 @@ const Index = () => {
           transition={{ delay: 2.5 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3"
         >
-          <span className="text-white/30 text-[10px] uppercase tracking-[0.4em] font-light">Scroll</span>
+          <span className="text-white/30 text-[10px] uppercase tracking-[0.4em] font-light">{t("home.scroll")}</span>
           <motion.div
             className="w-px h-12 bg-gradient-to-b from-primary/60 to-transparent"
             animate={{ scaleY: [0, 1, 0] }}
@@ -300,15 +303,15 @@ const Index = () => {
                   viewport={{ once: true }}
                   className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-6"
                 >
-                  {getSetting("historia_subtitulo", "Desde 2009")}
+                  {tContent("home.history_eyebrow", getSetting("historia_subtitulo", ""))}
                 </motion.p>
 
                 <h2 className="text-display font-display font-bold leading-[0.95] mb-10">
-                  {getSetting("historia_titulo", "A História")}
+                  {tContent("home.history_title", getSetting("historia_titulo", ""))}
                 </h2>
 
                 <p className="text-muted-foreground leading-relaxed text-lg mb-16 max-w-md">
-                  {getSetting("historia_texto", "Inaugurado em abril de 2009, o Restaurante Macapaba nasceu do sonho de oferecer aos macapaenses uma experiência gastronômica única. Ao longo desses anos, nos tornamos referência em culinária regional, combinando sabores amazônicos com técnicas contemporâneas. Nosso compromisso com a qualidade e o atendimento nos consolidou como um dos restaurantes mais queridos de Macapá.")}
+                  {tContent("home.history_text", getSetting("historia_texto", ""))}
                 </p>
 
                 {/* Big numbers — display style */}
@@ -317,14 +320,14 @@ const Index = () => {
                     <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
                       <AnimatedCounter target={17} suffix="" />
                     </p>
-                    <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Anos</p>
+                    <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">{t("home.years")}</p>
                   </div>
                   <div>
                     <p className="font-display text-6xl md:text-8xl font-bold text-primary leading-none">
                       <AnimatedCounter target={50} suffix="" />
                       <span className="text-primary/60">+</span>
                     </p>
-                    <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">Pratos</p>
+                    <p className="text-muted-foreground text-sm mt-2 uppercase tracking-wider">{t("home.dishes")}</p>
                   </div>
                 </div>
 
@@ -333,22 +336,22 @@ const Index = () => {
                   <div className="flex items-start gap-3">
                     <Award className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Desde 2009</p>
-                      <p className="text-muted-foreground text-xs mt-1">Tradição construída em Macapá</p>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">{t("home.badge_since")}</p>
+                      <p className="text-muted-foreground text-xs mt-1">{t("home.badge_since_desc")}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Leaf className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Amazônia/AP</p>
-                      <p className="text-muted-foreground text-xs mt-1">Ingredientes regionais selecionados</p>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">{t("home.badge_region")}</p>
+                      <p className="text-muted-foreground text-xs mt-1">{t("home.badge_region_desc")}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Heart className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Feito à mão</p>
-                      <p className="text-muted-foreground text-xs mt-1">Atendimento próximo e acolhedor</p>
+                      <p className="text-foreground text-sm font-semibold uppercase tracking-wider">{t("home.badge_handmade")}</p>
+                      <p className="text-muted-foreground text-xs mt-1">{t("home.badge_handmade_desc")}</p>
                     </div>
                   </div>
                 </div>
@@ -367,7 +370,7 @@ const Index = () => {
                 >
                   <img
                     src={salaoRestaurante}
-                     alt="Salão do Restaurante Macapaba"
+                     alt={t("home.alt_hall")}
                     className="w-full h-[500px] lg:h-[650px] object-cover"
                   />
                 </motion.div>
@@ -385,13 +388,13 @@ const Index = () => {
         <div className="container mx-auto">
           <ScrollReveal>
             <div className="text-center mb-20">
-              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Galeria</p>
-              <h2 className="text-display font-display font-bold leading-[0.95]">Momentos</h2>
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("home.gallery_eyebrow")}</p>
+              <h2 className="text-display font-display font-bold leading-[0.95]">{t("home.gallery_title")}</h2>
             </div>
           </ScrollReveal>
 
           <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-5xl mx-auto">
-            {portfolioImages.map((img, i) => (
+            {galleryImages.map((img, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
@@ -404,7 +407,7 @@ const Index = () => {
               >
                 <img
                   src={img.src}
-                  alt={img.alt}
+                  alt={t(img.altKey)}
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-[1.2s] group-hover:scale-105"
                 />
@@ -414,7 +417,7 @@ const Index = () => {
 
           <div className="text-center mt-16">
             <Link to="/portfolio" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
-              Ver portfólio completo <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              {t("home.see_portfolio")} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -425,10 +428,10 @@ const Index = () => {
         <div className="container mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Cardápio</p>
-              <h2 className="text-display font-display font-bold leading-[0.95] mb-4">Cardápio da Semana</h2>
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("home.week_eyebrow")}</p>
+              <h2 className="text-display font-display font-bold leading-[0.95] mb-4">{t("home.week_title")}</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Pratos especiais preparados com carinho para cada dia
+                {t("home.week_subtitle")}
               </p>
             </div>
           </ScrollReveal>
@@ -445,7 +448,7 @@ const Index = () => {
                       selectedDayId === day.id ? "text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground"
                     }`}
                   >
-                    {weekDayLabels[i] || day.dia_semana}
+                    {tDay(day.dia_semana, true)}
                     {selectedDayId === day.id && (
                       <motion.div
                         layoutId="menu-underline"
@@ -497,8 +500,8 @@ const Index = () => {
                                     <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20">
                                       <DishIcon className="h-10 w-10 text-primary" />
                                     </div>
-                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
-                                    <h3 className="font-display text-lg font-bold text-foreground/90">{item.prato}</h3>
+                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
+                                    <h3 className="font-display text-lg font-bold text-foreground/90">{tDish(item.prato)}</h3>
                                   </div>
                                 </div>
                               );
@@ -508,12 +511,12 @@ const Index = () => {
                                 {mediaTipo === 'video' ? (
                                   <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                 ) : (
-                                  <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                  <img src={mediaUrl} alt={tDish(item.prato)} className="w-full h-full object-cover" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                 <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
-                                  <h3 className="font-display text-xl font-bold text-white">{item.prato}</h3>
+                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
+                                  <h3 className="font-display text-xl font-bold text-white">{tDish(item.prato)}</h3>
                                 </div>
                               </>
                             );
@@ -536,7 +539,7 @@ const Index = () => {
                               isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                             }`}
                           >
-                            <span className="text-sm font-medium">{item.prato}</span>
+                            <span className="text-sm font-medium">{tDish(item.prato)}</span>
                             <ArrowRight className={`h-3 w-3 transition-all duration-300 ${isActive ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-50"}`} />
                           </button>
                         );
@@ -571,8 +574,8 @@ const Index = () => {
                                     <div className="mb-3 p-4 rounded-full bg-primary/10 border border-primary/20">
                                       <DishIcon className="h-10 w-10 text-primary" />
                                     </div>
-                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay?.dia_semana}</p>
-                                    <h3 className="font-display text-2xl font-bold text-foreground/90">{item.prato}</h3>
+                                    <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
+                                    <h3 className="font-display text-2xl font-bold text-foreground/90">{tDish(item.prato)}</h3>
                                   </div>
                                 </div>
                               );
@@ -582,12 +585,12 @@ const Index = () => {
                                 {mediaTipo === 'video' ? (
                                   <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                 ) : (
-                                  <img src={mediaUrl} alt={item.prato} className="w-full h-full object-cover" />
+                                  <img src={mediaUrl} alt={tDish(item.prato)} className="w-full h-full object-cover" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                 <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay?.dia_semana}</p>
-                                  <h3 className="font-display text-2xl font-bold text-white">{item.prato}</h3>
+                                  <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
+                                  <h3 className="font-display text-2xl font-bold text-white">{tDish(item.prato)}</h3>
                                 </div>
                               </>
                             );
@@ -599,19 +602,19 @@ const Index = () => {
                 </>
               ) : (
                 <div className="w-full text-center py-8 text-muted-foreground">
-                  <p>Nenhum prato cadastrado para este dia.</p>
+                  <p>{t("home.week_empty")}</p>
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
 
           <p className="text-center text-muted-foreground text-xs mt-12 opacity-40">
-            * O cardápio pode sofrer alterações sem aviso prévio
+            {t("home.week_disclaimer")}
           </p>
 
           <div className="text-center mt-10">
             <Link to="/cardapio" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
-              Ver cardápio completo <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              {t("home.see_full_menu")} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -627,7 +630,7 @@ const Index = () => {
 
           <ScrollReveal>
             <div className="text-center mb-16">
-              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">Depoimentos</p>
+              <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("home.testimonials_eyebrow")}</p>
             </div>
           </ScrollReveal>
 
@@ -660,7 +663,7 @@ const Index = () => {
               <button
                 key={i}
                 onClick={() => setActiveTestimonial(i)}
-                aria-label={`Ver depoimento ${i + 1} de ${testimonials.length}`}
+                aria-label={t("home.testimonial_aria", { i: i + 1, n: testimonials.length })}
                 className={`h-px transition-all duration-500 ${
                   i === activeTestimonial ? "w-10 bg-primary" : "w-5 bg-muted-foreground/20 hover:bg-muted-foreground/40"
                 }`}
@@ -678,7 +681,7 @@ const Index = () => {
 
 /* ── Reserva Inline Component ── */
 const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
-  const { t } = useI18n();
+  const { t, tContent, formatDate } = useI18n();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "", unit_id: "" });
@@ -783,22 +786,23 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
     }
   };
 
-  const formatDateBR = (iso: string) => {
+  const formatDateLocal = (iso: string) => {
     if (!iso) return "";
-    const [y, m, d] = iso.split("-");
-    return y && m && d ? `${d}/${m}/${y}` : iso;
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return iso;
+    return formatDate(new Date(y, m - 1, d), { dateStyle: "long" });
   };
 
   const whatsappMessage =
-    `Olá, Restaurante Macapaba! 👋\nGostaria de fazer uma *reserva* com os seguintes dados:\n\n` +
-    `• *Nome:* ${form.nome || "-"}\n` +
-    `• *Telefone:* ${form.telefone || "-"}\n` +
-    `• *Unidade:* ${units.find((u) => u.id === form.unit_id)?.nome || "A definir"}\n` +
-    `• *Data:* ${formatDateBR(form.data) || "-"}\n` +
-    `• *Horário:* ${form.horario || "-"}\n` +
-    `• *Pessoas:* ${form.pessoas || "-"}` +
-    (form.observacoes ? `\n• *Observações:* ${form.observacoes}` : "") +
-    `\n\nAguardo a confirmação. Obrigado!`;
+    `${t("res.wa_intro")}\n\n` +
+    `• *${t("res.wa_name")}:* ${form.nome || "-"}\n` +
+    `• *${t("res.wa_phone")}:* ${form.telefone || "-"}\n` +
+    `• *${t("res.wa_unit")}:* ${units.find((u) => u.id === form.unit_id)?.nome || t("res.wa_tbd")}\n` +
+    `• *${t("res.wa_date")}:* ${formatDateLocal(form.data) || "-"}\n` +
+    `• *${t("res.wa_time")}:* ${form.horario || "-"}\n` +
+    `• *${t("res.wa_people")}:* ${form.pessoas || "-"}` +
+    (form.observacoes ? `\n• *${t("res.wa_notes")}:* ${form.observacoes}` : "") +
+    `\n\n${t("res.wa_outro")}`;
 
   const whatsappUrl = `https://wa.me/${getSetting(
     "whatsapp_numero",
@@ -818,10 +822,10 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
           <div className="text-center mb-16">
             <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("res.eyebrow")}</p>
             <h2 className="text-display font-display font-bold leading-[0.95] mb-4">
-              {getSetting("cta_titulo", t("res.title"))}
+              {tContent("res.title", getSetting("cta_titulo", ""))}
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {getSetting("cta_subtitulo", t("res.subtitle"))}
+              {tContent("res.subtitle", getSetting("cta_subtitulo", ""))}
             </p>
           </div>
         </ScrollReveal>

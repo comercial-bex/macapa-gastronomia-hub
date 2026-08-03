@@ -8,9 +8,10 @@ import {
 import { useI18n, type Locale } from "@/lib/i18n";
 
 const OPTIONS: { code: Locale; flag: string; label: string }[] = [
-  { code: "pt", flag: "🇧🇷", label: "PT" },
+  { code: "pt-BR", flag: "🇧🇷", label: "PT" },
   { code: "en", flag: "🇬🇧", label: "EN" },
   { code: "es", flag: "🇪🇸", label: "ES" },
+  { code: "fr", flag: "🇫🇷", label: "FR" },
 ];
 
 interface Props {
@@ -37,6 +38,7 @@ const LanguageSwitcher = ({ variant = "dark" }: Props) => {
           <DropdownMenuItem
             key={opt.code}
             onSelect={() => setLocale(opt.code)}
+            aria-current={opt.code === locale ? "true" : undefined}
             className={`text-xs uppercase tracking-wider cursor-pointer ${
               opt.code === locale ? "text-primary" : ""
             }`}

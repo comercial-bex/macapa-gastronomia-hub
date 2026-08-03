@@ -45,7 +45,7 @@ const Header = () => {
            <img src={logoMacapaba} alt="Restaurante Macapaba" className="h-10" />
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8" aria-label="Navegação principal">
+        <nav className="hidden lg:flex items-center gap-8" aria-label={t("a11y.nav_main")}>
           {navLinkDefs.map((link) => (
             <Link
               key={link.path}
@@ -111,7 +111,7 @@ const Header = () => {
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-background border-b border-border overflow-hidden"
           >
-            <nav className="flex flex-col p-4 gap-3" aria-label="Navegação móvel">
+            <nav className="flex flex-col p-4 gap-3" aria-label={t("a11y.nav_mobile")}>
               {navLinkDefs.map((link) => (
                 <Link
                   key={link.path}

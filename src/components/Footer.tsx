@@ -22,10 +22,10 @@ const Footer = () => {
         {/* Single horizontal row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           {/* Logo */}
-           <img src={logoMacapaba} alt="Restaurante Macapaba" className="h-8" />
+           <img src={logoMacapaba} alt={t("a11y.logo_home")} className="h-8" />
 
           {/* Links */}
-          <nav className="flex flex-wrap items-center justify-center gap-6" aria-label="Rodapé">
+          <nav className="flex flex-wrap items-center justify-center gap-6" aria-label={t("a11y.nav_footer")}>
             {links.map((link) => (
               <Link key={link.path} to={link.path} className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider">
                 {t(link.key)}
