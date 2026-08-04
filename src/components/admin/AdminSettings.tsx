@@ -100,6 +100,8 @@ const AdminSettings = () => {
         </Button>
       </div>
 
+      <TranslationBackfill />
+
       {/* Criar Admin */}
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border">
