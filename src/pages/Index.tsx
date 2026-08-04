@@ -919,7 +919,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                             : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
                         }`}
                       >
-                        {u.nome}
+                        {tRecord(u, "nome")}
                       </button>
                     ))}
                   </div>
