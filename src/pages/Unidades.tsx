@@ -20,7 +20,7 @@ interface Unit {
 }
 
 const Unidades = () => {
-  const { t } = useI18n();
+  const { t, tRecord } = useI18n();
   const [units, setUnits] = useState<Unit[]>([]);
 
   useEffect(() => {

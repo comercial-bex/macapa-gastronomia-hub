@@ -720,7 +720,7 @@ const Index = () => {
 
 /* ── Reserva Inline Component ── */
 const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
-  const { t, tContent, formatDate } = useI18n();
+  const { t, tContent, tRecord, formatDate } = useI18n();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "", unit_id: "" });

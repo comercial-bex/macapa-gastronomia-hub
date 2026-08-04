@@ -37,7 +37,7 @@ const fallbackItems: PortfolioItem[] = [
 ];
 
 const Portfolio = () => {
-  const { t } = useI18n();
+  const { t, tRecord } = useI18n();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState("__all__");

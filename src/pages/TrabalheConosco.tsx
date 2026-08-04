@@ -30,7 +30,7 @@ interface UnitOption {
 }
 
 const TrabalheConosco = () => {
-  const { t } = useI18n();
+  const { t, tRecord } = useI18n();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(false);
