@@ -235,6 +235,8 @@ const en: Dictionary = {
   "a11y.nav_footer": "Footer",
   "a11y.skip_to_content": "Skip to main content",
   "a11y.loading_page": "Loading page",
+  "a11y.carousel_prev": "Previous highlight",
+  "a11y.carousel_next": "Next highlight",
 
   "day.monday": "Monday",
   "day.tuesday": "Tuesday",
