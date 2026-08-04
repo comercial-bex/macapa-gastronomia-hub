@@ -252,7 +252,7 @@ const Cardapio = () => {
     const day = days.find((d) => d.id === activeDay);
     if (!item || !day) return;
     const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
-    const text = t("menu.share_text", { dish: tDish(item.prato), day: tDay(day.dia_semana) });
+    const text = t("menu.share_text", { dish: tRecord(item, "prato"), day: tDay(day.dia_semana) });
     try {
       if (navigator.share) {
         await navigator.share({ title: item.prato, text, url });
@@ -274,7 +274,7 @@ const Cardapio = () => {
     const day = days.find((d) => d.id === activeDay);
     if (!item || !day) return;
     const url = `${SITE_URL}/cardapio?dia=${encodeURIComponent(day.dia_semana)}&prato=${slugify(item.prato)}`;
-    const text = `🍽️ ${t("menu.share_text", { dish: `*${tDish(item.prato)}*`, day: tDay(day.dia_semana) })}\n${url}`;
+    const text = `🍽️ ${t("menu.share_text", { dish: `*${tRecord(item, "prato")}*`, day: tDay(day.dia_semana) })}\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
   };
 
@@ -288,7 +288,7 @@ const Cardapio = () => {
         .filter((i) => i.day_id === d.id)
         .map((i) => ({
           "@type": "MenuItem",
-          name: tDish(i.prato),
+          name: tRecord(i, "prato"),
           ...(i.descricao ? { description: i.descricao } : {}),
           ...(i.imagem_url && i.tipo_midia !== "video" ? { image: i.imagem_url } : {}),
         })),
@@ -305,12 +305,12 @@ const Cardapio = () => {
   const currentItem = selectedItems[selectedItemIndex];
   const currentDay = days.find((d) => d.id === activeDay);
   const dynamicTitle = tab === "semana" && currentItem && currentDay
-    ? `${tDish(currentItem.prato)} — ${tDay(currentDay.dia_semana)} | Restaurante Macapaba`
+    ? `${tRecord(currentItem, "prato")} — ${tDay(currentDay.dia_semana)} | Restaurante Macapaba`
     : t("seo.menu_title");
   const dynamicDesc = tab === "semana" && currentItem
     ? (currentItem.descricao ||
         t("menu.share_text", {
-          dish: tDish(currentItem.prato),
+          dish: tRecord(currentItem, "prato"),
           day: currentDay ? tDay(currentDay.dia_semana) : "",
         }))
     : t("seo.menu_desc");
@@ -380,7 +380,7 @@ const Cardapio = () => {
                           href={`#cat-${cat.id}`}
                           className="px-2.5 py-1 rounded-full text-xs border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
                         >
-                          {tCategory(cat.nome)} <span className="opacity-60">({count})</span>
+                          {tRecord(cat, "nome")} <span className="opacity-60">({count})</span>
                         </a>
                       );
                     })}
@@ -393,7 +393,7 @@ const Cardapio = () => {
                 return (
                   <ScrollReveal key={cat.id}>
                     <div id={`cat-${cat.id}`} className="mb-10 scroll-mt-24">
-                      <h2 className="font-display text-2xl font-bold mb-4 text-primary">{tCategory(cat.nome)}</h2>
+                      <h2 className="font-display text-2xl font-bold mb-4 text-primary">{tRecord(cat, "nome")}</h2>
                       <ScrollReveal stagger className="space-y-0">
                         {items.map((bev) => (
                           <StaggerItem key={bev.id}>
@@ -406,14 +406,14 @@ const Cardapio = () => {
                                 {bev.imagem_url && (
                                   <img
                                     src={bev.imagem_url}
-                                    alt={tDish(bev.nome)}
+                                    alt={tRecord(bev, "nome")}
                                     loading="lazy"
                                     className="h-12 w-12 rounded-md object-cover flex-shrink-0 border border-border/40"
                                   />
                                 )}
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{tDish(bev.nome)}</span>
+                                    <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{tRecord(bev, "nome")}</span>
                                     {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
                                     {bev.esgotado && (
                                       <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
@@ -570,20 +570,20 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={tDish(item.prato)} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
+                                  return <DishPlaceholder prato={tRecord(item, "prato")} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
                                     {item.tipo_midia === 'video' ? (
                                       <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={item.imagem_url} alt={tDish(item.prato)} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={tRecord(item, "prato")} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
                                       <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-display text-xl font-bold text-white">{tDish(item.prato)}</h2>
+                                        <h2 className="font-display text-xl font-bold text-white">{tRecord(item, "prato")}</h2>
                                         <div className="flex gap-1 shrink-0">
                                         <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
                                         <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
@@ -651,7 +651,7 @@ const Cardapio = () => {
                                 key={item.id}
                                 onClick={() => setSelectedItemIndex(index)}
                                 aria-current={isActive ? "true" : undefined}
-                                aria-label={`${tDish(item.prato)}${item.esgotado ? ` ${t("menu.sold_out_paren")}` : ""}`}
+                                aria-label={`${tRecord(item, "prato")}${item.esgotado ? ` ${t("menu.sold_out_paren")}` : ""}`}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
                                   isActive
                                     ? "bg-primary/10 border-l-4 border-primary shadow-sm"
@@ -665,7 +665,7 @@ const Cardapio = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <span className={`text-sm font-medium transition-colors duration-300 block ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                                    {tDish(item.prato)}
+                                    {tRecord(item, "prato")}
                                   </span>
                                   {item.descricao && (
                                     <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-2">{item.descricao}</p>
@@ -728,20 +728,20 @@ const Cardapio = () => {
                                 if (!item) return null;
                                 const currentDay = days.find((d) => d.id === activeDay);
                                 if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={tDish(item.prato)} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
+                                  return <DishPlaceholder prato={tRecord(item, "prato")} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
                                 }
                                 return (
                                   <>
                                     {item.tipo_midia === 'video' ? (
                                       <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                     ) : (
-                                      <img src={item.imagem_url} alt={tDish(item.prato)} className="w-full h-full object-cover" />
+                                      <img src={item.imagem_url} alt={tRecord(item, "prato")} className="w-full h-full object-cover" />
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                       <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
                                       <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-display text-2xl font-bold text-white">{tDish(item.prato)}</h2>
+                                        <h2 className="font-display text-2xl font-bold text-white">{tRecord(item, "prato")}</h2>
                                         <div className="flex gap-1.5 shrink-0">
                                         <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-4 w-4" /></button>
                                         <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
