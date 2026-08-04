@@ -10,9 +10,10 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react";
 import {
   UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat,
-  MessageCircle, ChevronDown, Star, Quote, MapPin, Clock, ArrowRight,
+  MessageCircle, ChevronDown, ChevronLeft, ChevronRight, Star, Quote, MapPin, Clock, ArrowRight,
   type LucideIcon
 } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
