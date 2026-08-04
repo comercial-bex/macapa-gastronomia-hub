@@ -46,7 +46,7 @@ const TrabalheConosco = () => {
       if (data) setJobs(data as any);
       const { data: unitsData } = await supabase
         .from("units")
-        .select("id,nome")
+        .select("id,nome,traducoes")
         .eq("ativo", true)
         .order("principal", { ascending: false });
       if (unitsData) setUnits(unitsData);
@@ -136,7 +136,7 @@ const TrabalheConosco = () => {
                     />
                     <div className="flex items-center gap-3 relative z-10">
                       <Briefcase className="h-5 w-5 text-primary" />
-                      <h2 className="font-display text-xl font-bold group-hover:text-primary transition-colors">{job.titulo}</h2>
+                      <h2 className="font-display text-xl font-bold group-hover:text-primary transition-colors">{tRecord(job, "titulo")}</h2>
                     </div>
                     <div className="ml-8 relative z-10 mt-2 flex flex-wrap gap-2">
                       {job.tipo_contrato && <Badge variant="outline" className="text-xs">{job.tipo_contrato}</Badge>}
@@ -146,7 +146,7 @@ const TrabalheConosco = () => {
                         </Badge>
                       )}
                     </div>
-                    {job.descricao && <p className="text-muted-foreground text-sm mt-3 ml-8 relative z-10">{job.descricao}</p>}
+                    {job.descricao && <p className="text-muted-foreground text-sm mt-3 ml-8 relative z-10">{tRecord(job, "descricao")}</p>}
                   </motion.div>
                 </StaggerItem>
               ))}
@@ -165,24 +165,24 @@ const TrabalheConosco = () => {
                 </button>
 
                 <div className="bg-card border border-border rounded-lg p-8">
-                  <h2 className="font-display text-2xl font-bold mb-2">{selectedJob.titulo}</h2>
+                  <h2 className="font-display text-2xl font-bold mb-2">{tRecord(selectedJob, "titulo")}</h2>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {selectedJob.tipo_contrato && <Badge variant="outline">{selectedJob.tipo_contrato}</Badge>}
                     {selectedJob.salario && <Badge variant="outline" className="gap-1"><DollarSign className="h-3 w-3" /> {selectedJob.salario}</Badge>}
                   </div>
-                  {selectedJob.descricao && <p className="text-muted-foreground text-sm mb-6">{selectedJob.descricao}</p>}
+                  {selectedJob.descricao && <p className="text-muted-foreground text-sm mb-6">{tRecord(selectedJob, "descricao")}</p>}
 
                   {selectedJob.requisitos && (
                     <div className="mb-6">
                       <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><FileText className="h-4 w-4 text-primary" /> {t("car.requirements")}</h4>
-                      <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(selectedJob.requisitos)}</ul>
+                      <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(tRecord(selectedJob, "requisitos"))}</ul>
                     </div>
                   )}
 
                   {selectedJob.funcoes && (
                     <div className="mb-8">
                       <h4 className="font-semibold text-sm flex items-center gap-2 mb-2"><Briefcase className="h-4 w-4 text-primary" /> {t("car.duties")}</h4>
-                      <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(selectedJob.funcoes)}</ul>
+                      <ul className="text-sm text-muted-foreground space-y-1.5">{renderTextLines(tRecord(selectedJob, "funcoes"))}</ul>
                     </div>
                   )}
 
@@ -227,7 +227,7 @@ const TrabalheConosco = () => {
                           <SelectTrigger><SelectValue placeholder={t("car.unit_select")} /></SelectTrigger>
                           <SelectContent>
                             {units.map((u) => (
-                              <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                              <SelectItem key={u.id} value={u.id}>{tRecord(u, "nome")}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

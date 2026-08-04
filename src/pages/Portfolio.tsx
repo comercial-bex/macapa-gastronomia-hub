@@ -125,13 +125,13 @@ const Portfolio = () => {
                     item.tipo === "video" ? (
                       <video src={item.url} className="w-full h-full object-cover" muted />
                     ) : (
-                      <img src={item.url} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      <img src={item.url} alt={tRecord(item, "titulo")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     )
                   ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-sm">{item.titulo}</div>
+                    <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-sm">{tRecord(item, "titulo")}</div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                    <p className="text-sm font-semibold">{item.titulo}</p>
+                    <p className="text-sm font-semibold">{tRecord(item, "titulo")}</p>
                   </div>
                 </motion.div>
               </StaggerItem>
@@ -154,11 +154,11 @@ const Portfolio = () => {
               {lightbox.tipo === "video" && lightbox.url ? (
                 <video src={lightbox.url} controls className="w-full rounded-lg" />
               ) : lightbox.url ? (
-                <img src={lightbox.url} alt={lightbox.titulo} className="w-full rounded-lg" />
+                <img src={lightbox.url} alt={tRecord(lightbox, "titulo")} className="w-full rounded-lg" />
               ) : null}
               <div className="p-4">
-                <h2 className="font-display text-xl font-bold">{lightbox.titulo}</h2>
-                {lightbox.descricao && <p className="text-muted-foreground text-sm mt-1">{lightbox.descricao}</p>}
+                <h2 className="font-display text-xl font-bold">{tRecord(lightbox, "titulo")}</h2>
+                {lightbox.descricao && <p className="text-muted-foreground text-sm mt-1">{tRecord(lightbox, "descricao")}</p>}
               </div>
             </div>
           )}
