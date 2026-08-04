@@ -50,18 +50,21 @@ export type Database = {
           id: string
           nome: string
           ordem: number
+          traducoes: Json
         }
         Insert: {
           ativo?: boolean
           id?: string
           nome: string
           ordem?: number
+          traducoes?: Json
         }
         Update: {
           ativo?: boolean
           id?: string
           nome?: string
           ordem?: number
+          traducoes?: Json
         }
         Relationships: []
       }
@@ -78,6 +81,7 @@ export type Database = {
           nome: string
           ordem: number
           preco: number | null
+          traducoes: Json
           volume: string | null
         }
         Insert: {
@@ -92,6 +96,7 @@ export type Database = {
           nome: string
           ordem?: number
           preco?: number | null
+          traducoes?: Json
           volume?: string | null
         }
         Update: {
@@ -106,6 +111,7 @@ export type Database = {
           nome?: string
           ordem?: number
           preco?: number | null
+          traducoes?: Json
           volume?: string | null
         }
         Relationships: [
@@ -180,6 +186,7 @@ export type Database = {
           salario: string | null
           tipo_contrato: string | null
           titulo: string
+          traducoes: Json
         }
         Insert: {
           ativa?: boolean
@@ -192,6 +199,7 @@ export type Database = {
           salario?: string | null
           tipo_contrato?: string | null
           titulo: string
+          traducoes?: Json
         }
         Update: {
           ativa?: boolean
@@ -204,6 +212,7 @@ export type Database = {
           salario?: string | null
           tipo_contrato?: string | null
           titulo?: string
+          traducoes?: Json
         }
         Relationships: []
       }
@@ -218,6 +227,7 @@ export type Database = {
           ordem: number
           tipo: string
           titulo: string
+          traducoes: Json
           unit_id: string | null
           url: string | null
         }
@@ -231,6 +241,7 @@ export type Database = {
           ordem?: number
           tipo?: string
           titulo: string
+          traducoes?: Json
           unit_id?: string | null
           url?: string | null
         }
@@ -244,6 +255,7 @@ export type Database = {
           ordem?: number
           tipo?: string
           titulo?: string
+          traducoes?: Json
           unit_id?: string | null
           url?: string | null
         }
@@ -364,6 +376,7 @@ export type Database = {
           nome: string
           principal: boolean
           telefone: string | null
+          traducoes: Json
         }
         Insert: {
           ativo?: boolean
@@ -376,6 +389,7 @@ export type Database = {
           nome: string
           principal?: boolean
           telefone?: string | null
+          traducoes?: Json
         }
         Update: {
           ativo?: boolean
@@ -388,6 +402,7 @@ export type Database = {
           nome?: string
           principal?: boolean
           telefone?: string | null
+          traducoes?: Json
         }
         Relationships: []
       }
@@ -461,6 +476,7 @@ export type Database = {
           prato: string
           tags: string[]
           tipo_midia: string
+          traducoes: Json
           unit_id: string | null
         }
         Insert: {
@@ -479,6 +495,7 @@ export type Database = {
           prato: string
           tags?: string[]
           tipo_midia?: string
+          traducoes?: Json
           unit_id?: string | null
         }
         Update: {
@@ -497,6 +514,7 @@ export type Database = {
           prato?: string
           tags?: string[]
           tipo_midia?: string
+          traducoes?: Json
           unit_id?: string | null
         }
         Relationships: [
