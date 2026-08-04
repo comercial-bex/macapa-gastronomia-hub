@@ -103,7 +103,7 @@ interface Unit {
 }
 
 const Cardapio = () => {
-  const { t, tDish, tCategory, tDay, locale } = useI18n();
+  const { t, tRecord, tDay, locale } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const diaParam = searchParams.get("dia");
   const pratoParam = searchParams.get("prato");
@@ -146,7 +146,7 @@ const Cardapio = () => {
         supabase.from("beverages").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
         supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
-        supabase.from("units").select("id,nome,principal,ativo").eq("ativo", true).order("principal", { ascending: false }),
+        supabase.from("units").select("id,nome,principal,ativo,traducoes").eq("ativo", true).order("principal", { ascending: false }),
       ]);
       if (catsRes.data) setCategories(catsRes.data);
       if (bevsRes.data) setBeverages(bevsRes.data);
@@ -422,12 +422,12 @@ const Cardapio = () => {
                                     )}
                                     {bev.badge && (
                                       <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                                        <Sparkles className="h-3 w-3" /> {bev.badge}
+                                        <Sparkles className="h-3 w-3" /> {tRecord(bev, "badge")}
                                       </span>
                                     )}
                                   </div>
                                   {bev.descricao && (
-                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{bev.descricao}</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{tRecord(bev, "descricao")}</p>
                                   )}
                                 </div>
                               </div>
@@ -474,7 +474,7 @@ const Cardapio = () => {
                       onClick={() => setActiveUnit(u.id)}
                       className={activeUnit === u.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
                     >
-                      {u.nome}
+                      {tRecord(u, "nome")}
                     </Button>
                   ))}
                 </div>
@@ -589,7 +589,7 @@ const Cardapio = () => {
                                         <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
                                         </div>
                                       </div>
-                                      {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{item.descricao}</p>}
+                                      {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{tRecord(item, "descricao")}</p>}
                                       <div className="flex flex-wrap gap-1 mt-2">
                                         {item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
@@ -598,7 +598,7 @@ const Cardapio = () => {
                                         )}
                                         {item.badge && (
                                           <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground border border-primary/30">
-                                            <Sparkles className="h-3 w-3" /> {item.badge}
+                                            <Sparkles className="h-3 w-3" /> {tRecord(item, "badge")}
                                           </span>
                                         )}
                                         {(item.disponivel_de || item.disponivel_ate) && (
@@ -668,7 +668,7 @@ const Cardapio = () => {
                                     {tRecord(item, "prato")}
                                   </span>
                                   {item.descricao && (
-                                    <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-2">{item.descricao}</p>
+                                    <p className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-2">{tRecord(item, "descricao")}</p>
                                   )}
                                   {(item.esgotado || item.badge) && (
                                     <div className="flex flex-wrap gap-1 mt-1">
@@ -679,7 +679,7 @@ const Cardapio = () => {
                                       )}
                                       {item.badge && (
                                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                                          <Sparkles className="h-2.5 w-2.5" /> {item.badge}
+                                          <Sparkles className="h-2.5 w-2.5" /> {tRecord(item, "badge")}
                                         </span>
                                       )}
                                       {avail === true && !item.esgotado && (
@@ -747,7 +747,7 @@ const Cardapio = () => {
                                         <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-4 w-4" /></button>
                                         </div>
                                       </div>
-                                      {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{item.descricao}</p>}
+                                      {item.descricao && <p className="text-white/85 text-sm mt-1 line-clamp-3">{tRecord(item, "descricao")}</p>}
                                       <div className="flex flex-wrap gap-1.5 mt-2">
                                         {item.esgotado && (
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
@@ -756,7 +756,7 @@ const Cardapio = () => {
                                         )}
                                         {item.badge && (
                                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground border border-primary/30">
-                                            <Sparkles className="h-3 w-3" /> {item.badge}
+                                            <Sparkles className="h-3 w-3" /> {tRecord(item, "badge")}
                                           </span>
                                         )}
                                         {(item.disponivel_de || item.disponivel_ate) && (
