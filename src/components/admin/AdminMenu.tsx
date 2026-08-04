@@ -102,7 +102,7 @@ const AdminMenu = () => {
     const dayItems = items.filter((i) => i.day_id === activeDay);
     setSavingNew(true);
     try {
-      const { error } = await supabase.from("weekly_menu_items").insert({
+      const { data: inserted, error } = await supabase.from("weekly_menu_items").insert({
         day_id: activeDay,
         prato: nome,
         ordem: dayItems.length,
@@ -111,8 +111,10 @@ const AdminMenu = () => {
         unit_id: newUnitId || null,
         descricao: newDescricao.trim() || null,
         badge: newBadge || null,
-      } as any);
+      } as any).select("id").maybeSingle();
       if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
+      // Generate EN/ES/FR versions in the background.
+      if (inserted?.id) void translateContent("weekly_menu_items", { ids: [inserted.id] });
       const dayName = days.find(d => d.id === activeDay)?.dia_semana;
       await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
       setNewPrato("");
