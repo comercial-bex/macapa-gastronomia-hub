@@ -289,7 +289,7 @@ const Cardapio = () => {
         .map((i) => ({
           "@type": "MenuItem",
           name: tRecord(i, "prato"),
-          ...(i.descricao ? { description: i.descricao } : {}),
+          ...(i.descricao ? { description: tRecord(i, "descricao") } : {}),
           ...(i.imagem_url && i.tipo_midia !== "video" ? { image: i.imagem_url } : {}),
         })),
     }));
@@ -308,7 +308,7 @@ const Cardapio = () => {
     ? `${tRecord(currentItem, "prato")} — ${tDay(currentDay.dia_semana)} | Restaurante Macapaba`
     : t("seo.menu_title");
   const dynamicDesc = tab === "semana" && currentItem
-    ? (currentItem.descricao ||
+    ? (tRecord(currentItem, "descricao") ||
         t("menu.share_text", {
           dish: tRecord(currentItem, "prato"),
           day: currentDay ? tDay(currentDay.dia_semana) : "",
