@@ -10,9 +10,10 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react";
 import {
   UtensilsCrossed, Users, Calendar, Fish, Beef, Drumstick, Shell, CookingPot, Wheat,
-  MessageCircle, ChevronDown, Star, Quote, MapPin, Clock, ArrowRight,
+  MessageCircle, ChevronDown, ChevronLeft, ChevronRight, Star, Quote, MapPin, Clock, ArrowRight,
   type LucideIcon
 } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -91,26 +92,37 @@ const InfiniteMarquee = () => {
   );
 };
 
-/* ── Pinned Horizontal Scroll for Specialties ── */
+/* ── Horizontal Carousel for Specialties ── */
 const HorizontalScrollSection = ({ specialties: items }: { specialties: { title: string; desc: string; image: string }[] }) => {
   const { t } = useI18n();
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps", loop: false });
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
 
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setCanPrev(emblaApi.canScrollPrev());
+      setCanNext(emblaApi.canScrollNext());
+    };
+    onSelect();
+    emblaApi.on("select", onSelect).on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect).off("reInit", onSelect);
+    };
+  }, [emblaApi]);
 
-  // Use useTransform with a function so it always reads the latest scrollWidth
-  const x = useTransform(scrollYProgress, (progress) => {
-    if (!trackRef.current) return 0;
-    const scrollWidth = trackRef.current.scrollWidth;
-    const containerWidth = trackRef.current.parentElement?.clientWidth || window.innerWidth;
-    const maxScroll = Math.max(0, scrollWidth - containerWidth);
-    return -progress * maxScroll;
-  });
+  const scrollPrev = () => emblaApi?.scrollPrev();
+  const scrollNext = () => emblaApi?.scrollNext();
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); scrollPrev(); }
+    if (e.key === "ArrowRight") { e.preventDefault(); scrollNext(); }
+  };
 
   return (
-    <section ref={sectionRef} className="relative" style={{ height: "150vh" }}>
-      <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
+    <section className="relative">
+      <div className="overflow-hidden flex flex-col">
         <div className="container mx-auto px-4 pt-20 pb-10 flex-shrink-0">
           <div className="flex items-end justify-between">
             <div>
@@ -122,11 +134,19 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
             </Link>
           </div>
         </div>
-        <div className="flex-1 overflow-hidden">
-          <motion.div ref={trackRef} style={{ x }} className="flex h-full gap-6 px-4">
+        <div
+          className="relative px-4 pb-12"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={t("home.spec_title_1") + " " + t("home.spec_title_2")}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+        >
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex">
             {items.map((item, i) => (
-              <div key={i} className="flex-shrink-0 w-[80vw] md:w-[60vw] lg:w-[45vw] h-full pb-8">
-                <div className="relative h-full overflow-hidden rounded-sm group cursor-pointer">
+              <div key={i} className="min-w-0 shrink-0 grow-0 basis-full md:basis-1/2 lg:basis-1/3 pl-0 pr-6 last:pr-0">
+                <div className="relative h-[420px] md:h-[500px] lg:h-[560px] overflow-hidden rounded-sm group cursor-pointer">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -142,7 +162,26 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
                 </div>
               </div>
             ))}
-          </motion.div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={scrollPrev}
+            disabled={!canPrev}
+            aria-label={t("a11y.carousel_prev")}
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full flex items-center justify-center bg-background/60 backdrop-blur-md border border-border/60 text-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={scrollNext}
+            disabled={!canNext}
+            aria-label={t("a11y.carousel_next")}
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-10 h-11 w-11 rounded-full flex items-center justify-center bg-background/60 backdrop-blur-md border border-border/60 text-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </section>

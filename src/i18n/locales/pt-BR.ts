@@ -243,6 +243,8 @@ const ptBR = {
   "a11y.nav_footer": "Rodapé",
   "a11y.skip_to_content": "Pular para o conteúdo principal",
   "a11y.loading_page": "Carregando página",
+  "a11y.carousel_prev": "Ver destaque anterior",
+  "a11y.carousel_next": "Ver próximo destaque",
 
   // ── Dias da semana ──
   "day.monday": "Segunda-feira",

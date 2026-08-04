@@ -235,6 +235,8 @@ const es: Dictionary = {
   "a11y.nav_footer": "Pie de página",
   "a11y.skip_to_content": "Saltar al contenido principal",
   "a11y.loading_page": "Cargando página",
+  "a11y.carousel_prev": "Destacado anterior",
+  "a11y.carousel_next": "Siguiente destacado",
 
   "day.monday": "Lunes",
   "day.tuesday": "Martes",
