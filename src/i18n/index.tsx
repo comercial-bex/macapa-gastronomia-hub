@@ -18,6 +18,7 @@ import {
   type TranslationKey,
 } from "./types";
 import { dayKeyOf, translateCategory, translateDish } from "./menuGlossary";
+import { localizedField, type TranslatableRecord } from "./localizedRecord";
 
 export type { Locale, TranslationKey };
 export { LOCALES, DEFAULT_LOCALE };
@@ -67,6 +68,11 @@ interface I18nContextValue {
   tDish: (name: string) => string;
   /** Translates CMS category names (drinks, gallery). */
   tCategory: (name: string) => string;
+  /**
+   * Reads a CMS record field in the active locale: DB translation first,
+   * then the gastronomic glossary, then the original pt-BR text.
+   */
+  tRecord: (record: TranslatableRecord | null | undefined, field: string) => string;
   /** Translates a CMS weekday label ("Segunda-feira"), full or short form. */
   tDay: (label: string, short?: boolean) => string;
   /** Returns the pt-BR CMS value on pt-BR, the translated key otherwise. */
@@ -104,6 +110,19 @@ const buildValue = (locale: Locale, setLocale: (l: Locale) => void): I18nContext
     t,
     tDish: (name) => translateDish(name, locale),
     tCategory: (name) => translateCategory(name, locale),
+    tRecord: (record, field) => {
+      const value = localizedField(record, field, locale);
+      if (locale === "pt-BR" || !value) return value;
+      const row = (record ?? {}) as Record<string, unknown>;
+      const original = typeof row[field] === "string" ? (row[field] as string) : "";
+      // No DB translation yet → fall back to the code glossary.
+      if (value === original) {
+        return field === "categoria"
+          ? translateCategory(original, locale)
+          : translateDish(original, locale);
+      }
+      return value;
+    },
     tDay: (label, short = false) => {
       const key = dayKeyOf(label);
       if (!key) return short ? label.slice(0, 3) : label;

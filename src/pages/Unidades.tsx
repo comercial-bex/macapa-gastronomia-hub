@@ -20,7 +20,7 @@ interface Unit {
 }
 
 const Unidades = () => {
-  const { t } = useI18n();
+  const { t, tRecord } = useI18n();
   const [units, setUnits] = useState<Unit[]>([]);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ const Unidades = () => {
                     <div className="w-full h-48 md:h-56 overflow-hidden">
                       <img
                         src={unit.imagem_url}
-                        alt={unit.nome}
+                        alt={tRecord(unit, "nome")}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
@@ -87,7 +87,7 @@ const Unidades = () => {
                         <Star className="h-4 w-4 fill-primary" /> {t("units.main")}
                       </div>
                     )}
-                    <h2 className="font-display text-2xl font-bold mb-4">{unit.nome}</h2>
+                    <h2 className="font-display text-2xl font-bold mb-4">{tRecord(unit, "nome")}</h2>
                     <div className="space-y-3 text-muted-foreground text-sm">
                       <div className="flex items-start gap-2">
                         <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
@@ -102,7 +102,7 @@ const Unidades = () => {
                       {unit.horarios && (
                         <div className="flex items-start gap-2">
                           <Clock className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                          <span>{unit.horarios}</span>
+                          <span>{tRecord(unit, "horarios")}</span>
                         </div>
                       )}
                     </div>

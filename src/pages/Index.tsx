@@ -190,7 +190,7 @@ const HorizontalScrollSection = ({ specialties: items }: { specialties: { title:
 
 const Index = () => {
   const { getSetting } = useSiteSettings();
-  const { t, tDish, tDay, tContent } = useI18n();
+  const { t, tRecord, tDay, tContent } = useI18n();
   const specialties = specialtyDefs.map((s) => ({ title: t(s.titleKey), desc: t(s.descKey), image: s.image }));
   const testimonials = testimonialDefs.map((tt) => ({ name: tt.name, text: t(tt.textKey), rating: tt.rating }));
   const heroRef = useRef<HTMLDivElement>(null);
@@ -540,7 +540,7 @@ const Index = () => {
                                       <DishIcon className="h-10 w-10 text-primary" />
                                     </div>
                                     <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
-                                    <h3 className="font-display text-lg font-bold text-foreground/90">{tDish(item.prato)}</h3>
+                                    <h3 className="font-display text-lg font-bold text-foreground/90">{tRecord(item, "prato")}</h3>
                                   </div>
                                 </div>
                               );
@@ -550,12 +550,12 @@ const Index = () => {
                                 {mediaTipo === 'video' ? (
                                   <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                 ) : (
-                                  <img src={mediaUrl} alt={tDish(item.prato)} className="w-full h-full object-cover" />
+                                  <img src={mediaUrl} alt={tRecord(item, "prato")} className="w-full h-full object-cover" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                 <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                                   <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
-                                  <h3 className="font-display text-xl font-bold text-white">{tDish(item.prato)}</h3>
+                                  <h3 className="font-display text-xl font-bold text-white">{tRecord(item, "prato")}</h3>
                                 </div>
                               </>
                             );
@@ -578,7 +578,7 @@ const Index = () => {
                               isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                             }`}
                           >
-                            <span className="text-sm font-medium">{tDish(item.prato)}</span>
+                            <span className="text-sm font-medium">{tRecord(item, "prato")}</span>
                             <ArrowRight className={`h-3 w-3 transition-all duration-300 ${isActive ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-50"}`} />
                           </button>
                         );
@@ -614,7 +614,7 @@ const Index = () => {
                                       <DishIcon className="h-10 w-10 text-primary" />
                                     </div>
                                     <p className="text-primary text-[10px] font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
-                                    <h3 className="font-display text-2xl font-bold text-foreground/90">{tDish(item.prato)}</h3>
+                                    <h3 className="font-display text-2xl font-bold text-foreground/90">{tRecord(item, "prato")}</h3>
                                   </div>
                                 </div>
                               );
@@ -624,12 +624,12 @@ const Index = () => {
                                 {mediaTipo === 'video' ? (
                                   <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                                 ) : (
-                                  <img src={mediaUrl} alt={tDish(item.prato)} className="w-full h-full object-cover" />
+                                  <img src={mediaUrl} alt={tRecord(item, "prato")} className="w-full h-full object-cover" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
                                 <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                                   <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
-                                  <h3 className="font-display text-2xl font-bold text-white">{tDish(item.prato)}</h3>
+                                  <h3 className="font-display text-2xl font-bold text-white">{tRecord(item, "prato")}</h3>
                                 </div>
                               </>
                             );
@@ -720,7 +720,7 @@ const Index = () => {
 
 /* ── Reserva Inline Component ── */
 const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
-  const { t, tContent, formatDate } = useI18n();
+  const { t, tContent, tRecord, formatDate } = useI18n();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ nome: "", telefone: "", data: "", horario: "12:00", pessoas: "2", observacoes: "", unit_id: "" });
@@ -731,7 +731,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
     const fetchUnits = async () => {
       const { data } = await supabase
         .from("units")
-        .select("id,nome,principal")
+        .select("id,nome,principal,traducoes")
         .eq("ativo", true)
         .order("principal", { ascending: false });
       if (data) {
@@ -919,7 +919,7 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
                             : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
                         }`}
                       >
-                        {u.nome}
+                        {tRecord(u, "nome")}
                       </button>
                     ))}
                   </div>

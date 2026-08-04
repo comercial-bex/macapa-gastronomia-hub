@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import TranslationBackfill from "./TranslationBackfill";
 import { Save, Loader2, Type, MessageSquare, Globe, UserPlus, Eye, EyeOff } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAuditLog";
 
@@ -99,6 +100,8 @@ const AdminSettings = () => {
           Salvar Alterações
         </Button>
       </div>
+
+      <TranslationBackfill />
 
       {/* Criar Admin */}
       <div className="mb-10">

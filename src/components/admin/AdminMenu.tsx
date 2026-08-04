@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { translateContent } from "@/lib/translateContent";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown, CalendarDays, Eye, EyeOff, Camera, ImageOff } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
@@ -102,7 +103,7 @@ const AdminMenu = () => {
     const dayItems = items.filter((i) => i.day_id === activeDay);
     setSavingNew(true);
     try {
-      const { error } = await supabase.from("weekly_menu_items").insert({
+      const { data: inserted, error } = await supabase.from("weekly_menu_items").insert({
         day_id: activeDay,
         prato: nome,
         ordem: dayItems.length,
@@ -111,8 +112,10 @@ const AdminMenu = () => {
         unit_id: newUnitId || null,
         descricao: newDescricao.trim() || null,
         badge: newBadge || null,
-      } as any);
+      } as any).select("id").maybeSingle();
       if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
+      // Generate EN/ES/FR versions in the background.
+      if (inserted?.id) void translateContent("weekly_menu_items", { ids: [inserted.id] });
       const dayName = days.find(d => d.id === activeDay)?.dia_semana;
       await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
       setNewPrato("");
