@@ -113,7 +113,8 @@ const buildValue = (locale: Locale, setLocale: (l: Locale) => void): I18nContext
     tRecord: (record, field) => {
       const value = localizedField(record, field, locale);
       if (locale === "pt-BR" || !value) return value;
-      const original = typeof record?.[field] === "string" ? (record[field] as string) : "";
+      const row = (record ?? {}) as Record<string, unknown>;
+      const original = typeof row[field] === "string" ? (row[field] as string) : "";
       // No DB translation yet → fall back to the code glossary.
       if (value === original) {
         return field === "categoria"
