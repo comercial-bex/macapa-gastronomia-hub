@@ -132,6 +132,25 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "Missing LOVABLE_API_KEY" }, 500);
 
+    // Only authenticated admins/editors may trigger translations.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+    const caller = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData } = await caller.auth.getUser();
+    if (!userData?.user) return json({ error: "Unauthorized" }, 401);
+    const { data: roles } = await caller
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id);
+    const allowed = (roles ?? []).some((r: { role: string }) =>
+      r.role === "admin" || r.role === "editor"
+    );
+    if (!allowed) return json({ error: "Forbidden" }, 403);
+
     const body = await req.json().catch(() => ({}));
     const table = String(body?.table ?? "");
     const fields = TABLE_FIELDS[table];
