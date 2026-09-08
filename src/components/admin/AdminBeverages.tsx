@@ -388,6 +388,17 @@ const AdminBeverages = () => {
           <DialogHeader><DialogTitle className="font-display">{editingCat ? "Editar" : "Nova"} Categoria</DialogTitle></DialogHeader>
           <form onSubmit={saveCat} className="space-y-4">
             <div><Label>Nome</Label><Input value={catForm.nome} onChange={(e) => setCatForm({ ...catForm, nome: e.target.value })} required /></div>
+            <div>
+              <Label>Aba do site</Label>
+              <select
+                value={catForm.grupo}
+                onChange={(e) => setCatForm({ ...catForm, grupo: e.target.value })}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="bebidas">Bebidas</option>
+                <option value="doces">Doces</option>
+              </select>
+            </div>
             <div><Label>Ordem</Label><Input type="number" value={catForm.ordem} onChange={(e) => setCatForm({ ...catForm, ordem: parseInt(e.target.value) || 0 })} /></div>
             <label className="flex items-center gap-2 text-sm"><Switch checked={catForm.ativo} onCheckedChange={(v) => setCatForm({ ...catForm, ativo: v })} /> Ativa</label>
             <Button type="submit" disabled={loading} className="w-full">{loading ? "Salvando..." : "Salvar"}</Button>
