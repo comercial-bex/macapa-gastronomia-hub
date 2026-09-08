@@ -59,6 +59,7 @@ interface BeverageCategory {
   id: string;
   nome: string;
   ordem: number;
+  grupo?: string | null;
   traducoes?: unknown;
 }
 
