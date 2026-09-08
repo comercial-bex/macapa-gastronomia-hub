@@ -201,6 +201,7 @@ const Admin = () => {
             <Route path="vagas" element={guarded(["admin"], <AdminJobs />)} />
             <Route path="candidaturas" element={guarded(["admin", "gerente"], <AdminApplications />)} />
             <Route path="reservas" element={guarded(["admin", "gerente"], <AdminReservations />)} />
+            <Route path="traducoes" element={guarded(["admin", "editor"], <AdminTranslations />)} />
             <Route path="historico" element={guarded(["admin"], <AdminAuditLog />)} />
             <Route path="configuracoes" element={guarded(["admin", "editor"], <AdminSettings />)} />
             <Route path="perfil" element={<AdminProfile />} />

@@ -59,7 +59,8 @@ async function translateBatch(apiKey: string, items: Item[]) {
       "X-Lovable-AIG-SDK": "fetch",
     },
     body: JSON.stringify({
-      model: "openai/gpt-5.6-sol",
+      model: "openai/gpt-6-astra",
+      reasoning: { effort: "low" },
       stream: true,
       instructions: SYSTEM_PROMPT,
       input: [
