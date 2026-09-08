@@ -74,7 +74,7 @@ const AdminBeverages = () => {
   const [bevOpen, setBevOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<any>(null);
   const [editingBev, setEditingBev] = useState<any>(null);
-  const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true });
+  const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true, grupo: "bebidas" });
   const [bevForm, setBevForm] = useState<{
     category_id: string; nome: string; volume: string; preco: string; ativo: boolean; ordem: number;
     descricao: string; badge: string; esgotado: boolean; alergenos: string;
@@ -266,7 +266,7 @@ const AdminBeverages = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true }); setCatOpen(true); }}>+ Categoria</Button>
+          <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true, grupo: "bebidas" }); setCatOpen(true); }}>+ Categoria</Button>
           <Button onClick={() => { setEditingBev(null); setBevForm({ category_id: categories[0]?.id || "", nome: "", volume: "", preco: "", ativo: true, ordem: 0, descricao: "", badge: "", esgotado: false, alergenos: "" }); setBevOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" /> Bebida
           </Button>
@@ -307,7 +307,7 @@ const AdminBeverages = () => {
               <h3 className="font-display text-lg font-bold">{cat.nome}</h3>
               <Badge variant={cat.ativo ? "default" : "secondary"} className="text-xs">{cat.ativo ? "Ativa" : "Inativa"}</Badge>
               <span className="text-xs text-muted-foreground ml-auto">{catBevs.length}{filter !== "todos" ? `/${catBevsAll.length}` : ""} itens</span>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo }); setCatOpen(true); }}>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo, grupo: (cat as any).grupo || "bebidas" }); setCatOpen(true); }}>
                 <Pencil className="h-3 w-3" />
               </Button>
               <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Excluir categoria" onClick={() => confirmDeleteCat(cat.id)}>
@@ -388,6 +388,17 @@ const AdminBeverages = () => {
           <DialogHeader><DialogTitle className="font-display">{editingCat ? "Editar" : "Nova"} Categoria</DialogTitle></DialogHeader>
           <form onSubmit={saveCat} className="space-y-4">
             <div><Label>Nome</Label><Input value={catForm.nome} onChange={(e) => setCatForm({ ...catForm, nome: e.target.value })} required /></div>
+            <div>
+              <Label>Aba do site</Label>
+              <select
+                value={catForm.grupo}
+                onChange={(e) => setCatForm({ ...catForm, grupo: e.target.value })}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="bebidas">Bebidas</option>
+                <option value="doces">Doces</option>
+              </select>
+            </div>
             <div><Label>Ordem</Label><Input type="number" value={catForm.ordem} onChange={(e) => setCatForm({ ...catForm, ordem: parseInt(e.target.value) || 0 })} /></div>
             <label className="flex items-center gap-2 text-sm"><Switch checked={catForm.ativo} onCheckedChange={(v) => setCatForm({ ...catForm, ativo: v })} /> Ativa</label>
             <Button type="submit" disabled={loading} className="w-full">{loading ? "Salvando..." : "Salvar"}</Button>

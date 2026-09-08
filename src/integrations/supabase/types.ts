@@ -47,6 +47,7 @@ export type Database = {
       beverage_categories: {
         Row: {
           ativo: boolean
+          grupo: string
           id: string
           nome: string
           ordem: number
@@ -54,6 +55,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          grupo?: string
           id?: string
           nome: string
           ordem?: number
@@ -61,6 +63,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          grupo?: string
           id?: string
           nome?: string
           ordem?: number
