@@ -136,9 +136,9 @@ const AdminTranslations = () => {
   };
 
   const generateOne = async (id: string) => {
-    const count = await translateContent(table, { ids: [id] });
-    if (!count) {
-      toast.error("Não foi possível gerar a tradução.");
+    const { translated, error } = await translateContent(table, { ids: [id] });
+    if (!translated) {
+      toast.error(error ?? "Não foi possível gerar a tradução.");
       return;
     }
     toast.success("Tradução gerada.");
@@ -147,13 +147,15 @@ const AdminTranslations = () => {
 
   const generateAll = async () => {
     setBulk(true);
-    const count = await translateContent(table, { onlyMissing: true });
-    toast[count ? "success" : "info"](
-      count ? `${count} item(ns) traduzido(s).` : "Nada pendente neste conteúdo.",
+    const { translated, error } = await translateContent(table, { onlyMissing: true });
+    if (error) toast.error(error);
+    else toast[translated ? "success" : "info"](
+      translated ? `${translated} item(ns) traduzido(s).` : "Nada pendente neste conteúdo.",
     );
     await load();
     setBulk(false);
   };
+
 
   return (
     <div>

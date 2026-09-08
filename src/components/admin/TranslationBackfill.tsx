@@ -23,15 +23,20 @@ const TranslationBackfill = () => {
     setDone(null);
     try {
       let total = 0;
+      let failure: string | undefined;
       for (const { table, label } of TABLES) {
-        const count = await translateContent(table, { onlyMissing: true });
-        total += count;
-        if (count) toast.success(`${label}: ${count} item(ns) traduzido(s)`);
+        const { translated, error } = await translateContent(table, { onlyMissing: true });
+        total += translated;
+        if (translated) toast.success(`${label}: ${translated} item(ns) traduzido(s)`);
+        if (error) { failure = error; break; }
       }
+      if (failure) toast.error(failure);
       setDone(
-        total > 0
-          ? `${total} registro(s) traduzido(s) para EN, ES e FR.`
-          : "Tudo já está traduzido.",
+        failure
+          ? failure
+          : total > 0
+            ? `${total} registro(s) traduzido(s) para EN, ES e FR.`
+            : "Tudo já está traduzido.",
       );
     } catch {
       toast.error("Falha ao traduzir conteúdo.");
@@ -39,6 +44,7 @@ const TranslationBackfill = () => {
       setRunning(false);
     }
   };
+
 
   return (
     <div className="mb-10">
