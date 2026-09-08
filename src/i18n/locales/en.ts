@@ -160,6 +160,7 @@ const en: Dictionary = {
   "menu.tab_sweets": "Desserts",
   "menu.search_sweet": "Search dessert (e.g. pudding, cake, mousse)",
   "menu.no_sweets": "Our desserts will be here soon.",
+  "menu.load_error": "We couldn't load the menu. Please try again.",
   "menu.search_drink": "Search drink (e.g. wine, juice, sparkling water)",
   "menu.search_drink_aria": "Search drink",
   "menu.search_dish": "Search dish",

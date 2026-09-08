@@ -160,6 +160,7 @@ const es: Dictionary = {
   "menu.tab_sweets": "Postres",
   "menu.search_sweet": "Buscar postre (ej: pudín, tarta, mousse)",
   "menu.no_sweets": "Pronto tendremos nuestros postres aquí.",
+  "menu.load_error": "No pudimos cargar el menú. Inténtalo de nuevo.",
   "menu.search_drink": "Buscar bebida (ej: vino, jugo, agua con gas)",
   "menu.search_drink_aria": "Buscar bebida",
   "menu.search_dish": "Buscar plato",

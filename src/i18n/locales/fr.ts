@@ -160,6 +160,7 @@ const fr: Dictionary = {
   "menu.tab_sweets": "Desserts",
   "menu.search_sweet": "Rechercher un dessert (ex : flan, gâteau, mousse)",
   "menu.no_sweets": "Nos desserts arrivent bientôt.",
+  "menu.load_error": "Impossible de charger la carte. Veuillez réessayer.",
   "menu.search_drink": "Rechercher une boisson (ex : vin, jus, eau gazeuse)",
   "menu.search_drink_aria": "Rechercher une boisson",
   "menu.search_dish": "Rechercher un plat",

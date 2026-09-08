@@ -163,6 +163,7 @@ const ptBR = {
   "menu.tab_sweets": "Doces",
   "menu.search_sweet": "Buscar doce (ex: pudim, bolo, mousse)",
   "menu.no_sweets": "Em breve nossas sobremesas estarão por aqui.",
+  "menu.load_error": "Não foi possível carregar o cardápio. Tente novamente.",
   "menu.search_drink": "Buscar bebida (ex: vinho, suco, água com gás)",
   "menu.search_drink_aria": "Buscar bebida",
   "menu.search_dish": "Buscar prato",

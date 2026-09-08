@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
+import SweetsGallery from "@/components/menu/SweetsGallery";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
 
@@ -120,6 +121,8 @@ const Cardapio = () => {
   const [activeUnit, setActiveUnit] = useState<string>("all");
   const [queryBev, setQueryBev] = useState("");
   const [queryDoces, setQueryDoces] = useState("");
+  const [menuLoading, setMenuLoading] = useState(true);
+  const [menuError, setMenuError] = useState(false);
   const [querySemana, setQuerySemana] = useState("");
   const [activeDiet, setActiveDiet] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -151,6 +154,7 @@ const Cardapio = () => {
         supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         supabase.from("units").select("id,nome,principal,ativo,traducoes").eq("ativo", true).order("principal", { ascending: false }),
       ]);
+      setMenuError(Boolean(catsRes.error || bevsRes.error || daysRes.error || itemsRes.error || unitsRes.error));
       if (catsRes.data) setCategories(catsRes.data);
       if (bevsRes.data) setBeverages(bevsRes.data);
       if (daysRes.data) {
@@ -160,6 +164,7 @@ const Cardapio = () => {
       }
       if (itemsRes.data) setMenuItems(itemsRes.data);
       if (unitsRes.data) setUnits(unitsRes.data as Unit[]);
+      setMenuLoading(false);
     };
     fetchData();
   }, [diaParam]);
@@ -482,7 +487,22 @@ const Cardapio = () => {
             </TabsContent>
 
             <TabsContent value="doces">
-              {renderBeverageGroup(docesCats, queryDoces, setQueryDoces, t("menu.search_sweet"), t("menu.no_sweets"))}
+              <SweetsGallery
+                categories={docesCats}
+                items={beverages.filter((item) => docesCats.some((category) => category.id === item.category_id))}
+                loading={menuLoading}
+                error={menuError}
+                locale={locale}
+                localize={(record, field) => tRecord(record, field)}
+                labels={{
+                  all: t("menu.all"),
+                  clear: t("menu.clear_search"),
+                  empty: queryDoces ? t("menu.no_dishes_filter") : t("menu.no_sweets"),
+                  loadError: t("menu.load_error"),
+                  photoSoon: t("menu.photo_soon"),
+                  search: t("menu.search_sweet"),
+                }}
+              />
             </TabsContent>
 
 
