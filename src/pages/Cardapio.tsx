@@ -210,14 +210,9 @@ const Cardapio = () => {
     return c;
   }, [dayItemsAll]);
 
-  // Bebidas filtered
-  const qBev = normalize(queryBev.trim());
-  const filteredBeverages = qBev
-    ? beverages.filter((b) => {
-        const hay = normalize(`${b.nome} ${b.volume || ""} ${b.descricao || ""}`);
-        return hay.includes(qBev);
-      })
-    : beverages;
+  // Categories split by group (drinks vs. sweets)
+  const bebidasCats = categories.filter((c) => (c.grupo || "bebidas") !== "doces");
+  const docesCats = categories.filter((c) => c.grupo === "doces");
 
   // Keyboard navigation on dish list
   useEffect(() => {
