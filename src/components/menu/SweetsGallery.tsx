@@ -10,7 +10,7 @@ interface SweetsGalleryProps {
   items: SweetViewItem[];
   loading: boolean;
   error: boolean;
-  labels: { all: string; clear: string; empty: string; loadError: string; photoSoon: string; search: string };
+  labels: { all: string; clear: string; empty: string; loadError: string; noResults: string; photoSoon: string; search: string };
   localize: (record: SweetCategory | SweetViewItem, field: string) => string;
   locale: string;
 }
@@ -51,7 +51,7 @@ const SweetsGallery = ({ categories, items, loading, error, labels, localize, lo
         {categories.map((entry) => <Button key={entry.id} size="sm" variant={activeCategory === entry.id ? "default" : "outline"} onClick={() => setActiveCategory(entry.id)}>{localize(entry, "nome")}</Button>)}
       </div>
     </div>
-    {filtered.length === 0 ? <p className="py-12 text-center text-muted-foreground">{labels.empty}</p> : (
+    {filtered.length === 0 ? <p className="py-12 text-center text-muted-foreground">{labels.noResults}</p> : (
       <div className="grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_320px]">
         <div className="md:order-2 md:sticky md:top-24"><SweetPreview item={selected} categoryName={category ? localize(category, "nome") : ""} name={selected ? localize(selected, "nome") : ""} description={selected ? localize(selected, "descricao") : ""} photoSoon={labels.photoSoon} formattedPrice={price} /></div>
         <div className="space-y-7 md:order-1">

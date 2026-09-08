@@ -120,7 +120,6 @@ const Cardapio = () => {
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
   const [queryBev, setQueryBev] = useState("");
-  const [queryDoces, setQueryDoces] = useState("");
   const [menuLoading, setMenuLoading] = useState(true);
   const [menuError, setMenuError] = useState(false);
   const [querySemana, setQuerySemana] = useState("");
@@ -497,8 +496,9 @@ const Cardapio = () => {
                 labels={{
                   all: t("menu.all"),
                   clear: t("menu.clear_search"),
-                  empty: queryDoces ? t("menu.no_dishes_filter") : t("menu.no_sweets"),
+                  empty: t("menu.no_sweets"),
                   loadError: t("menu.load_error"),
+                  noResults: t("menu.no_dishes_filter"),
                   photoSoon: t("menu.photo_soon"),
                   search: t("menu.search_sweet"),
                 }}
