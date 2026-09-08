@@ -344,6 +344,10 @@ const Cardapio = () => {
               <TabsTrigger value="semana" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 {t("menu.tab_week")}
               </TabsTrigger>
+              <TabsTrigger value="doces" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                {t("menu.tab_sweets")}
+              </TabsTrigger>
+
             </TabsList>
 
             <TabsContent value="bebidas">
