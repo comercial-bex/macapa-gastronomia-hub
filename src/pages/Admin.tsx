@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard, ExternalLink } from "lucide-react";
+import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard, ExternalLink, Languages } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import AdminPortfolio from "@/components/admin/AdminPortfolio";
@@ -16,6 +16,7 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import AdminProfile from "@/components/admin/AdminProfile";
 import AdminAuditLog from "@/components/admin/AdminAuditLog";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import AdminTranslations from "@/components/admin/AdminTranslations";
 import { getAdministrativeRoles, hasAdministrativeAccess, type AppRole } from "@/lib/adminAuth";
 import SEO from "@/components/SEO";
 
@@ -28,6 +29,7 @@ const sidebarLinks: Array<{ label: string; path: string; icon: typeof LayoutDash
   { label: "Vagas", path: "/admin/vagas", icon: Briefcase, roles: ["admin"] },
   { label: "Candidaturas", path: "/admin/candidaturas", icon: Users, roles: ["admin", "gerente"] },
   { label: "Reservas", path: "/admin/reservas", icon: BookOpen, roles: ["admin", "gerente"] },
+  { label: "Traduções", path: "/admin/traducoes", icon: Languages, roles: ["admin", "editor"] },
   { label: "Histórico", path: "/admin/historico", icon: ClipboardList, roles: ["admin"] },
   { label: "Configurações", path: "/admin/configuracoes", icon: Settings, roles: ["admin", "editor"] },
 ];
