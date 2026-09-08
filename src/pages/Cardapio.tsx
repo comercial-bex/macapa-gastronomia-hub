@@ -119,6 +119,7 @@ const Cardapio = () => {
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
   const [queryBev, setQueryBev] = useState("");
+  const [queryDoces, setQueryDoces] = useState("");
   const [querySemana, setQuerySemana] = useState("");
   const [activeDiet, setActiveDiet] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
