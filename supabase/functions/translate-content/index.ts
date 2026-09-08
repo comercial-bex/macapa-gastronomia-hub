@@ -183,6 +183,7 @@ Deno.serve(async (req) => {
     if (!rows.length) return json({ translated: 0 });
 
     let translated = 0;
+    let lastError: string | undefined;
     const CHUNK = 15;
     for (let i = 0; i < rows.length; i += CHUNK) {
       const chunk = rows.slice(i, i + CHUNK);
@@ -196,8 +197,21 @@ Deno.serve(async (req) => {
         results = await translateBatch(apiKey, payload);
       } catch (e) {
         console.error("translate chunk failed", e);
+        const raw = e instanceof Error ? e.message : String(e);
+        // Surface the gateway's own message (credits, rate limit) to the admin UI.
+        const match = raw.match(/\{[\s\S]*$/);
+        let detail = raw;
+        if (match) {
+          try {
+            const parsed = JSON.parse(match[0]) as { message?: string; details?: string };
+            detail = parsed.details || parsed.message || raw;
+          } catch { /* keep raw */ }
+        }
+        lastError = detail;
+        if (/\b(402|403)\b/.test(raw)) break; // terminal: stop the whole run
         continue;
       }
+
 
       for (const result of results) {
         const row = chunk.find((r) => String(r.id) === result.id);
