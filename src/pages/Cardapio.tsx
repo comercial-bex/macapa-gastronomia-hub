@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
-import SweetsGallery from "@/components/menu/SweetsGallery";
+import ProductGallery from "@/components/menu/ProductGallery";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
 
@@ -119,7 +119,7 @@ const Cardapio = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
-  const [queryBev, setQueryBev] = useState("");
+  
   const [menuLoading, setMenuLoading] = useState(true);
   const [menuError, setMenuError] = useState(false);
   const [querySemana, setQuerySemana] = useState("");
@@ -215,8 +215,9 @@ const Cardapio = () => {
     return c;
   }, [dayItemsAll]);
 
-  // Categories split by group (drinks vs. sweets)
-  const bebidasCats = categories.filter((c) => (c.grupo || "bebidas") !== "doces");
+  // Categories split by group (drinks, wines, sweets)
+  const bebidasCats = categories.filter((c) => !["doces", "vinhos"].includes(c.grupo || "bebidas"));
+  const vinhosCats = categories.filter((c) => c.grupo === "vinhos");
   const docesCats = categories.filter((c) => c.grupo === "doces");
 
   // Keyboard navigation on dish list
@@ -320,134 +321,16 @@ const Cardapio = () => {
     ? currentItem.imagem_url
     : undefined;
 
-  // Renders a group of beverage/sweet categories with its own search box.
-  const renderBeverageGroup = (
-    cats: BeverageCategory[],
-    query: string,
-    setQuery: (v: string) => void,
-    placeholder: string,
-    emptyMsg: string,
-  ) => {
-    const catIds = new Set(cats.map((c) => c.id));
-    const groupItems = beverages.filter((b) => catIds.has(b.category_id));
-    const q = normalize(query.trim());
-    const filtered = q
-      ? groupItems.filter((b) => normalize(`${b.nome} ${b.volume || ""} ${b.descricao || ""}`).includes(q))
-      : groupItems;
-    const hasAny = groupItems.length > 0;
-
-    return (
-      <>
-        {hasAny && (
-          <div className="mb-6 space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              <Input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={placeholder}
-                aria-label={placeholder}
-                className="pl-9 pr-9 bg-secondary/40 border-border"
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  aria-label={t("menu.clear_search")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
-                >
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-              )}
-            </div>
-            {!query && cats.length > 1 && (
-              <div className="flex flex-wrap gap-1.5">
-                {cats.map((cat) => {
-                  const count = groupItems.filter((b) => b.category_id === cat.id).length;
-                  if (count === 0) return null;
-                  return (
-                    <a
-                      key={cat.id}
-                      href={`#cat-${cat.id}`}
-                      className="px-2.5 py-1 rounded-full text-xs border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                    >
-                      {tRecord(cat, "nome")} <span className="opacity-60">({count})</span>
-                    </a>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {cats.map((cat) => {
-          const items = filtered.filter((b) => b.category_id === cat.id);
-          if (items.length === 0) return null;
-          return (
-            <ScrollReveal key={cat.id}>
-              <div id={`cat-${cat.id}`} className="mb-10 scroll-mt-24">
-                <h2 className="font-display text-2xl font-bold mb-4 text-primary">{tRecord(cat, "nome")}</h2>
-                <ScrollReveal stagger className="space-y-0">
-                  {items.map((bev) => (
-                    <StaggerItem key={bev.id}>
-                      <motion.div
-                        className="flex justify-between items-center gap-3 py-3 border-b border-border/50 hover:bg-secondary/50 px-2 rounded transition-colors"
-                        whileHover={{ x: 4 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {bev.imagem_url && (
-                            <img
-                              src={bev.imagem_url}
-                              alt={tRecord(bev, "nome")}
-                              loading="lazy"
-                              className="h-12 w-12 rounded-md object-cover flex-shrink-0 border border-border/40"
-                            />
-                          )}
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`font-medium ${bev.esgotado ? "line-through text-muted-foreground" : ""}`}>{tRecord(bev, "nome")}</span>
-                              {bev.volume && <span className="text-muted-foreground text-sm">({bev.volume})</span>}
-                              {bev.esgotado && (
-                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-400/30">
-                                  <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out")}
-                                </span>
-                              )}
-                              {bev.badge && (
-                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                                  <Sparkles className="h-3 w-3" /> {tRecord(bev, "badge")}
-                                </span>
-                              )}
-                            </div>
-                            {bev.descricao && (
-                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{tRecord(bev, "descricao")}</p>
-                            )}
-                          </div>
-                        </div>
-                        {bev.preco !== null && bev.preco !== undefined && (
-                          <span className="text-primary font-semibold flex-shrink-0">
-                            R$ {Number(bev.preco).toFixed(2).replace(".", ",")}
-                          </span>
-                        )}
-                      </motion.div>
-                    </StaggerItem>
-                  ))}
-                </ScrollReveal>
-              </div>
-            </ScrollReveal>
-          );
-        })}
-
-        {!hasAny && <p className="text-center text-muted-foreground py-12">{emptyMsg}</p>}
-        {hasAny && q && filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-8 text-sm">
-            {t("menu.no_results_for")} "<span className="text-foreground">{query}</span>".
-          </p>
-        )}
-      </>
-    );
+  // Shared labels/props for the 9:16 product galleries (drinks, wines, sweets).
+  const galleryCommon = {
+    loading: menuLoading,
+    error: menuError,
+    locale,
+    localize: (record: any, field: string) => tRecord(record, field),
   };
+  const itemsOf = (cats: BeverageCategory[]) =>
+    beverages.filter((b) => cats.some((c) => c.id === b.category_id));
+
 
 
   return (
@@ -481,18 +364,50 @@ const Cardapio = () => {
 
             </TabsList>
 
-            <TabsContent value="bebidas">
-              {renderBeverageGroup(bebidasCats, queryBev, setQueryBev, t("menu.search_drink"), t("menu.no_drinks"))}
+            <TabsContent value="bebidas" className="space-y-14">
+              <ProductGallery
+                {...galleryCommon}
+                categories={bebidasCats}
+                items={itemsOf(bebidasCats)}
+                labels={{
+                  all: t("menu.all"),
+                  clear: t("menu.clear_search"),
+                  empty: t("menu.no_drinks"),
+                  loadError: t("menu.load_error"),
+                  noResults: t("menu.no_dishes_filter"),
+                  photoSoon: t("menu.photo_soon"),
+                  search: t("menu.search_drink"),
+                }}
+              />
+              {vinhosCats.length > 0 && (
+                <section aria-labelledby="carta-vinho" className="border-t border-border pt-10">
+                  <div className="mb-6 text-center">
+                    <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{t("menu.wine_eyebrow")}</p>
+                    <h2 id="carta-vinho" className="font-display text-3xl font-bold">{t("menu.wine_list")}</h2>
+                  </div>
+                  <ProductGallery
+                    {...galleryCommon}
+                    categories={vinhosCats}
+                    items={itemsOf(vinhosCats)}
+                    labels={{
+                      all: t("menu.all"),
+                      clear: t("menu.clear_search"),
+                      empty: t("menu.no_wines"),
+                      loadError: t("menu.load_error"),
+                      noResults: t("menu.no_dishes_filter"),
+                      photoSoon: t("menu.photo_soon"),
+                      search: t("menu.search_wine"),
+                    }}
+                  />
+                </section>
+              )}
             </TabsContent>
 
             <TabsContent value="doces">
-              <SweetsGallery
+              <ProductGallery
+                {...galleryCommon}
                 categories={docesCats}
-                items={beverages.filter((item) => docesCats.some((category) => category.id === item.category_id))}
-                loading={menuLoading}
-                error={menuError}
-                locale={locale}
-                localize={(record, field) => tRecord(record, field)}
+                items={itemsOf(docesCats)}
                 labels={{
                   all: t("menu.all"),
                   clear: t("menu.clear_search"),
@@ -504,6 +419,7 @@ const Cardapio = () => {
                 }}
               />
             </TabsContent>
+
 
 
             <TabsContent value="semana">

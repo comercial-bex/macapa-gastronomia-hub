@@ -1,19 +1,20 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, UtensilsCrossed } from "lucide-react";
 
-export interface SweetViewItem {
+export interface ProductViewItem {
   id: string;
   nome: string;
   descricao?: string | null;
   imagem_url?: string | null;
   preco?: number | null;
+  volume?: string | null;
   badge?: string | null;
   category_id: string;
   traducoes?: unknown;
 }
 
-interface SweetPreviewProps {
-  item?: SweetViewItem;
+interface ProductPreviewProps {
+  item?: ProductViewItem;
   categoryName: string;
   name: string;
   description: string;
@@ -21,7 +22,7 @@ interface SweetPreviewProps {
   formattedPrice?: string;
 }
 
-const SweetPreview = ({ item, categoryName, name, description, photoSoon, formattedPrice }: SweetPreviewProps) => (
+const ProductPreview = ({ item, categoryName, name, description, photoSoon, formattedPrice }: ProductPreviewProps) => (
   <div className="relative mx-auto w-full max-w-[280px] md:max-w-[320px] aspect-[9/16] overflow-hidden rounded-lg border border-border bg-secondary shadow-elegant">
     <AnimatePresence mode="wait">
       <motion.div
@@ -50,6 +51,7 @@ const SweetPreview = ({ item, categoryName, name, description, photoSoon, format
             <h2 className="font-display text-2xl font-bold text-foreground">{name}</h2>
             {formattedPrice && <span className="shrink-0 font-semibold text-primary">{formattedPrice}</span>}
           </div>
+          {item?.volume && <p className="mt-1 text-xs text-muted-foreground">{item.volume}</p>}
           {description && <p className="mt-2 line-clamp-3 text-sm text-foreground/80">{description}</p>}
           {item?.badge && (
             <span className="mt-3 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-2 py-1 text-xs text-primary">
@@ -62,4 +64,4 @@ const SweetPreview = ({ item, categoryName, name, description, photoSoon, format
   </div>
 );
 
-export default SweetPreview;
+export default ProductPreview;

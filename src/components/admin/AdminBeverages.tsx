@@ -67,14 +67,20 @@ const SortableBevRow = ({ bev, children }: { bev: any; children: React.ReactNode
   );
 };
 
-const AdminBeverages = () => {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [beverages, setBeverages] = useState<any[]>([]);
+interface AdminBeveragesProps {
+  /** Category groups managed by this screen; defaults to drinks + sweets. */
+  grupos?: string[];
+  titulo?: string;
+}
+
+const AdminBeverages = ({ grupos = ["bebidas", "doces"], titulo = "Bebidas" }: AdminBeveragesProps) => {
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [allBeverages, setAllBeverages] = useState<any[]>([]);
   const [catOpen, setCatOpen] = useState(false);
   const [bevOpen, setBevOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<any>(null);
   const [editingBev, setEditingBev] = useState<any>(null);
-  const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true, grupo: "bebidas" });
+  const [catForm, setCatForm] = useState({ nome: "", ordem: 0, ativo: true, grupo: grupos[0] });
   const [bevForm, setBevForm] = useState<{
     category_id: string; nome: string; volume: string; preco: string; ativo: boolean; ordem: number;
     descricao: string; badge: string; esgotado: boolean; alergenos: string;
@@ -91,9 +97,12 @@ const AdminBeverages = () => {
       supabase.from("beverage_categories").select("*").order("ordem"),
       supabase.from("beverages").select("*").order("ordem"),
     ]);
-    if (c.data) setCategories(c.data);
-    if (b.data) setBeverages(b.data);
+    if (c.data) setAllCategories(c.data);
+    if (b.data) setAllBeverages(b.data);
   };
+
+  const categories = allCategories.filter((c) => grupos.includes(c.grupo || "bebidas"));
+  const beverages = allBeverages.filter((b) => categories.some((c) => c.id === b.category_id));
 
   useEffect(() => { fetchData(); }, []);
 
@@ -251,7 +260,7 @@ const AdminBeverages = () => {
     const catBevs = beverages.filter((b) => b.category_id === catId).sort((a, b) => a.ordem - b.ordem);
     const reordered = arrayMove(catBevs, oldIndex, newIndex);
     const map = new Map(reordered.map((b, i) => [b.id, i]));
-    setBeverages((prev) => prev.map((b) => map.has(b.id) ? { ...b, ordem: map.get(b.id)! } : b));
+    setAllBeverages((prev) => prev.map((b) => map.has(b.id) ? { ...b, ordem: map.get(b.id)! } : b));
     const results = await Promise.all(reordered.map((b, i) => supabase.from("beverages").update({ ordem: i }).eq("id", b.id)));
     if (results.some((r) => r.error)) { toast.error("Falha ao reordenar."); fetchData(); }
   };
@@ -260,13 +269,13 @@ const AdminBeverages = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="font-display text-2xl font-bold">Bebidas</h2>
+          <h2 className="font-display text-2xl font-bold">{titulo}</h2>
           <p className="text-muted-foreground text-sm mt-1">
             {categories.length} categorias · {beverages.length} itens · {totalComFoto}/{beverages.length} com foto
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true, grupo: "bebidas" }); setCatOpen(true); }}>+ Categoria</Button>
+          <Button variant="outline" onClick={() => { setEditingCat(null); setCatForm({ nome: "", ordem: categories.length, ativo: true, grupo: grupos[0] }); setCatOpen(true); }}>+ Categoria</Button>
           <Button onClick={() => { setEditingBev(null); setBevForm({ category_id: categories[0]?.id || "", nome: "", volume: "", preco: "", ativo: true, ordem: 0, descricao: "", badge: "", esgotado: false, alergenos: "" }); setBevOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" /> Bebida
           </Button>
@@ -307,7 +316,7 @@ const AdminBeverages = () => {
               <h3 className="font-display text-lg font-bold">{cat.nome}</h3>
               <Badge variant={cat.ativo ? "default" : "secondary"} className="text-xs">{cat.ativo ? "Ativa" : "Inativa"}</Badge>
               <span className="text-xs text-muted-foreground ml-auto">{catBevs.length}{filter !== "todos" ? `/${catBevsAll.length}` : ""} itens</span>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo, grupo: (cat as any).grupo || "bebidas" }); setCatOpen(true); }}>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, ordem: cat.ordem, ativo: cat.ativo, grupo: (cat as any).grupo || grupos[0] }); setCatOpen(true); }}>
                 <Pencil className="h-3 w-3" />
               </Button>
               <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Excluir categoria" onClick={() => confirmDeleteCat(cat.id)}>
@@ -396,6 +405,7 @@ const AdminBeverages = () => {
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="bebidas">Bebidas</option>
+                <option value="vinhos">Carta de Vinho</option>
                 <option value="doces">Doces</option>
               </select>
             </div>

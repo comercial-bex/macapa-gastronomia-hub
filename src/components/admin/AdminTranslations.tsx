@@ -80,6 +80,8 @@ const AdminTranslations = () => {
   const [rows, setRows] = useState<TransRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [bulk, setBulk] = useState(false);
+  const [bulkAll, setBulkAll] = useState(false);
+  const [progress, setProgress] = useState("");
   const [search, setSearch] = useState("");
   const [onlyPending, setOnlyPending] = useState(false);
 
@@ -156,6 +158,26 @@ const AdminTranslations = () => {
     setBulk(false);
   };
 
+  // Runs every table in sequence so nothing stays untranslated.
+  const generateEverything = async () => {
+    setBulkAll(true);
+    let total = 0;
+    const failures: string[] = [];
+    for (const entry of TABLES) {
+      setProgress(entry.label);
+      const { translated, error } = await translateContent(entry.table, { onlyMissing: true });
+      if (error) failures.push(`${entry.label}: ${error}`);
+      total += translated ?? 0;
+    }
+    setProgress("");
+    if (failures.length) toast.error(failures.join(" · "));
+    if (total) toast.success(`${total} item(ns) traduzido(s) em todo o conteúdo.`);
+    else if (!failures.length) toast.info("Nada pendente — tudo já está traduzido.");
+    await load();
+    setBulkAll(false);
+  };
+
+
 
   return (
     <div>
@@ -189,11 +211,21 @@ const AdminTranslations = () => {
           Pendentes ({pendingCount})
         </Button>
 
-        <Button onClick={generateAll} disabled={bulk} className="gap-2">
+        <Button onClick={generateAll} disabled={bulk || bulkAll} className="gap-2">
           {bulk ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
           Traduzir pendentes
         </Button>
+
+        <Button variant="secondary" onClick={generateEverything} disabled={bulk || bulkAll} className="gap-2">
+          {bulkAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+          Traduzir tudo o que falta
+        </Button>
+
+        {bulkAll && progress && (
+          <span aria-live="polite" className="text-xs text-muted-foreground">Traduzindo: {progress}…</span>
+        )}
       </div>
+
 
       {loading ? (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
