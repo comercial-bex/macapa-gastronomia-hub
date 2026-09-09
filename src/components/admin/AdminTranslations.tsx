@@ -80,6 +80,8 @@ const AdminTranslations = () => {
   const [rows, setRows] = useState<TransRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [bulk, setBulk] = useState(false);
+  const [bulkAll, setBulkAll] = useState(false);
+  const [progress, setProgress] = useState("");
   const [search, setSearch] = useState("");
   const [onlyPending, setOnlyPending] = useState(false);
 
