@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
-import SweetsGallery from "@/components/menu/SweetsGallery";
+import ProductGallery from "@/components/menu/ProductGallery";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
 
@@ -215,8 +215,9 @@ const Cardapio = () => {
     return c;
   }, [dayItemsAll]);
 
-  // Categories split by group (drinks vs. sweets)
-  const bebidasCats = categories.filter((c) => (c.grupo || "bebidas") !== "doces");
+  // Categories split by group (drinks, wines, sweets)
+  const bebidasCats = categories.filter((c) => !["doces", "vinhos"].includes(c.grupo || "bebidas"));
+  const vinhosCats = categories.filter((c) => c.grupo === "vinhos");
   const docesCats = categories.filter((c) => c.grupo === "doces");
 
   // Keyboard navigation on dish list
