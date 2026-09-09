@@ -156,6 +156,26 @@ const AdminTranslations = () => {
     setBulk(false);
   };
 
+  // Runs every table in sequence so nothing stays untranslated.
+  const generateEverything = async () => {
+    setBulkAll(true);
+    let total = 0;
+    const failures: string[] = [];
+    for (const entry of TABLES) {
+      setProgress(entry.label);
+      const { translated, error } = await translateContent(entry.table, { onlyMissing: true });
+      if (error) failures.push(`${entry.label}: ${error}`);
+      total += translated ?? 0;
+    }
+    setProgress("");
+    if (failures.length) toast.error(failures.join(" · "));
+    if (total) toast.success(`${total} item(ns) traduzido(s) em todo o conteúdo.`);
+    else if (!failures.length) toast.info("Nada pendente — tudo já está traduzido.");
+    await load();
+    setBulkAll(false);
+  };
+
+
 
   return (
     <div>
