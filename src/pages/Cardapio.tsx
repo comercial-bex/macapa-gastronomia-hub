@@ -363,18 +363,50 @@ const Cardapio = () => {
 
             </TabsList>
 
-            <TabsContent value="bebidas">
-              {renderBeverageGroup(bebidasCats, queryBev, setQueryBev, t("menu.search_drink"), t("menu.no_drinks"))}
+            <TabsContent value="bebidas" className="space-y-14">
+              <ProductGallery
+                {...galleryCommon}
+                categories={bebidasCats}
+                items={itemsOf(bebidasCats)}
+                labels={{
+                  all: t("menu.all"),
+                  clear: t("menu.clear_search"),
+                  empty: t("menu.no_drinks"),
+                  loadError: t("menu.load_error"),
+                  noResults: t("menu.no_dishes_filter"),
+                  photoSoon: t("menu.photo_soon"),
+                  search: t("menu.search_drink"),
+                }}
+              />
+              {vinhosCats.length > 0 && (
+                <section aria-labelledby="carta-vinho" className="border-t border-border pt-10">
+                  <div className="mb-6 text-center">
+                    <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">{t("menu.wine_eyebrow")}</p>
+                    <h2 id="carta-vinho" className="font-display text-3xl font-bold">{t("menu.wine_list")}</h2>
+                  </div>
+                  <ProductGallery
+                    {...galleryCommon}
+                    categories={vinhosCats}
+                    items={itemsOf(vinhosCats)}
+                    labels={{
+                      all: t("menu.all"),
+                      clear: t("menu.clear_search"),
+                      empty: t("menu.no_wines"),
+                      loadError: t("menu.load_error"),
+                      noResults: t("menu.no_dishes_filter"),
+                      photoSoon: t("menu.photo_soon"),
+                      search: t("menu.search_wine"),
+                    }}
+                  />
+                </section>
+              )}
             </TabsContent>
 
             <TabsContent value="doces">
-              <SweetsGallery
+              <ProductGallery
+                {...galleryCommon}
                 categories={docesCats}
-                items={beverages.filter((item) => docesCats.some((category) => category.id === item.category_id))}
-                loading={menuLoading}
-                error={menuError}
-                locale={locale}
-                localize={(record, field) => tRecord(record, field)}
+                items={itemsOf(docesCats)}
                 labels={{
                   all: t("menu.all"),
                   clear: t("menu.clear_search"),
@@ -386,6 +418,7 @@ const Cardapio = () => {
                 }}
               />
             </TabsContent>
+
 
 
             <TabsContent value="semana">
