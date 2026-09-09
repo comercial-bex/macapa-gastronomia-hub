@@ -24,6 +24,7 @@ const sidebarLinks: Array<{ label: string; path: string; icon: typeof LayoutDash
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, roles: ["admin", "editor", "gerente"] },
   { label: "Portfólio", path: "/admin/portfolio", icon: Image, roles: ["admin", "editor"] },
   { label: "Bebidas", path: "/admin/bebidas", icon: Wine, roles: ["admin", "editor"] },
+  { label: "Carta de Vinho", path: "/admin/vinhos", icon: Wine, roles: ["admin", "editor"] },
   { label: "Cardápio", path: "/admin/cardapio", icon: CalendarDays, roles: ["admin", "editor"] },
   { label: "Unidades", path: "/admin/unidades", icon: MapPin, roles: ["admin"] },
   { label: "Vagas", path: "/admin/vagas", icon: Briefcase, roles: ["admin"] },
@@ -196,6 +197,7 @@ const Admin = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="portfolio" element={guarded(["admin", "editor"], <AdminPortfolio />)} />
             <Route path="bebidas" element={guarded(["admin", "editor"], <AdminBeverages />)} />
+            <Route path="vinhos" element={guarded(["admin", "editor"], <AdminBeverages grupos={["vinhos"]} titulo="Carta de Vinho" />)} />)
             <Route path="cardapio" element={guarded(["admin", "editor"], <AdminMenu />)} />
             <Route path="unidades" element={guarded(["admin"], <AdminUnits />)} />
             <Route path="vagas" element={guarded(["admin"], <AdminJobs />)} />
