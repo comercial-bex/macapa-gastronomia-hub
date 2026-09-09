@@ -197,7 +197,7 @@ const Admin = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="portfolio" element={guarded(["admin", "editor"], <AdminPortfolio />)} />
             <Route path="bebidas" element={guarded(["admin", "editor"], <AdminBeverages />)} />
-            <Route path="vinhos" element={guarded(["admin", "editor"], <AdminBeverages grupos={["vinhos"]} titulo="Carta de Vinho" />)} />)
+            <Route path="vinhos" element={guarded(["admin", "editor"], <AdminBeverages grupos={["vinhos"]} titulo="Carta de Vinho" />)} />
             <Route path="cardapio" element={guarded(["admin", "editor"], <AdminMenu />)} />
             <Route path="unidades" element={guarded(["admin"], <AdminUnits />)} />
             <Route path="vagas" element={guarded(["admin"], <AdminJobs />)} />
