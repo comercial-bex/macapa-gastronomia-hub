@@ -119,7 +119,7 @@ const Cardapio = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
-  const [queryBev, setQueryBev] = useState("");
+  
   const [menuLoading, setMenuLoading] = useState(true);
   const [menuError, setMenuError] = useState(false);
   const [querySemana, setQuerySemana] = useState("");
