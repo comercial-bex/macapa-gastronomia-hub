@@ -72,6 +72,13 @@ const TABLES: {
     ],
   },
   {
+    // Categorias de portfólio e cardápio: traduzidas uma vez aqui, e não
+    // repetidas por linha de conteúdo como acontecia com o campo de texto.
+    table: "content_categories",
+    label: "Categorias (portfólio e cardápio)",
+    fields: [{ key: "nome", label: "Nome" }],
+  },
+  {
     // Texto institucional (hero, história, CTA, footer). Antes ficava fora da
     // tradução, então o site aparecia com o menu traduzido e a apresentação
     // em português. Chaves de contato (telefone/URLs/e-mail) são filtradas no

@@ -15,6 +15,7 @@ const TABLE_FIELDS: Record<string, string[]> = {
   job_positions: ["titulo", "descricao", "requisitos", "funcoes"],
   portfolio_items: ["titulo", "descricao", "categoria"],
   site_settings: ["valor"],
+  content_categories: ["nome"],
 };
 
 /** Colunas extra necessárias apenas para filtrar linhas (não são traduzidas). */

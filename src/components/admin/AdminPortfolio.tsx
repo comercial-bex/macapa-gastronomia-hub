@@ -14,32 +14,68 @@ import { useAuditLog } from "@/hooks/useAuditLog";
 interface Item {
   id: string; titulo: string; descricao: string | null; categoria: string;
   tipo: string; url: string | null; destaque: boolean; ordem: number; ativo: boolean;
-  unit_id: string | null;
+  unit_id: string | null; categoria_id: string | null;
 }
+
+interface Categoria { id: string; nome: string; ordem: number }
 
 const AdminPortfolio = () => {
   const [items, setItems] = useState<Item[]>([]);
-  const [units, setUnits] = useState<any[]>([]);
+  const [units, setUnits] = useState<{ id: string; nome: string }[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [novaCategoria, setNovaCategoria] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
-  const [form, setForm] = useState({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: 0, unit_id: "" });
+  const [form, setForm] = useState({ titulo: "", descricao: "", categoria: "geral", categoria_id: "", tipo: "imagem", destaque: false, ativo: true, ordem: 0, unit_id: "" });
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const { logAction } = useAuditLog();
 
   const fetchItems = async () => {
-    const [p, u] = await Promise.all([
+    const [p, u, c] = await Promise.all([
       supabase.from("portfolio_items").select("*").order("ordem"),
       supabase.from("units").select("id, nome").eq("ativo", true),
+      supabase.from("content_categories")
+        .select("id, nome, ordem").eq("escopo", "portfolio").eq("ativo", true).order("ordem"),
     ]);
-    if (p.data) setItems(p.data as any);
+    if (p.data) setItems(p.data as unknown as Item[]);
     if (u.data) setUnits(u.data);
+    if (c.data) setCategorias(c.data as Categoria[]);
   };
 
   useEffect(() => { fetchItems(); }, []);
 
-  const openNew = () => { setEditing(null); setForm({ titulo: "", descricao: "", categoria: "geral", tipo: "imagem", destaque: false, ativo: true, ordem: items.length, unit_id: "" }); setFile(null); setOpen(true); };
-  const openEdit = (item: Item) => { setEditing(item); setForm({ titulo: item.titulo, descricao: item.descricao || "", categoria: item.categoria, tipo: item.tipo, destaque: item.destaque, ativo: item.ativo, ordem: item.ordem, unit_id: item.unit_id || "" }); setFile(null); setOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ titulo: "", descricao: "", categoria: "geral", categoria_id: categorias[0]?.id ?? "", tipo: "imagem", destaque: false, ativo: true, ordem: items.length, unit_id: "" }); setFile(null); setNovaCategoria(""); setOpen(true); };
+  const openEdit = (item: Item) => {
+    setEditing(item);
+    // Itens antigos podem ter só o texto: casa pelo nome para não perder o vínculo.
+    const match = item.categoria_id ?? categorias.find((c) => c.nome === item.categoria)?.id ?? "";
+    setForm({ titulo: item.titulo, descricao: item.descricao || "", categoria: item.categoria, categoria_id: match, tipo: item.tipo, destaque: item.destaque, ativo: item.ativo, ordem: item.ordem, unit_id: item.unit_id || "" });
+    setFile(null); setNovaCategoria(""); setOpen(true);
+  };
+
+  /** Cria categoria no domínio e já seleciona. Substitui o campo de texto livre,
+   *  que gerava filtro-fantasma na página pública a cada typo. */
+  const addCategoria = async () => {
+    const nome = novaCategoria.trim();
+    if (!nome) return;
+    const existente = categorias.find((c) => c.nome.toLowerCase() === nome.toLowerCase());
+    if (existente) {
+      setForm((f) => ({ ...f, categoria_id: existente.id }));
+      setNovaCategoria("");
+      toast.info("Essa categoria já existe — selecionada.");
+      return;
+    }
+    const { data, error } = await supabase.from("content_categories")
+      .insert({ escopo: "portfolio", nome, ordem: categorias.length })
+      .select("id, nome, ordem").single();
+    if (error) { toast.error("Não foi possível criar a categoria."); return; }
+    setCategorias((cs) => [...cs, data as Categoria]);
+    setForm((f) => ({ ...f, categoria_id: (data as Categoria).id }));
+    setNovaCategoria("");
+    await logAction("portfolio", "criou", `Criou categoria '${nome}'`, { tabela: "content_categories", registroId: (data as Categoria).id });
+    toast.success("Categoria criada.");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
@@ -53,7 +89,15 @@ const AdminPortfolio = () => {
         const { data: urlData } = supabase.storage.from("portfolio").getPublicUrl(path);
         url = urlData.publicUrl;
       }
-      const payload = { titulo: form.titulo, descricao: form.descricao || null, categoria: form.categoria, tipo: form.tipo, destaque: form.destaque, ativo: form.ativo, ordem: form.ordem, url, unit_id: form.unit_id || null };
+      // Escrita paralela: categoria_id é a fonte de verdade, o texto segue
+      // preenchido enquanto a página pública ainda lê a coluna legada.
+      const cat = categorias.find((c) => c.id === form.categoria_id);
+      const payload = {
+        titulo: form.titulo, descricao: form.descricao || null,
+        categoria: cat?.nome ?? form.categoria, categoria_id: form.categoria_id || null,
+        tipo: form.tipo, destaque: form.destaque, ativo: form.ativo,
+        ordem: form.ordem, url, unit_id: form.unit_id || null,
+      };
       if (editing) {
         const { error } = await supabase.from("portfolio_items").update(payload).eq("id", editing.id);
         if (error) throw error;
@@ -61,7 +105,7 @@ const AdminPortfolio = () => {
         const { error } = await supabase.from("portfolio_items").insert(payload);
         if (error) throw error;
       }
-      await logAction("portfolio", editing ? "editou" : "criou", `${editing ? "Editou" : "Criou"} item '${form.titulo}'`);
+      await logAction("portfolio", editing ? "editou" : "criou", `${editing ? "Editou" : "Criou"} item '${form.titulo}'`, { tabela: "portfolio_items", registroId: editing?.id });
       toast.success(editing ? "Atualizado!" : "Criado!"); setOpen(false); fetchItems();
     } catch { toast.error("Erro ao salvar."); } finally { setLoading(false); }
   };
@@ -70,7 +114,7 @@ const AdminPortfolio = () => {
     if (!confirm("Excluir item?")) return;
     const item = items.find(i => i.id === id);
     await supabase.from("portfolio_items").delete().eq("id", id);
-    await logAction("portfolio", "excluiu", `Excluiu item '${item?.titulo}'`);
+    await logAction("portfolio", "excluiu", `Excluiu item '${item?.titulo}'`, { tabela: "portfolio_items", registroId: id });
     toast.success("Excluído!"); fetchItems();
   };
 
@@ -147,7 +191,33 @@ const AdminPortfolio = () => {
             <div><Label>Título</Label><Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} required /></div>
             <div><Label>Descrição</Label><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={2} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Categoria</Label><Input value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} /></div>
+              <div>
+                <Label>Categoria</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={form.categoria_id}
+                  onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}
+                >
+                  {categorias.length === 0 && <option value="">Nenhuma categoria cadastrada</option>}
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nome}</option>
+                  ))}
+                </select>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={novaCategoria}
+                    onChange={(e) => setNovaCategoria(e.target.value)}
+                    placeholder="Nova categoria"
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCategoria(); } }}
+                  />
+                  <Button type="button" variant="outline" onClick={addCategoria} disabled={!novaCategoria.trim()}>
+                    Adicionar
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Lista compartilhada entre os itens — evita filtro duplicado no site.
+                </p>
+              </div>
               <div><Label>Tipo</Label>
                 <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
                   <option value="imagem">Imagem</option><option value="video">Vídeo</option>

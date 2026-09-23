@@ -141,6 +141,72 @@ export type Database = {
           },
         ]
       }
+      content_categories: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          escopo: string
+          id: string
+          nome: string
+          ordem: number
+          traducoes: Json
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          escopo: string
+          id?: string
+          nome: string
+          ordem?: number
+          traducoes?: Json
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          escopo?: string
+          id?: string
+          nome?: string
+          ordem?: number
+          traducoes?: Json
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          notas_internas: string | null
+          primeiro_contato: string
+          telefone_normalizado: string
+          telefone_original: string
+          ultimo_contato: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          notas_internas?: string | null
+          primeiro_contato?: string
+          telefone_normalizado: string
+          telefone_original: string
+          ultimo_contato?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          notas_internas?: string | null
+          primeiro_contato?: string
+          telefone_normalizado?: string
+          telefone_original?: string
+          ultimo_contato?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           created_at: string
@@ -234,6 +300,7 @@ export type Database = {
         Row: {
           ativo: boolean
           categoria: string
+          categoria_id: string | null
           created_at: string
           descricao: string | null
           destaque: boolean
@@ -248,6 +315,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           categoria?: string
+          categoria_id?: string | null
           created_at?: string
           descricao?: string | null
           destaque?: boolean
@@ -262,6 +330,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           categoria?: string
+          categoria_id?: string | null
           created_at?: string
           descricao?: string | null
           destaque?: boolean
@@ -482,6 +551,7 @@ export type Database = {
           ativo: boolean
           badge: string | null
           categoria: string | null
+          categoria_id: string | null
           day_id: string | null
           descricao: string | null
           disponivel_ate: string | null
@@ -501,6 +571,7 @@ export type Database = {
           ativo?: boolean
           badge?: string | null
           categoria?: string | null
+          categoria_id?: string | null
           day_id?: string | null
           descricao?: string | null
           disponivel_ate?: string | null
@@ -520,6 +591,7 @@ export type Database = {
           ativo?: boolean
           badge?: string | null
           categoria?: string | null
+          categoria_id?: string | null
           day_id?: string | null
           descricao?: string | null
           disponivel_ate?: string | null
