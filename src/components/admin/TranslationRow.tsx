@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,11 @@ interface Props {
 /** One CMS record with its pt-BR source and editable EN/ES/FR fields. */
 const TranslationRow = ({ row, fields, onSave, onGenerate }: Props) => {
   const [draft, setDraft] = useState<Traducoes>(row.traducoes ?? {});
+
+  // Keep the editor in sync when the row is refetched (e.g. after AI generation).
+  useEffect(() => {
+    setDraft(row.traducoes ?? {});
+  }, [row.traducoes]);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
