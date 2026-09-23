@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return json({ translated });
+    return json({ translated, ...(lastError ? { error: lastError } : {}) });
   } catch (e) {
     console.error(e);
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
