@@ -466,6 +466,19 @@ const Cardapio = () => {
 
 
             <TabsContent value="semana">
+              <UnitMap
+                units={units}
+                activeUnitId={activeUnit === "all" ? units[0]?.id ?? "" : activeUnit}
+                onSelect={(id) => setActiveUnit(id)}
+                localize={(record, field) => tRecord(record, field)}
+                labels={{
+                  title: t("menu.map_title"),
+                  hint: t("menu.map_hint"),
+                  viewMenu: t("menu.map_view_menu"),
+                  directions: t("un.maps"),
+                }}
+              />
+
               {units.length > 1 && (
                  <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
                    <span className="mr-1 shrink-0 text-[10px] uppercase text-muted-foreground">{t("menu.unit")}</span>
@@ -492,17 +505,27 @@ const Cardapio = () => {
               )}
 
               <div className="mb-5 flex gap-2 overflow-x-auto pb-2 md:mb-8 md:flex-wrap">
-                {days.map((day) => (
-                  <Button
-                    key={day.id}
-                    variant={activeDay === day.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setActiveDay(day.id)}
-                    className={`shrink-0 ${activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
-                  >
-                    {tDay(day.dia_semana, true)}
-                  </Button>
-                ))}
+                {days.map((day) => {
+                  const isToday = dayKeyOf(day.dia_semana) === todayKey;
+                  const dateLabel = dayDateLabel(day.dia_semana);
+                  return (
+                    <Button
+                      key={day.id}
+                      variant={activeDay === day.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setActiveDay(day.id)}
+                      aria-current={isToday ? "date" : undefined}
+                      className={`h-auto shrink-0 flex-col items-center gap-0 py-1.5 ${activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"} ${isToday && activeDay !== day.id ? "border-primary" : ""}`}
+                    >
+                      <span className="leading-tight">{tDay(day.dia_semana, true)}</span>
+                      {dateLabel && (
+                        <span className="text-[10px] font-normal leading-tight opacity-80">
+                          {isToday ? `${t("menu.today")} · ${dateLabel}` : dateLabel}
+                        </span>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
 
               {/* Search + diet chips */}
