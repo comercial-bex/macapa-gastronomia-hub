@@ -6,7 +6,8 @@ export type TranslatableTable =
   | "beverage_categories"
   | "units"
   | "job_positions"
-  | "portfolio_items";
+  | "portfolio_items"
+  | "site_settings";
 
 export interface TranslateResult {
   translated: number;

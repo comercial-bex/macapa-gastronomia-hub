@@ -21,7 +21,9 @@ export type Database = {
           descricao: string | null
           id: string
           modulo: string
-          user_id: string
+          registro_id: string | null
+          tabela: string | null
+          user_id: string | null
           user_nome: string | null
         }
         Insert: {
@@ -30,7 +32,9 @@ export type Database = {
           descricao?: string | null
           id?: string
           modulo: string
-          user_id: string
+          registro_id?: string | null
+          tabela?: string | null
+          user_id?: string | null
           user_nome?: string | null
         }
         Update: {
@@ -39,10 +43,20 @@ export type Database = {
           descricao?: string | null
           id?: string
           modulo?: string
-          user_id?: string
+          registro_id?: string | null
+          tabela?: string | null
+          user_id?: string | null
           user_nome?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       beverage_categories: {
         Row: {
@@ -130,7 +144,6 @@ export type Database = {
       job_applications: {
         Row: {
           created_at: string
-          curriculo_url: string | null
           disponibilidade: string | null
           email: string
           experiencia: string | null
@@ -143,7 +156,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          curriculo_url?: string | null
           disponibilidade?: string | null
           email: string
           experiencia?: string | null
@@ -156,7 +168,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          curriculo_url?: string | null
           disponibilidade?: string | null
           email?: string
           experiencia?: string | null
@@ -351,18 +362,21 @@ export type Database = {
           chave: string
           descricao: string
           id: string
+          traducoes: Json
           valor: string
         }
         Insert: {
           chave: string
           descricao?: string
           id?: string
+          traducoes?: Json
           valor?: string
         }
         Update: {
           chave?: string
           descricao?: string
           id?: string
+          traducoes?: Json
           valor?: string
         }
         Relationships: []

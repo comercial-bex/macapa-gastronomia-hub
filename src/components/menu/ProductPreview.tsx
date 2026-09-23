@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, UtensilsCrossed } from "lucide-react";
+import AllergenList from "@/components/menu/AllergenList";
 
 export interface ProductViewItem {
   id: string;
@@ -11,6 +12,7 @@ export interface ProductViewItem {
   badge?: string | null;
   category_id: string;
   traducoes?: unknown;
+  alergenos?: string[] | null;
 }
 
 interface ProductPreviewProps {
@@ -58,6 +60,7 @@ const ProductPreview = ({ item, categoryName, name, description, photoSoon, form
               <Sparkles className="h-3 w-3" aria-hidden="true" /> {item.badge}
             </span>
           )}
+          <AllergenList alergenos={item?.alergenos} />
         </div>
       </motion.div>
     </AnimatePresence>

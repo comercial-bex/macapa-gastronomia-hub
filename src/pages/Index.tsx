@@ -795,6 +795,11 @@ const ReservaInline = ({ getSetting }: { getSetting: (key: string, fallback: str
       toast.error(t("res.toast_invalid"));
       return;
     }
+    if (units.length > 0 && !form.unit_id) {
+      setErrors({ unit_id: t("res.err_unit_required") });
+      toast.error(t("res.err_unit_required"));
+      return;
+    }
     setErrors({});
     setLoading(true);
     try {

@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { translateContent, type TranslatableTable } from "@/lib/translateContent";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import TranslationRow, { LOCALES, type TransRow, type Traducoes } from "./TranslationRow";
 
 const TABLES: {
@@ -70,7 +71,25 @@ const TABLES: {
       { key: "categoria", label: "Categoria" },
     ],
   },
+  {
+    // Texto institucional (hero, história, CTA, footer). Antes ficava fora da
+    // tradução, então o site aparecia com o menu traduzido e a apresentação
+    // em português. Chaves de contato (telefone/URLs/e-mail) são filtradas no
+    // backend e não aparecem aqui.
+    table: "site_settings",
+    label: "Textos do site (hero, história, CTA)",
+    fields: [{ key: "valor", label: "Texto" }],
+  },
 ];
+
+/** Chaves de site_settings que são dados de contato, não texto traduzível. */
+const SITE_SETTINGS_SKIP = new Set([
+  "telefone_principal",
+  "whatsapp_numero",
+  "instagram_url",
+  "facebook_url",
+  "email_contato",
+]);
 
 const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
@@ -84,15 +103,20 @@ const AdminTranslations = () => {
   const [progress, setProgress] = useState("");
   const [search, setSearch] = useState("");
   const [onlyPending, setOnlyPending] = useState(false);
+  const { logAction } = useAuditLog();
 
   const config = TABLES.find((t) => t.table === table)!;
 
   const load = useCallback(async () => {
     setLoading(true);
-    const cols = ["id", "traducoes", ...config.fields.map((f) => f.key)].join(",");
+    const extra = table === "site_settings" ? ["chave"] : [];
+    const cols = ["id", "traducoes", ...config.fields.map((f) => f.key), ...extra].join(",");
     const { data, error } = await supabase.from(table).select(cols).limit(500);
     if (error) toast.error("Não foi possível carregar o conteúdo.");
-    setRows(((data ?? []) as unknown as TransRow[]).map((r) => ({ ...r, traducoes: r.traducoes ?? {} })));
+    const loaded = ((data ?? []) as unknown as TransRow[])
+      .filter((r) => table !== "site_settings" || !SITE_SETTINGS_SKIP.has(String((r as Record<string, unknown>).chave ?? "")))
+      .map((r) => ({ ...r, traducoes: r.traducoes ?? {} }));
+    setRows(loaded);
     setLoading(false);
   }, [table, config]);
 
@@ -134,6 +158,10 @@ const AdminTranslations = () => {
       return;
     }
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, traducoes: clean } : r)));
+    await logAction("traducoes", "editou", `Editou tradução em ${config.label}`, {
+      tabela: table,
+      registroId: id,
+    });
     toast.success("Tradução salva.");
   };
 

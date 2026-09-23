@@ -49,7 +49,15 @@ const TrabalheConosco = () => {
         .select("id,nome,traducoes")
         .eq("ativo", true)
         .order("principal", { ascending: false });
-      if (unitsData) setUnits(unitsData);
+      if (unitsData) {
+        setUnits(unitsData);
+        // Pré-seleciona a primeira unidade (a principal vem primeiro pela
+        // ordenação acima). Sem isso, com uma única unidade o seletor nunca
+        // era renderizado e a candidatura nascia sem unidade, o que anulava
+        // o escopo por unidade do gerente no RLS.
+        const first = unitsData[0];
+        if (first) setForm((f) => (f.unidade_pref ? f : { ...f, unidade_pref: first.id }));
+      }
     };
     fetch();
   }, []);
@@ -59,6 +67,10 @@ const TrabalheConosco = () => {
     if (!selectedJob) return;
     if (!form.nome.trim() || !form.telefone.trim() || !form.email.trim()) {
       toast.error(t("car.toast_required"));
+      return;
+    }
+    if (units.length > 0 && !form.unidade_pref) {
+      toast.error(t("car.toast_unit_required"));
       return;
     }
     setLoading(true);
@@ -81,13 +93,12 @@ const TrabalheConosco = () => {
         experiencia: form.experiencia.trim(),
         disponibilidade: form.disponibilidade,
         curriculo_path,
-        curriculo_url: null,
         observacoes: form.observacoes.trim() || null,
       });
       if (error) throw error;
       toast.success(t("car.toast_success"));
       setSelectedJob(null);
-      setForm({ nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "", unidade_pref: "" });
+      setForm((f) => ({ nome: "", telefone: "", email: "", experiencia: "", disponibilidade: "", observacoes: "", unidade_pref: f.unidade_pref }));
       setFile(null);
     } catch {
       toast.error(t("car.toast_error"));

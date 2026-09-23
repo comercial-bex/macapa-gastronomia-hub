@@ -14,6 +14,30 @@ const TABLE_FIELDS: Record<string, string[]> = {
   units: ["nome", "horarios"],
   job_positions: ["titulo", "descricao", "requisitos", "funcoes"],
   portfolio_items: ["titulo", "descricao", "categoria"],
+  site_settings: ["valor"],
+};
+
+/** Colunas extra necessárias apenas para filtrar linhas (não são traduzidas). */
+const TABLE_EXTRA_SELECT: Record<string, string[]> = {
+  site_settings: ["chave"],
+};
+
+/**
+ * site_settings é chave/valor e guarda também dados de contato. Traduzir um
+ * telefone, uma URL de rede social ou um e-mail corromperia o dado, então
+ * essas chaves ficam fora da tradução.
+ */
+const SITE_SETTINGS_SKIP = new Set([
+  "telefone_principal",
+  "whatsapp_numero",
+  "instagram_url",
+  "facebook_url",
+  "email_contato",
+]);
+
+/** Linhas que não devem ser traduzidas, por tabela. */
+const TABLE_ROW_FILTER: Record<string, (row: Record<string, unknown>) => boolean> = {
+  site_settings: (row) => !SITE_SETTINGS_SKIP.has(String(row.chave ?? "")),
 };
 
 const LOCALES = ["en", "es", "fr"] as const;
@@ -167,12 +191,17 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    let query = admin.from(table).select(["id", "traducoes", ...fields].join(","));
+    const extraSelect = TABLE_EXTRA_SELECT[table] ?? [];
+    let query = admin
+      .from(table)
+      .select(["id", "traducoes", ...fields, ...extraSelect].join(","));
     if (ids?.length) query = query.in("id", ids);
     const { data, error } = await query.limit(500);
     if (error) return json({ error: error.message }, 500);
 
+    const rowFilter = TABLE_ROW_FILTER[table];
     const rows = ((data ?? []) as Record<string, unknown>[]).filter((row) => {
+      if (rowFilter && !rowFilter(row)) return false;
       const hasText = fields.some((f) => typeof row[f] === "string" && (row[f] as string).trim());
       if (!hasText) return false;
       if (!onlyMissing || ids?.length) return true;
