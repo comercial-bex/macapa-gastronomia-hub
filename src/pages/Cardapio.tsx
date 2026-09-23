@@ -394,7 +394,7 @@ const Cardapio = () => {
             </div>
           </ScrollReveal>
 
-          <Tabs value={tab} onValueChange={(value) => { setTab(value); document.getElementById("menu-content")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
+          <Tabs value={tab} onValueChange={(value) => { setTab(value); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
             <TabsList className="mb-8 hidden w-full bg-secondary md:flex">
               <TabsTrigger value="bebidas" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 {t("menu.tab_drinks")}
@@ -598,20 +598,16 @@ const Cardapio = () => {
                 >
                   {selectedItems.length > 0 ? (
                     <>
-                      <MobileDishPreview
+                       {(selectedItems[selectedItemIndex]?.imagem_url || selectedItems[selectedItemIndex]?.descricao || selectedItems[selectedItemIndex]?.badge) && <MobileDishPreview
                          item={selectedItems[selectedItemIndex] ? { ...selectedItems[selectedItemIndex], badge: tRecord(selectedItems[selectedItemIndex], "badge") } : undefined}
                          name={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "prato") : ""}
                          description={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "descricao") : ""}
-                         shareLabel={t("menu.share_wa")}
-                         linkLabel={t("menu.share_link")}
-                         onShare={shareWhatsApp}
-                         onCopy={shareCurrent}
-                       />
+                        />}
 
                        <div className="flex-1 min-w-0">
-                        <h2 className="menu-editorial-title mb-3 border-b border-border pb-2 font-display text-2xl font-bold md:mb-6 md:border-0 md:pb-0">
+                         <div className="mb-3 flex items-center justify-between border-b border-border pb-2 md:mb-6 md:border-0 md:pb-0"><h2 className="menu-editorial-title font-display text-2xl font-bold">
                           {(() => { const d = days.find((x) => x.id === activeDay); return d ? tDay(d.dia_semana) : ""; })()}
-                        </h2>
+                         </h2><div className="flex md:hidden"><Button size="icon" variant="ghost" className="h-10 w-10" onClick={shareWhatsApp} aria-label={t("menu.share_wa")} title={t("menu.share_wa")}><Share2 className="h-4 w-4" /></Button><Button size="icon" variant="ghost" className="h-10 w-10" onClick={shareCurrent} aria-label={t("menu.share_link")} title={t("menu.share_link")}><LinkIcon className="h-4 w-4" /></Button></div></div>
                         <div className="space-y-2 md:space-y-1">
                           {selectedItems.map((item, index) => {
                             const DishIcon = getDishIcon(item.prato);
