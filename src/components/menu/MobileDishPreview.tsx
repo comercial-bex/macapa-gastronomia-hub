@@ -17,22 +17,16 @@ interface MobileDishPreviewProps {
 const MobileDishPreview = ({ item, name, description, day, photoSoon, shareLabel, linkLabel, onShare, onCopy }: MobileDishPreviewProps) => {
   const reducedMotion = useReducedMotion();
   return <div className="md:hidden">
-    <div className="relative h-48 overflow-hidden rounded-lg border border-border bg-secondary">
+    {item?.imagem_url && <div className="relative h-48 overflow-hidden rounded-md border border-border bg-secondary">
       <AnimatePresence mode="wait">
         <motion.div key={item?.id ?? "none"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reducedMotion ? 0 : 0.22 }} className="absolute inset-0">
-          {item?.imagem_url ? (item.tipo_midia === "video"
+           {item.tipo_midia === "video"
             ? <video src={item.imagem_url} className="h-full w-full object-cover" autoPlay={!reducedMotion} muted loop playsInline />
-            : <img src={item.imagem_url} alt={name} className="h-full w-full object-cover" />)
-            : <div className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground"><UtensilsCrossed className="h-8 w-8 text-primary" aria-hidden="true" /><span className="text-xs">{photoSoon}</span></div>}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" aria-hidden="true" />
-          <div className="absolute inset-x-0 bottom-0 px-4 pb-3">
-            <span className="text-xs font-medium text-primary">{day}</span>
-            <h2 className="menu-editorial-title text-2xl font-bold leading-tight text-foreground">{name}</h2>
-            {description && <p className="line-clamp-2 text-xs text-foreground/90">{description}</p>}
-          </div>
+             : <img src={item.imagem_url} alt={name} className="h-full w-full object-cover" />}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </div>}
+    {description && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>}
     <div className="mt-2 flex items-center justify-between gap-2">
       <div className="min-w-0 text-xs text-muted-foreground">
         {item?.badge && <span className="mr-2 text-primary">{item.badge}</span>}
