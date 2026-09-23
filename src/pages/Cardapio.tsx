@@ -454,14 +454,14 @@ const Cardapio = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-2 mb-8">
+              <div className="mb-5 flex gap-2 overflow-x-auto pb-2 md:mb-8 md:flex-wrap">
                 {days.map((day) => (
                   <Button
                     key={day.id}
                     variant={activeDay === day.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveDay(day.id)}
-                    className={activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                    className={`shrink-0 ${activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
                   >
                     {tDay(day.dia_semana, true)}
                   </Button>
@@ -478,17 +478,17 @@ const Cardapio = () => {
                     onChange={(e) => setQuerySemana(e.target.value)}
                     placeholder={t("menu.search_dish")}
                     aria-label={t("menu.search_dish_aria")}
-                    className="pl-9 pr-9 bg-secondary/40 border-border"
+                     className="pl-9 pr-9 bg-secondary/40 border-border max-md:h-12"
                   />
                   {querySemana && (
-                    <button
+                    <Button variant="ghost" size="icon"
                       type="button"
                       onClick={() => setQuerySemana("")}
                       aria-label={t("menu.clear_search")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                      className="absolute right-0 top-1/2 -translate-y-1/2"
                     >
                       <X className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
+                    </Button>
                   )}
                 </div>
                 {Object.keys(DIET_TAGS_META).some((k) => dietCounts[k]) && (
@@ -499,18 +499,18 @@ const Cardapio = () => {
                       const active = activeDiet === key;
                       const Icon = meta.icon;
                       return (
-                        <button
+                        <Button variant="outline" size="sm"
                           key={key}
                           type="button"
                           onClick={() => setActiveDiet(active ? null : key)}
                           aria-pressed={active}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                          className={`inline-flex h-auto items-center gap-1 rounded-full px-2.5 py-1 text-xs border transition-colors ${
                             active ? meta.className : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
                           }`}
                         >
                           <Icon className="h-3 w-3" /> {t(meta.labelKey)}
                           <span className="opacity-70">({count})</span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
