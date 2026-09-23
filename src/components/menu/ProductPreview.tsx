@@ -20,10 +20,11 @@ interface ProductPreviewProps {
   description: string;
   photoSoon: string;
   formattedPrice?: string;
+  compact?: boolean;
 }
 
-const ProductPreview = ({ item, categoryName, name, description, photoSoon, formattedPrice }: ProductPreviewProps) => (
-  <div className="relative mx-auto w-full max-w-[280px] md:max-w-[320px] aspect-[9/16] overflow-hidden rounded-lg border border-border bg-secondary shadow-elegant">
+const ProductPreview = ({ item, categoryName, name, description, photoSoon, formattedPrice, compact }: ProductPreviewProps) => (
+  <div className={`relative mx-auto w-full overflow-hidden rounded-lg border border-border bg-secondary shadow-elegant ${compact ? "h-52" : "max-w-[280px] md:max-w-[320px] aspect-[9/16]"}`}>
     <AnimatePresence mode="wait">
       <motion.div
         key={item?.id ?? "empty"}
