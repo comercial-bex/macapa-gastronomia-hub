@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
@@ -7,9 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, MapPin, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import ProductGallery from "@/components/menu/ProductGallery";
+import MobileMenuNav from "@/components/menu/MobileMenuNav";
+import MobileDishPreview from "@/components/menu/MobileDishPreview";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
 
@@ -341,17 +343,20 @@ const Cardapio = () => {
         image={dynamicImage}
         jsonLd={menuJsonLd}
       />
-      <section className="py-24 px-4">
+      <section className="mobile-menu-app px-4 pb-28 pt-6 md:py-24">
         <div className="container mx-auto max-w-5xl">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("menu.eyebrow")}</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("menu.title")}</h1>
+            <div className="mb-6 md:mb-16 md:text-center">
+              <p className="mb-1 text-xs font-semibold uppercase text-primary md:mb-3 md:text-sm">{t("menu.eyebrow")}</p>
+              <h1 className="menu-editorial-title font-display text-4xl font-bold md:text-5xl">{t("menu.title")}</h1>
+              <Link to="/unidades" className="mt-2 inline-flex min-h-9 items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden">
+                <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />{t("nav.units")} · Macapá, AP
+              </Link>
             </div>
           </ScrollReveal>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="w-full bg-secondary mb-8">
+            <TabsList className="mb-8 hidden w-full bg-secondary md:flex">
               <TabsTrigger value="bebidas" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 {t("menu.tab_drinks")}
               </TabsTrigger>
@@ -363,6 +368,7 @@ const Cardapio = () => {
               </TabsTrigger>
 
             </TabsList>
+            <MobileMenuNav labels={{ drinks: t("menu.tab_drinks"), week: t("menu.tab_week"), sweets: t("menu.tab_sweets"), navigation: t("a11y.nav_mobile") }} />
 
             <TabsContent value="bebidas" className="space-y-14">
               <ProductGallery
