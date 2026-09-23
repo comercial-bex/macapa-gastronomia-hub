@@ -544,14 +544,16 @@ const Cardapio = () => {
                         <h2 className="menu-editorial-title mb-3 border-b border-border pb-2 font-display text-2xl font-bold md:mb-6 md:border-0 md:pb-0">
                           {(() => { const d = days.find((x) => x.id === activeDay); return d ? tDay(d.dia_semana) : ""; })()}
                         </h2>
-                        <div className="space-y-1">
+                        <div className="space-y-2 md:space-y-1">
                           {selectedItems.map((item, index) => {
                             const DishIcon = getDishIcon(item.prato);
                             const isActive = index === selectedItemIndex;
                             const avail = isAvailableNow(item);
                             return (
-                              <button
+                              <Button
                                 key={item.id}
+                                 type="button"
+                                 variant="ghost"
                                 onClick={() => setSelectedItemIndex(index)}
                                 aria-current={isActive ? "true" : undefined}
                                 aria-label={`${tRecord(item, "prato")}${item.esgotado ? ` ${t("menu.sold_out_paren")}` : ""}`}
@@ -561,10 +563,13 @@ const Cardapio = () => {
                                     : "hover:bg-secondary/80 border-l-4 border-transparent"
                                 }`}
                               >
-                                <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors duration-300 ${
+                                 <div className={`flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary md:h-9 md:w-9 ${
                                   isActive ? "bg-primary/20" : "bg-secondary"
                                 }`}>
-                                  <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                   {item.imagem_url && item.tipo_midia !== "video"
+                                     ? <img src={item.imagem_url} alt="" loading="lazy" className="h-full w-full object-cover md:hidden" />
+                                     : <DishIcon className="h-5 w-5 md:hidden" aria-hidden="true" />}
+                                   <DishIcon className="hidden h-4 w-4 md:block" aria-hidden="true" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <span className={`menu-editorial-title block text-xl font-medium leading-tight transition-colors duration-300 md:text-sm ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
@@ -608,7 +613,7 @@ const Cardapio = () => {
                                     </div>
                                   )}
                                 </div>
-                              </button>
+                              </Button>
                             );
                           })}
                         </div>
