@@ -430,13 +430,13 @@ const Cardapio = () => {
 
             <TabsContent value="semana">
               {units.length > 1 && (
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">{t("menu.unit")}</span>
+                 <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
+                   <span className="mr-1 shrink-0 text-[10px] uppercase text-muted-foreground">{t("menu.unit")}</span>
                   <Button
                     variant={activeUnit === "all" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveUnit("all")}
-                    className={activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                     className={`shrink-0 ${activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
                   >
                     {t("menu.all")}
                   </Button>
@@ -446,7 +446,7 @@ const Cardapio = () => {
                       variant={activeUnit === u.id ? "default" : "outline"}
                       size="sm"
                       onClick={() => setActiveUnit(u.id)}
-                      className={activeUnit === u.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                       className={`shrink-0 ${activeUnit === u.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
                     >
                       {tRecord(u, "nome")}
                     </Button>
