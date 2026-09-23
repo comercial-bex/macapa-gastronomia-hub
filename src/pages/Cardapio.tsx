@@ -167,7 +167,11 @@ const Cardapio = () => {
       if (bevsRes.data) setBeverages(bevsRes.data);
       if (daysRes.data) {
         setDays(daysRes.data);
-        const target = diaParam ? daysRes.data.find((d) => d.dia_semana === diaParam) : daysRes.data[0];
+        // Auto-select the current weekday so the menu follows the real calendar.
+        const key = todayKeyOf(new Date());
+        const target = diaParam
+          ? daysRes.data.find((d) => d.dia_semana === diaParam)
+          : daysRes.data.find((d) => dayKeyOf(d.dia_semana) === key) ?? daysRes.data[0];
         if (target) setActiveDay(target.id);
       }
       if (itemsRes.data) setMenuItems(itemsRes.data);
