@@ -193,6 +193,10 @@ const fr: Dictionary = {
   "menu.photo_soon": "Photo à venir",
   "menu.disclaimer": "* La carte peut varier.",
   "menu.copied": "Lien copié !",
+  "menu.today": "Aujourd'hui",
+  "menu.map_title": "Nos adresses",
+  "menu.map_hint": "Touchez une adresse pour voir le menu de ce restaurant.",
+  "menu.map_view_menu": "Menu de cette adresse affiché",
 
   "pf.eyebrow": "Galerie",
   "pf.title": "Notre Galerie",

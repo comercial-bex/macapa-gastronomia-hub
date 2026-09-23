@@ -196,6 +196,10 @@ const ptBR = {
   "menu.photo_soon": "Foto em breve",
   "menu.disclaimer": "* O cardápio pode variar.",
   "menu.copied": "Link copiado!",
+  "menu.today": "Hoje",
+  "menu.map_title": "Nossas unidades",
+  "menu.map_hint": "Toque em um endereço para ver o cardápio daquela unidade.",
+  "menu.map_view_menu": "Mostrando o cardápio desta unidade",
 
   // ── Portfólio ──
   "pf.eyebrow": "Galeria",

@@ -12,8 +12,13 @@ import SEO from "@/components/SEO";
 import ProductGallery from "@/components/menu/ProductGallery";
 import MobileMenuNav from "@/components/menu/MobileMenuNav";
 import MobileDishPreview from "@/components/menu/MobileDishPreview";
+import UnitMap from "@/components/menu/UnitMap";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
+import { dayKeyOf, type DayKey } from "@/i18n/menuGlossary";
+
+const WEEK_ORDER: DayKey[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const todayKeyOf = (d: Date): DayKey => WEEK_ORDER[(d.getDay() + 6) % 7];
 
 const SITE_URL = "https://restaurantemacapaba.com.br";
 
@@ -162,7 +167,11 @@ const Cardapio = () => {
       if (bevsRes.data) setBeverages(bevsRes.data);
       if (daysRes.data) {
         setDays(daysRes.data);
-        const target = diaParam ? daysRes.data.find((d) => d.dia_semana === diaParam) : daysRes.data[0];
+        // Auto-select the current weekday so the menu follows the real calendar.
+        const key = todayKeyOf(new Date());
+        const target = diaParam
+          ? daysRes.data.find((d) => d.dia_semana === diaParam)
+          : daysRes.data.find((d) => dayKeyOf(d.dia_semana) === key) ?? daysRes.data[0];
         if (target) setActiveDay(target.id);
       }
       if (itemsRes.data) setMenuItems(itemsRes.data);
@@ -218,6 +227,28 @@ const Cardapio = () => {
     dayItemsAll.forEach((i) => (i.tags || []).forEach((t) => { c[t] = (c[t] || 0) + 1; }));
     return c;
   }, [dayItemsAll]);
+
+  // Current calendar week (Monday → Sunday) used to date the weekly menu chips.
+  const todayStamp = now.toDateString();
+  const weekDates = useMemo(() => {
+    const today = new Date();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+    const map = {} as Record<DayKey, Date>;
+    WEEK_ORDER.forEach((key, index) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + index);
+      map[key] = d;
+    });
+    return map;
+  }, [todayStamp]);
+  const todayKey = todayKeyOf(now);
+  const dayDateLabel = (label: string) => {
+    const key = dayKeyOf(label);
+    if (!key) return "";
+    return weekDates[key].toLocaleDateString(locale, { day: "2-digit", month: "2-digit" });
+  };
 
   // Categories split by group (drinks, wines, sweets)
   const bebidasCats = categories.filter((c) => !["doces", "vinhos"].includes(c.grupo || "bebidas"));
@@ -435,6 +466,19 @@ const Cardapio = () => {
 
 
             <TabsContent value="semana">
+              <UnitMap
+                units={units}
+                activeUnitId={activeUnit === "all" ? units[0]?.id ?? "" : activeUnit}
+                onSelect={(id) => setActiveUnit(id)}
+                localize={(record, field) => tRecord(record, field)}
+                labels={{
+                  title: t("menu.map_title"),
+                  hint: t("menu.map_hint"),
+                  viewMenu: t("menu.map_view_menu"),
+                  directions: t("un.maps"),
+                }}
+              />
+
               {units.length > 1 && (
                  <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
                    <span className="mr-1 shrink-0 text-[10px] uppercase text-muted-foreground">{t("menu.unit")}</span>
@@ -461,17 +505,27 @@ const Cardapio = () => {
               )}
 
               <div className="mb-5 flex gap-2 overflow-x-auto pb-2 md:mb-8 md:flex-wrap">
-                {days.map((day) => (
-                  <Button
-                    key={day.id}
-                    variant={activeDay === day.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setActiveDay(day.id)}
-                    className={`shrink-0 ${activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
-                  >
-                    {tDay(day.dia_semana, true)}
-                  </Button>
-                ))}
+                {days.map((day) => {
+                  const isToday = dayKeyOf(day.dia_semana) === todayKey;
+                  const dateLabel = dayDateLabel(day.dia_semana);
+                  return (
+                    <Button
+                      key={day.id}
+                      variant={activeDay === day.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setActiveDay(day.id)}
+                      aria-current={isToday ? "date" : undefined}
+                      className={`h-auto shrink-0 flex-col items-center gap-0 py-1.5 ${activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"} ${isToday && activeDay !== day.id ? "border-primary" : ""}`}
+                    >
+                      <span className="leading-tight">{tDay(day.dia_semana, true)}</span>
+                      {dateLabel && (
+                        <span className="text-[10px] font-normal leading-tight opacity-80">
+                          {isToday ? `${t("menu.today")} · ${dateLabel}` : dateLabel}
+                        </span>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
 
               {/* Search + diet chips */}
