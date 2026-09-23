@@ -128,6 +128,7 @@ const Cardapio = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number>(0);
   const [units, setUnits] = useState<Unit[]>([]);
   const [activeUnit, setActiveUnit] = useState<string>("all");
+  const [mapOpen, setMapOpen] = useState(false);
   
   const [menuLoading, setMenuLoading] = useState(true);
   const [menuError, setMenuError] = useState(false);
@@ -342,6 +343,7 @@ const Cardapio = () => {
 
   const currentItem = selectedItems[selectedItemIndex];
   const currentDay = days.find((d) => d.id === activeDay);
+  const displayedUnit = units.find((unit) => unit.id === activeUnit) ?? units[0];
   const dynamicTitle = tab === "semana" && currentItem && currentDay
     ? `${tRecord(currentItem, "prato")} — ${tDay(currentDay.dia_semana)} | Restaurante Macapaba`
     : t("seo.menu_title");
@@ -376,7 +378,7 @@ const Cardapio = () => {
         image={dynamicImage}
         jsonLd={menuJsonLd}
       />
-      <section className="mobile-menu-app px-4 pb-28 pt-6 md:py-24">
+      <section id="menu-content" className="mobile-menu-app px-4 pb-28 pt-6 md:py-24">
         <div className="container mx-auto max-w-5xl">
           <ScrollReveal>
             <div className="mb-6 md:mb-16 md:text-center">
@@ -385,14 +387,14 @@ const Cardapio = () => {
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground md:hidden">
                 <Link to="/unidades" className="inline-flex min-h-9 min-w-0 items-center gap-1 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="truncate">{units[0]?.endereco || t("nav.units")}</span>
+                  <span className="truncate">{displayedUnit?.endereco || t("nav.units")}</span>
                 </Link>
-                {units[0]?.endereco && <a href={units[0].maps_url || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(units[0].endereco)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center text-primary underline underline-offset-4">{t("un.maps")}</a>}
+                {displayedUnit?.endereco && <a href={displayedUnit.maps_url || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(displayedUnit.endereco)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center text-primary underline underline-offset-4">{t("un.maps")}</a>}
               </div>
             </div>
           </ScrollReveal>
 
-          <Tabs value={tab} onValueChange={setTab}>
+          <Tabs value={tab} onValueChange={(value) => { setTab(value); document.getElementById("menu-content")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
             <TabsList className="mb-8 hidden w-full bg-secondary md:flex">
               <TabsTrigger value="bebidas" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 {t("menu.tab_drinks")}
@@ -466,10 +468,17 @@ const Cardapio = () => {
 
 
             <TabsContent value="semana">
+              <div id="menu-units" className="mb-5 md:hidden">
+                <Button type="button" variant="outline" aria-expanded={mapOpen} aria-controls="menu-unit-map" onClick={() => setMapOpen((open) => !open)} className="h-auto w-full justify-between gap-3 py-3 text-left">
+                  <span className="flex min-w-0 items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /><span className="min-w-0 truncate">{displayedUnit ? tRecord(displayedUnit, "nome") : t("menu.map_title")}</span></span>
+                  <span className="shrink-0 text-xs text-primary">{t("menu.map_title")}</span>
+                </Button>
+              </div>
+              <div id="menu-unit-map" className={mapOpen ? "block md:block" : "hidden md:block"}>
               <UnitMap
                 units={units}
                 activeUnitId={activeUnit === "all" ? units[0]?.id ?? "" : activeUnit}
-                onSelect={(id) => setActiveUnit(id)}
+                onSelect={(id) => { setActiveUnit(id); setMapOpen(false); }}
                 localize={(record, field) => tRecord(record, field)}
                 labels={{
                   title: t("menu.map_title"),
@@ -478,9 +487,10 @@ const Cardapio = () => {
                   directions: t("un.maps"),
                 }}
               />
+              </div>
 
               {units.length > 1 && (
-                 <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
+                 <div className="mb-4 hidden items-center gap-2 overflow-x-auto pb-2 md:flex md:flex-wrap md:overflow-visible md:pb-0">
                    <span className="mr-1 shrink-0 text-[10px] uppercase text-muted-foreground">{t("menu.unit")}</span>
                   <Button
                     variant={activeUnit === "all" ? "default" : "outline"}
@@ -504,7 +514,7 @@ const Cardapio = () => {
                 </div>
               )}
 
-              <div className="mb-5 flex gap-2 overflow-x-auto pb-2 md:mb-8 md:flex-wrap">
+              <div className="mb-5 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mb-8 md:flex-wrap">
                 {days.map((day) => {
                   const isToday = dayKeyOf(day.dia_semana) === todayKey;
                   const dateLabel = dayDateLabel(day.dia_semana);
@@ -592,8 +602,6 @@ const Cardapio = () => {
                          item={selectedItems[selectedItemIndex] ? { ...selectedItems[selectedItemIndex], badge: tRecord(selectedItems[selectedItemIndex], "badge") } : undefined}
                          name={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "prato") : ""}
                          description={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "descricao") : ""}
-                         day={(() => { const d = days.find((x) => x.id === activeDay); return d ? tDay(d.dia_semana) : ""; })()}
-                         photoSoon={t("menu.photo_soon")}
                          shareLabel={t("menu.share_wa")}
                          linkLabel={t("menu.share_link")}
                          onShare={shareWhatsApp}

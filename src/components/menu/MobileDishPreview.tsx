@@ -1,20 +1,18 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Link as LinkIcon, Share2, UtensilsCrossed } from "lucide-react";
+import { Link as LinkIcon, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MobileDishPreviewProps {
   item?: { id: string; imagem_url: string | null; tipo_midia: string; badge?: string | null; disponivel_de?: string | null; disponivel_ate?: string | null };
   name: string;
   description: string;
-  day: string;
-  photoSoon: string;
   shareLabel: string;
   linkLabel: string;
   onShare: () => void;
   onCopy: () => void;
 }
 
-const MobileDishPreview = ({ item, name, description, day, photoSoon, shareLabel, linkLabel, onShare, onCopy }: MobileDishPreviewProps) => {
+const MobileDishPreview = ({ item, name, description, shareLabel, linkLabel, onShare, onCopy }: MobileDishPreviewProps) => {
   const reducedMotion = useReducedMotion();
   return <div className="md:hidden">
     {item?.imagem_url && <div className="relative h-48 overflow-hidden rounded-md border border-border bg-secondary">
