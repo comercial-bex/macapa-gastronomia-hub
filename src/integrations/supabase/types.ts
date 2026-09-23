@@ -625,7 +625,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contact_history: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          data_evento: string | null
+          pessoas: number | null
+          registro_id: string | null
+          status: string | null
+          tipo: string | null
+          unit_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       count_reserved_seats: {
