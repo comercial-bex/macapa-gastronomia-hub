@@ -228,6 +228,28 @@ const Cardapio = () => {
     return c;
   }, [dayItemsAll]);
 
+  // Current calendar week (Monday → Sunday) used to date the weekly menu chips.
+  const todayStamp = now.toDateString();
+  const weekDates = useMemo(() => {
+    const today = new Date();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+    const map = {} as Record<DayKey, Date>;
+    WEEK_ORDER.forEach((key, index) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + index);
+      map[key] = d;
+    });
+    return map;
+  }, [todayStamp]);
+  const todayKey = todayKeyOf(now);
+  const dayDateLabel = (label: string) => {
+    const key = dayKeyOf(label);
+    if (!key) return "";
+    return weekDates[key].toLocaleDateString(locale, { day: "2-digit", month: "2-digit" });
+  };
+
   // Categories split by group (drinks, wines, sweets)
   const bebidasCats = categories.filter((c) => !["doces", "vinhos"].includes(c.grupo || "bebidas"));
   const vinhosCats = categories.filter((c) => c.grupo === "vinhos");
