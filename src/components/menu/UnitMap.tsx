@@ -13,7 +13,7 @@ interface UnitMapProps {
   units: MapUnit[];
   activeUnitId: string;
   onSelect: (id: string) => void;
-  labels: { title: string; hint: string; viewMenu: string; directions: string };
+  labels: { title: string; hint: string; viewMenu: string; directions: string; all?: string };
   localize: (record: MapUnit, field: string) => string;
 }
 
@@ -23,6 +23,7 @@ const mapsEmbed = (address: string) =>
 const UnitMap = ({ units, activeUnitId, onSelect, labels, localize }: UnitMapProps) => {
   if (units.length === 0) return null;
   const active = units.find((u) => u.id === activeUnitId) ?? units[0];
+  const allSelected = !units.some((u) => u.id === activeUnitId);
 
   return (
     <section aria-labelledby="unidades-mapa" className="mb-6 rounded-xl border border-border bg-secondary/30 p-3 md:p-4">
@@ -32,8 +33,23 @@ const UnitMap = ({ units, activeUnitId, onSelect, labels, localize }: UnitMapPro
       </div>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_1.2fr]">
         <ul className="space-y-2">
+          {labels.all && units.length > 1 && (
+            <li>
+              <Button
+                type="button"
+                variant="ghost"
+                aria-pressed={allSelected}
+                onClick={() => onSelect("all")}
+                className={`h-auto w-full justify-start border-l-4 px-3 py-3 text-left ${
+                  allSelected ? "border-primary bg-primary/10" : "border-transparent hover:bg-secondary/70"
+                }`}
+              >
+                <span className="font-medium text-foreground">{labels.all}</span>
+              </Button>
+            </li>
+          )}
           {units.map((unit) => {
-            const selected = unit.id === active.id;
+            const selected = !allSelected && unit.id === active.id;
             return (
               <li key={unit.id}>
                 <Button

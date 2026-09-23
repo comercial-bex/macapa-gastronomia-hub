@@ -470,14 +470,14 @@ const Cardapio = () => {
             <TabsContent value="semana">
               <div id="menu-units" className="mb-5 md:hidden">
                 <Button type="button" variant="outline" aria-expanded={mapOpen} aria-controls="menu-unit-map" onClick={() => setMapOpen((open) => !open)} className="h-auto w-full justify-between gap-3 py-3 text-left">
-                  <span className="flex min-w-0 items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /><span className="min-w-0 truncate">{displayedUnit ? tRecord(displayedUnit, "nome") : t("menu.map_title")}</span></span>
+                  <span className="flex min-w-0 items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /><span className="min-w-0 truncate">{activeUnit !== "all" && displayedUnit ? tRecord(displayedUnit, "nome") : t("menu.all")}</span></span>
                   <span className="shrink-0 text-xs text-primary">{t("menu.map_title")}</span>
                 </Button>
               </div>
               <div id="menu-unit-map" className={mapOpen ? "block md:block" : "hidden md:block"}>
               <UnitMap
                 units={units}
-                activeUnitId={activeUnit === "all" ? units[0]?.id ?? "" : activeUnit}
+                activeUnitId={activeUnit}
                 onSelect={(id) => { setActiveUnit(id); setMapOpen(false); }}
                 localize={(record, field) => tRecord(record, field)}
                 labels={{
@@ -485,6 +485,7 @@ const Cardapio = () => {
                   hint: t("menu.map_hint"),
                   viewMenu: t("menu.map_view_menu"),
                   directions: t("un.maps"),
+                  all: t("menu.all"),
                 }}
               />
               </div>
