@@ -103,6 +103,8 @@ interface MenuItem {
 interface Unit {
   id: string;
   nome: string;
+  endereco: string;
+  maps_url: string | null;
   principal: boolean;
   ativo: boolean;
 }
@@ -153,7 +155,7 @@ const Cardapio = () => {
         supabase.from("beverages").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
         supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
-        supabase.from("units").select("id,nome,principal,ativo,traducoes").eq("ativo", true).order("principal", { ascending: false }),
+        supabase.from("units").select("id,nome,endereco,maps_url,principal,ativo,traducoes").eq("ativo", true).order("principal", { ascending: false }),
       ]);
       setMenuError(Boolean(catsRes.error || bevsRes.error || daysRes.error || itemsRes.error || unitsRes.error));
       if (catsRes.data) setCategories(catsRes.data);
@@ -349,9 +351,13 @@ const Cardapio = () => {
             <div className="mb-6 md:mb-16 md:text-center">
               <p className="mb-1 text-xs font-semibold uppercase text-primary md:mb-3 md:text-sm">{t("menu.eyebrow")}</p>
               <h1 className="menu-editorial-title font-display text-4xl font-bold md:text-5xl">{t("menu.title")}</h1>
-              <Link to="/unidades" className="mt-2 inline-flex min-h-9 items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden">
-                <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />{t("nav.units")} · Macapá, AP
-              </Link>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground md:hidden">
+                <Link to="/unidades" className="inline-flex min-h-9 min-w-0 items-center gap-1 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="truncate">{units[0]?.endereco || t("nav.units")}</span>
+                </Link>
+                {units[0]?.endereco && <a href={units[0].maps_url || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(units[0].endereco)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center text-primary underline underline-offset-4">{t("un.maps")}</a>}
+              </div>
             </div>
           </ScrollReveal>
 
