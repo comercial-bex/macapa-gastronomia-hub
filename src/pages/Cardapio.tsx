@@ -12,8 +12,13 @@ import SEO from "@/components/SEO";
 import ProductGallery from "@/components/menu/ProductGallery";
 import MobileMenuNav from "@/components/menu/MobileMenuNav";
 import MobileDishPreview from "@/components/menu/MobileDishPreview";
+import UnitMap from "@/components/menu/UnitMap";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
+import { dayKeyOf, type DayKey } from "@/i18n/menuGlossary";
+
+const WEEK_ORDER: DayKey[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const todayKeyOf = (d: Date): DayKey => WEEK_ORDER[(d.getDay() + 6) % 7];
 
 const SITE_URL = "https://restaurantemacapaba.com.br";
 
