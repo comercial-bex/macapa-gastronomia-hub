@@ -28,9 +28,12 @@ export function useSiteSettings() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("site_settings" as any)
-        .select("chave, valor, traducoes");
+      // select("*") em vez de listar as colunas: pedir "traducoes"
+      // explicitamente devolve 400 num banco onde a migration ainda não
+      // rodou, e o erro derrubaria TODAS as configurações do site — hero,
+      // história, CTA e footer cairiam no texto padrão. Com "*" a coluna
+      // simplesmente não vem, e localizedField já trata a ausência.
+      const { data, error } = await supabase.from("site_settings" as any).select("*");
       if (error) throw error;
       return (data ?? []) as unknown as SettingRow[];
     },

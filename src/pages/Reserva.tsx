@@ -48,7 +48,7 @@ const Reserva = () => {
           },
         }}
       />
-      <ReservaForm getSetting={getSetting} />
+      <ReservaForm getSetting={getSetting} headingLevel="h1" />
     </Layout>
   );
 };

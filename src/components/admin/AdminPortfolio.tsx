@@ -23,6 +23,8 @@ const AdminPortfolio = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [units, setUnits] = useState<{ id: string; nome: string }[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  /** content_categories pode não existir ainda (migration não aplicada). */
+  const [dominioDisponivel, setDominioDisponivel] = useState(false);
   const [novaCategoria, setNovaCategoria] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
@@ -40,6 +42,7 @@ const AdminPortfolio = () => {
     ]);
     if (p.data) setItems(p.data as unknown as Item[]);
     if (u.data) setUnits(u.data);
+    setDominioDisponivel(!c.error);
     if (c.data) setCategorias(c.data as Categoria[]);
   };
 
@@ -92,12 +95,16 @@ const AdminPortfolio = () => {
       // Escrita paralela: categoria_id é a fonte de verdade, o texto segue
       // preenchido enquanto a página pública ainda lê a coluna legada.
       const cat = categorias.find((c) => c.id === form.categoria_id);
-      const payload = {
+      const payload: Record<string, unknown> = {
         titulo: form.titulo, descricao: form.descricao || null,
-        categoria: cat?.nome ?? form.categoria, categoria_id: form.categoria_id || null,
+        categoria: cat?.nome ?? form.categoria,
         tipo: form.tipo, destaque: form.destaque, ativo: form.ativo,
         ordem: form.ordem, url, unit_id: form.unit_id || null,
       };
+      // Só envia categoria_id se o domínio carregou — num banco onde a
+      // migration ainda não rodou a coluna não existe, e mandá-la faria o
+      // PostgREST recusar o save inteiro com 400 em vez de só ignorar.
+      if (dominioDisponivel) payload.categoria_id = form.categoria_id || null;
       if (editing) {
         const { error } = await supabase.from("portfolio_items").update(payload).eq("id", editing.id);
         if (error) throw error;
@@ -193,17 +200,24 @@ const AdminPortfolio = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Categoria</Label>
-                <select
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={form.categoria_id}
-                  onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}
-                >
-                  {categorias.length === 0 && <option value="">Nenhuma categoria cadastrada</option>}
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
-                  ))}
-                </select>
-                <div className="flex gap-2 mt-2">
+                {dominioDisponivel ? (
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={form.categoria_id}
+                    onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}
+                  >
+                    {categorias.length === 0 && <option value="">Nenhuma categoria cadastrada</option>}
+                    {categorias.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nome}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    value={form.categoria}
+                    onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+                  />
+                )}
+                <div className={`flex gap-2 mt-2 ${dominioDisponivel ? "" : "hidden"}`}>
                   <Input
                     value={novaCategoria}
                     onChange={(e) => setNovaCategoria(e.target.value)}
@@ -215,7 +229,9 @@ const AdminPortfolio = () => {
                   </Button>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Lista compartilhada entre os itens — evita filtro duplicado no site.
+                  {dominioDisponivel
+                    ? "Lista compartilhada entre os itens — evita filtro duplicado no site."
+                    : "Texto livre: a lista compartilhada aparece após a migration de categorias."}
                 </p>
               </div>
               <div><Label>Tipo</Label>

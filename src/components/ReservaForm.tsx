@@ -18,7 +18,19 @@ import { useI18n } from "@/lib/i18n";
  * era só um redirect retornando null — o crawler recebia página vazia apesar
  * de a URL estar declarada no sitemap.xml.
  */
-const ReservaForm = ({ getSetting }: { getSetting: (key: string, fallback: string) => string }) => {
+const ReservaForm = ({
+  getSetting,
+  /**
+   * Nível do título. Como seção da home o título é h2 (a home já tem o seu
+   * h1); na página /reserva ele precisa ser h1, senão a página fica sem
+   * cabeçalho principal.
+   */
+  headingLevel = "h2",
+}: {
+  getSetting: (key: string, fallback: string) => string;
+  headingLevel?: "h1" | "h2";
+}) => {
+  const Heading = headingLevel;
   const { t, tContent, tRecord, formatDate } = useI18n();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -166,9 +178,9 @@ const ReservaForm = ({ getSetting }: { getSetting: (key: string, fallback: strin
         <ScrollReveal>
           <div className="text-center mb-16">
             <p className="text-primary text-[10px] font-semibold uppercase tracking-[0.4em] mb-4">{t("res.eyebrow")}</p>
-            <h2 className="text-display font-display font-bold leading-[0.95] mb-4">
+            <Heading className="text-display font-display font-bold leading-[0.95] mb-4">
               {tContent("res.title", getSetting("cta_titulo", ""))}
-            </h2>
+            </Heading>
             <p className="text-muted-foreground max-w-md mx-auto">
               {tContent("res.subtitle", getSetting("cta_subtitulo", ""))}
             </p>

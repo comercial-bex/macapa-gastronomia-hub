@@ -71,10 +71,26 @@ const Portfolio = () => {
       if (data.length > 0) {
         setItems(data as unknown as PortfolioItem[]);
         const dominio = (catsRes.data ?? []) as unknown as CategoryOption[];
-        // Só oferece filtro que tem item — categoria cadastrada e vazia
-        // renderizaria um chip que não leva a nada.
-        const usadas = new Set(data.map((i) => (i as { categoria_id?: string | null }).categoria_id).filter(Boolean));
-        setCategories(dominio.filter((c) => usadas.has(c.id)));
+        if (catsRes.error || dominio.length === 0) {
+          // A tabela de domínio pode ainda não existir (migration não
+          // aplicada) ou estar vazia. Nesse caso volta a derivar do texto
+          // dos itens: perde a proteção contra typo, mas é melhor que a
+          // página ficar sem nenhum filtro.
+          const nomes = [...new Set(data.map((i) => (i as { categoria: string }).categoria).filter(Boolean))];
+          setCategories(nomes.map((nome) => ({ id: nome, nome })));
+        } else {
+          // Só oferece filtro que tem item — categoria cadastrada e vazia
+          // renderizaria um chip que não leva a nada.
+          const usadas = new Set(data.map((i) => (i as { categoria_id?: string | null }).categoria_id).filter(Boolean));
+          const comItens = dominio.filter((c) => usadas.has(c.id));
+          // Itens antigos ainda sem categoria_id: mantém os chips de texto
+          // para não sumir com filtro que hoje funciona.
+          const semVinculo = [...new Set(
+            data.filter((i) => !(i as { categoria_id?: string | null }).categoria_id)
+                .map((i) => (i as { categoria: string }).categoria).filter(Boolean),
+          )];
+          setCategories([...comItens, ...semVinculo.map((nome) => ({ id: nome, nome }))]);
+        }
       } else {
         setItems(fallbackItems);
         // O fallback é conteúdo de demonstração em código, sem vínculo no banco.
