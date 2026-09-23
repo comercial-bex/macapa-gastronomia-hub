@@ -193,6 +193,10 @@ const en: Dictionary = {
   "menu.photo_soon": "Photo coming soon",
   "menu.disclaimer": "* The menu may vary.",
   "menu.copied": "Link copied!",
+  "menu.today": "Today",
+  "menu.map_title": "Our locations",
+  "menu.map_hint": "Tap an address to see that location's menu.",
+  "menu.map_view_menu": "Showing this location's menu",
 
   "pf.eyebrow": "Gallery",
   "pf.title": "Our Gallery",

@@ -193,6 +193,10 @@ const es: Dictionary = {
   "menu.photo_soon": "Foto próximamente",
   "menu.disclaimer": "* El menú puede variar.",
   "menu.copied": "¡Enlace copiado!",
+  "menu.today": "Hoy",
+  "menu.map_title": "Nuestras sedes",
+  "menu.map_hint": "Toca una dirección para ver el menú de esa sede.",
+  "menu.map_view_menu": "Mostrando el menú de esta sede",
 
   "pf.eyebrow": "Galería",
   "pf.title": "Nuestra Galería",
