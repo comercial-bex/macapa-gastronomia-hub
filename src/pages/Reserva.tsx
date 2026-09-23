@@ -1,45 +1,55 @@
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
+import ReservaForm from "@/components/ReservaForm";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useI18n } from "@/lib/i18n";
 
 /**
- * Alias de /reserva para a seção de reserva da home.
+ * Página de reserva.
  *
- * Antes esta rota retornava `null`, então o crawler recebia uma página vazia
- * embora /reserva estivesse declarada no sitemap.xml. Agora aponta o canonical
- * para a home e entrega conteúdo de fallback (visível sem JS e para crawlers
- * que não seguem o redirect).
- *
- * Follow-up: transformar em página própria exige extrair o formulário de
- * Index.tsx, que hoje concentra ~1.000 linhas.
+ * Antes esta rota apenas redirecionava para a home e retornava `null`, então
+ * o crawler recebia uma página vazia embora /reserva estivesse declarada no
+ * sitemap.xml — e "reserva" é um dos termos de busca mais valiosos do negócio.
+ * Agora serve o mesmo formulário da home, com SEO e dados estruturados
+ * próprios.
  */
 const Reserva = () => {
-  const navigate = useNavigate();
+  const { getSetting } = useSiteSettings();
   const { t } = useI18n();
 
-  useEffect(() => {
-    navigate("/", { replace: true });
-    setTimeout(() => {
-      document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth" });
-    }, 300);
-  }, [navigate]);
+  const telefone = getSetting("telefone_principal", "");
+  const email = getSetting("email_contato", "");
 
   return (
-    <>
+    <Layout>
       <SEO
         title={`${t("res.title")} — Restaurante Macapabá`}
         description={t("res.subtitle")}
-        canonical="https://restaurantemacapaba.com.br/"
+        canonical="https://restaurantemacapaba.com.br/reserva"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Restaurant",
+          name: "Restaurante Macapabá",
+          url: "https://restaurantemacapaba.com.br",
+          ...(telefone ? { telephone: telefone } : {}),
+          ...(email ? { email } : {}),
+          acceptsReservations: "True",
+          potentialAction: {
+            "@type": "ReserveAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: "https://restaurantemacapaba.com.br/reserva",
+              actionPlatform: [
+                "http://schema.org/DesktopWebPlatform",
+                "http://schema.org/MobileWebPlatform",
+              ],
+            },
+            result: { "@type": "FoodEstablishmentReservation", name: t("res.title") },
+          },
+        }}
       />
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-        <h1 className="font-display text-2xl font-bold">{t("res.title")}</h1>
-        <p className="max-w-md text-sm text-muted-foreground">{t("res.subtitle")}</p>
-        <Link to="/#reserva" className="text-sm font-medium text-primary underline">
-          {t("cta.reserve")}
-        </Link>
-      </main>
-    </>
+      <ReservaForm getSetting={getSetting} />
+    </Layout>
   );
 };
 

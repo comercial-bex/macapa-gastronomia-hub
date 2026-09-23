@@ -21,10 +21,18 @@ interface PortfolioItem {
   titulo: string;
   descricao: string | null;
   categoria: string;
+  categoria_id?: string | null;
   tipo: string;
   url: string | null;
   destaque: boolean;
   ordem: number;
+}
+
+/** Categoria do domínio compartilhado (content_categories, escopo portfolio). */
+interface CategoryOption {
+  id: string;
+  nome: string;
+  traducoes?: unknown;
 }
 
 const fallbackItems: PortfolioItem[] = [
@@ -39,33 +47,53 @@ const fallbackItems: PortfolioItem[] = [
 const Portfolio = () => {
   const { t, tRecord } = useI18n();
   const [items, setItems] = useState<PortfolioItem[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [activeFilter, setActiveFilter] = useState("__all__");
   const [lightbox, setLightbox] = useState<PortfolioItem | null>(null);
   const [isFallback, setIsFallback] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
-      const { data } = await supabase
-        .from("portfolio_items")
-        .select("*")
-        .eq("ativo", true)
-        .order("ordem");
-      if (data && data.length > 0) {
-        setItems(data);
-        const cats = [...new Set(data.map((item) => item.categoria))];
-        setCategories(["__all__", ...cats]);
+      // Os filtros vêm do domínio (content_categories), não mais de
+      // Set(map(categoria)) sobre os itens: derivar do texto fazia cada typo
+      // do admin virar um filtro-fantasma nesta página.
+      const [itemsRes, catsRes] = await Promise.all([
+        supabase.from("portfolio_items").select("*").eq("ativo", true).order("ordem"),
+        supabase
+          .from("content_categories")
+          .select("id, nome, traducoes")
+          .eq("escopo", "portfolio")
+          .eq("ativo", true)
+          .order("ordem"),
+      ]);
+
+      const data = itemsRes.data ?? [];
+      if (data.length > 0) {
+        setItems(data as unknown as PortfolioItem[]);
+        const dominio = (catsRes.data ?? []) as unknown as CategoryOption[];
+        // Só oferece filtro que tem item — categoria cadastrada e vazia
+        // renderizaria um chip que não leva a nada.
+        const usadas = new Set(data.map((i) => (i as { categoria_id?: string | null }).categoria_id).filter(Boolean));
+        setCategories(dominio.filter((c) => usadas.has(c.id)));
       } else {
         setItems(fallbackItems);
-        const cats = [...new Set(fallbackItems.map((item) => item.categoria))];
-        setCategories(["__all__", ...cats]);
+        // O fallback é conteúdo de demonstração em código, sem vínculo no banco.
+        const nomes = [...new Set(fallbackItems.map((i) => i.categoria))];
+        setCategories(nomes.map((nome) => ({ id: nome, nome })));
         setIsFallback(true);
       }
     };
     fetchItems();
   }, []);
 
-  const filtered = activeFilter === "__all__" ? items : items.filter((i) => i.categoria === activeFilter);
+  const filtered =
+    activeFilter === "__all__"
+      ? items
+      : items.filter((i) =>
+          // Casa por id no caminho normal; pelo texto no fallback e em itens
+          // antigos que ainda não foram revinculados no admin.
+          i.categoria_id ? i.categoria_id === activeFilter : i.categoria === activeFilter,
+        );
 
   return (
     <Layout>
@@ -85,18 +113,18 @@ const Portfolio = () => {
             </div>
           </ScrollReveal>
 
-          {categories.length > 1 && (
+          {categories.length > 0 && (
             <ScrollReveal>
               <div className="flex flex-wrap justify-center gap-2 mb-12">
-                {categories.map((cat) => (
+                {[{ id: "__all__", nome: t("portfolio.all") }, ...categories].map((cat) => (
                   <Button
-                    key={cat === "__all__" ? t("portfolio.all") : cat}
-                    variant={activeFilter === cat ? "default" : "outline"}
+                    key={cat.id}
+                    variant={activeFilter === cat.id ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setActiveFilter(cat)}
-                    className={activeFilter === cat ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                    onClick={() => setActiveFilter(cat.id)}
+                    className={activeFilter === cat.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
                   >
-                    {cat === "__all__" ? t("portfolio.all") : cat}
+                    {cat.id === "__all__" ? cat.nome : tRecord(cat, "nome") || cat.nome}
                   </Button>
                 ))}
               </div>

@@ -648,6 +648,10 @@ export type Database = {
       }
     }
     Functions: {
+      anonymize_stale_personal_data: {
+        Args: { _dias?: number; _dry_run?: boolean }
+        Returns: Json
+      }
       count_reserved_seats: {
         Args: { _data: string; _horario: string; _unit_id: string }
         Returns: number

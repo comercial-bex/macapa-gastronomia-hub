@@ -191,4 +191,82 @@ BEGIN
   ASSERT n >= 1, 'content_categories.escopo deveria ter CHECK';
 END $$;
 
+DO $$ BEGIN RAISE NOTICE '--- retenção de dados pessoais ---'; END $$;
+
+-- A função exige admin. Cria um e assume a identidade dele via claim do JWT.
+INSERT INTO auth.users (id, email) VALUES ('aaaaaaaa-0000-0000-0000-0000000000ad', 'admin@test');
+INSERT INTO public.user_roles (user_id, role) VALUES ('aaaaaaaa-0000-0000-0000-0000000000ad', 'admin');
+
+DO $$
+DECLARE negou boolean := false;
+BEGIN
+  -- Sem admin no contexto, precisa recusar.
+  BEGIN
+    PERFORM public.anonymize_stale_personal_data(1095, true);
+  EXCEPTION WHEN insufficient_privilege THEN
+    negou := true;
+  END;
+  ASSERT negou, 'anonymize_stale_personal_data deveria exigir admin';
+END $$;
+
+SET request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-0000000000ad';
+
+DO $$
+DECLARE r jsonb; recusou boolean := false;
+BEGIN
+  -- Janela curta é recusada, para não apagar dado recente por engano.
+  BEGIN
+    PERFORM public.anonymize_stale_personal_data(5, true);
+  EXCEPTION WHEN check_violation THEN
+    recusou := true;
+  END;
+  ASSERT recusou, 'janela menor que 30 dias deveria ser recusada';
+
+  -- Contatos de teste são recentes: nada a anonimizar no padrão.
+  r := public.anonymize_stale_personal_data(1095, true);
+  ASSERT (r->>'contatos')::int = 0,
+    format('nada deveria ser anonimizado com 1095 dias, veio %s', r->>'contatos');
+  ASSERT (r->>'dry_run')::boolean, 'a chamada deveria ter sido dry-run';
+END $$;
+
+-- Envelhece um contato para exercitar o caminho real.
+UPDATE public.contacts SET ultimo_contato = now() - interval '5 years'
+  WHERE telefone_normalizado = '96900000001';
+
+DO $$
+DECLARE r jsonb; n int; antes int;
+BEGIN
+  SELECT count(*) INTO antes FROM public.reservations;
+
+  r := public.anonymize_stale_personal_data(1095, true);
+  ASSERT (r->>'contatos')::int = 1, format('prévia deveria achar 1 contato, veio %s', r->>'contatos');
+  ASSERT (r->>'reservas')::int = 2, format('prévia deveria achar 2 reservas, veio %s', r->>'reservas');
+
+  -- Dry-run não pode ter escrito nada.
+  SELECT count(*) INTO n FROM public.contacts WHERE telefone_normalizado = '96900000001';
+  ASSERT n = 1, 'dry-run apagou o contato — não deveria escrever nada';
+
+  r := public.anonymize_stale_personal_data(1095, false);
+  ASSERT (r->>'contatos')::int = 1, 'execução real deveria ter processado 1 contato';
+
+  SELECT count(*) INTO n FROM public.contacts WHERE telefone_normalizado = '96900000001';
+  ASSERT n = 0, 'contato deveria ter sido removido';
+
+  -- Histórico preservado, mas sem identificar a pessoa.
+  SELECT count(*) INTO n FROM public.reservations;
+  ASSERT n = antes, format('as reservas não deviam ser apagadas (%s -> %s)', antes, n);
+
+  SELECT count(*) INTO n FROM public.reservations WHERE nome = 'Cliente Teste';
+  ASSERT n = 0, 'nome pessoal continua nas reservas após anonimizar';
+
+  SELECT count(*) INTO n FROM public.job_applications WHERE email = 'cliente@test';
+  ASSERT n = 0, 'e-mail pessoal continua nas candidaturas após anonimizar';
+
+  -- A operação precisa deixar rastro na auditoria.
+  SELECT count(*) INTO n FROM public.audit_logs WHERE acao = 'anonimizou';
+  ASSERT n >= 1, 'a anonimização deveria ter gerado registro de auditoria';
+END $$;
+
+RESET request.jwt.claim.sub;
+
 DO $$ BEGIN RAISE NOTICE 'TODAS AS ASSERÇÕES PASSARAM'; END $$;

@@ -8,9 +8,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import {
   AlertCircle, Briefcase, CalendarDays, Loader2, MessageCircle,
-  Repeat, Search, UserRound,
+  Repeat, Search, ShieldAlert, UserRound,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuditLog } from "@/hooks/useAuditLog";
+
+interface RetentionPreview {
+  dias: number;
+  contatos: number;
+  reservas: number;
+  candidaturas: number;
+  curriculos_a_remover: string[];
+}
 
 interface Contact {
   id: string;
@@ -56,6 +68,10 @@ const AdminContacts = () => {
   const [selected, setSelected] = useState<Contact | null>(null);
   const [notas, setNotas] = useState("");
   const [saving, setSaving] = useState(false);
+  const [retencaoDias, setRetencaoDias] = useState("1095");
+  const [preview, setPreview] = useState<RetentionPreview | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [confirmPurge, setConfirmPurge] = useState(false);
   const { logAction } = useAuditLog();
 
   const load = useCallback(async () => {
@@ -130,6 +146,44 @@ const AdminContacts = () => {
       registroId: selected.id,
     });
     toast.success("Anotação salva.");
+  };
+
+  /**
+   * Prévia da retenção. Sempre em dry-run: a função no banco não escreve
+   * nada com _dry_run = true, então nada é apagado só por conferir.
+   */
+  const runPreview = async () => {
+    setChecking(true);
+    setPreview(null);
+    const { data, error } = await supabase.rpc("anonymize_stale_personal_data", {
+      _dias: Number(retencaoDias) || 1095,
+      _dry_run: true,
+    });
+    setChecking(false);
+    if (error) { toast.error(error.message); return; }
+    setPreview(data as unknown as RetentionPreview);
+  };
+
+  /** Execução real. Só habilitada depois de uma prévia com resultado. */
+  const runPurge = async () => {
+    setConfirmPurge(false);
+    setChecking(true);
+    const { data, error } = await supabase.rpc("anonymize_stale_personal_data", {
+      _dias: Number(retencaoDias) || 1095,
+      _dry_run: false,
+    });
+    setChecking(false);
+    if (error) { toast.error(error.message); return; }
+    const r = data as unknown as RetentionPreview;
+    toast.success(`${r.contatos} contato(s) anonimizado(s).`);
+    if (r.curriculos_a_remover?.length) {
+      toast.warning(
+        `${r.curriculos_a_remover.length} currículo(s) ainda no storage — remova pelo bucket 'resumes'.`,
+        { duration: 10000 },
+      );
+    }
+    setPreview(null);
+    await load();
   };
 
   const detailHistory = useMemo(
@@ -231,6 +285,84 @@ const AdminContacts = () => {
           );
         })}
       </div>
+
+      <div className="glass-effect rounded-xl p-5 mt-10">
+        <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5 text-primary" /> Retenção de dados pessoais
+        </h2>
+        <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+          Anonimiza contatos sem atividade no período. As reservas e candidaturas
+          continuam existindo para estatística, mas deixam de identificar a pessoa.
+          <strong className="text-foreground"> A ação é irreversível.</strong> Confira a
+          prévia antes de executar.
+        </p>
+
+        <div className="flex flex-wrap items-end gap-3 mt-4">
+          <div>
+            <Label htmlFor="retencao" className="text-[11px] text-muted-foreground">
+              Sem atividade há (dias)
+            </Label>
+            <Input
+              id="retencao"
+              type="number"
+              min={30}
+              className="w-32 mt-1"
+              value={retencaoDias}
+              onChange={(e) => { setRetencaoDias(e.target.value); setPreview(null); }}
+            />
+          </div>
+          <Button variant="outline" onClick={runPreview} disabled={checking}>
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Conferir prévia"}
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={!preview || preview.contatos === 0 || checking}
+            onClick={() => setConfirmPurge(true)}
+          >
+            Anonimizar
+          </Button>
+        </div>
+
+        {preview && (
+          <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-xs">
+            {preview.contatos === 0 ? (
+              <p>Nenhum contato sem atividade há mais de {preview.dias} dias.</p>
+            ) : (
+              <>
+                <p>
+                  Serão afetados: <strong>{preview.contatos}</strong> contato(s),{" "}
+                  <strong>{preview.reservas}</strong> reserva(s) e{" "}
+                  <strong>{preview.candidaturas}</strong> candidatura(s).
+                </p>
+                {preview.curriculos_a_remover?.length > 0 && (
+                  <p className="mt-1 text-amber-300">
+                    {preview.curriculos_a_remover.length} currículo(s) precisam ser
+                    removidos manualmente do bucket <code>resumes</code> — arquivos
+                    não são apagados por SQL.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <AlertDialog open={confirmPurge} onOpenChange={setConfirmPurge}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Anonimizar dados pessoais?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {preview?.contatos} contato(s) serão removidos e os nomes, telefones e
+              e-mails de {preview?.reservas} reserva(s) e {preview?.candidaturas}{" "}
+              candidatura(s) serão substituídos. Não há como desfazer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={runPurge}>Anonimizar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-lg">
