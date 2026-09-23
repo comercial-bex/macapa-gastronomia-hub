@@ -24,7 +24,7 @@ interface ProductPreviewProps {
 }
 
 const ProductPreview = ({ item, categoryName, name, description, photoSoon, formattedPrice, compact }: ProductPreviewProps) => (
-  <div className={`relative mx-auto w-full overflow-hidden rounded-lg border border-border bg-secondary shadow-elegant ${compact ? "h-52" : "max-w-[280px] md:max-w-[320px] aspect-[9/16]"}`}>
+  <div className={`relative mx-auto w-full overflow-hidden rounded-lg border border-border bg-secondary shadow-elegant ${compact ? "menu-compact-visual h-48" : "max-w-[280px] md:max-w-[320px] aspect-[9/16]"}`}>
     <AnimatePresence mode="wait">
       <motion.div
         key={item?.id ?? "empty"}
@@ -46,14 +46,14 @@ const ProductPreview = ({ item, categoryName, name, description, photoSoon, form
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" aria-hidden="true" />
-        <div className="absolute inset-x-0 bottom-0 z-10 p-5 md:p-6">
+        <div className="absolute inset-x-0 bottom-0 z-10 p-4 md:p-6">
           <p className="text-xs font-semibold uppercase text-primary">{categoryName}</p>
           <div className="mt-1 flex items-start justify-between gap-3">
-            <h2 className="font-display text-2xl font-bold text-foreground">{name}</h2>
+            <h2 className="menu-editorial-title font-display text-2xl font-bold text-foreground leading-tight">{name}</h2>
             {formattedPrice && <span className="shrink-0 font-semibold text-primary">{formattedPrice}</span>}
           </div>
           {item?.volume && <p className="mt-1 text-xs text-muted-foreground">{item.volume}</p>}
-          {description && <p className="mt-2 line-clamp-3 text-sm text-foreground/80">{description}</p>}
+          {description && <p className="mt-1 line-clamp-2 text-xs md:mt-2 md:line-clamp-3 md:text-sm text-foreground/80">{description}</p>}
           {item?.badge && (
             <span className="mt-3 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-2 py-1 text-xs text-primary">
               <Sparkles className="h-3 w-3" aria-hidden="true" /> {item.badge}

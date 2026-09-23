@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import ScrollReveal, { StaggerItem } from "@/components/ScrollReveal";
@@ -7,9 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, type LucideIcon } from "lucide-react";
+import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, MapPin, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import ProductGallery from "@/components/menu/ProductGallery";
+import MobileMenuNav from "@/components/menu/MobileMenuNav";
+import MobileDishPreview from "@/components/menu/MobileDishPreview";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useI18n } from "@/lib/i18n";
 
@@ -101,6 +103,8 @@ interface MenuItem {
 interface Unit {
   id: string;
   nome: string;
+  endereco: string;
+  maps_url: string | null;
   principal: boolean;
   ativo: boolean;
 }
@@ -151,7 +155,7 @@ const Cardapio = () => {
         supabase.from("beverages").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
         supabase.from("weekly_menu_days").select("*").eq("ativo", true).order("ordem"),
         supabase.from("weekly_menu_items").select("*").eq("ativo", true).eq("esgotado", false).order("ordem"),
-        supabase.from("units").select("id,nome,principal,ativo,traducoes").eq("ativo", true).order("principal", { ascending: false }),
+        supabase.from("units").select("id,nome,endereco,maps_url,principal,ativo,traducoes").eq("ativo", true).order("principal", { ascending: false }),
       ]);
       setMenuError(Boolean(catsRes.error || bevsRes.error || daysRes.error || itemsRes.error || unitsRes.error));
       if (catsRes.data) setCategories(catsRes.data);
@@ -341,17 +345,24 @@ const Cardapio = () => {
         image={dynamicImage}
         jsonLd={menuJsonLd}
       />
-      <section className="py-24 px-4">
+      <section className="mobile-menu-app px-4 pb-28 pt-6 md:py-24">
         <div className="container mx-auto max-w-5xl">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t("menu.eyebrow")}</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">{t("menu.title")}</h1>
+            <div className="mb-6 md:mb-16 md:text-center">
+              <p className="mb-1 text-xs font-semibold uppercase text-primary md:mb-3 md:text-sm">{t("menu.eyebrow")}</p>
+              <h1 className="menu-editorial-title font-display text-4xl font-bold md:text-5xl">{t("menu.title")}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground md:hidden">
+                <Link to="/unidades" className="inline-flex min-h-9 min-w-0 items-center gap-1 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="truncate">{units[0]?.endereco || t("nav.units")}</span>
+                </Link>
+                {units[0]?.endereco && <a href={units[0].maps_url || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(units[0].endereco)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center text-primary underline underline-offset-4">{t("un.maps")}</a>}
+              </div>
             </div>
           </ScrollReveal>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="w-full bg-secondary mb-8">
+            <TabsList className="mb-8 hidden w-full bg-secondary md:flex">
               <TabsTrigger value="bebidas" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 {t("menu.tab_drinks")}
               </TabsTrigger>
@@ -363,6 +374,7 @@ const Cardapio = () => {
               </TabsTrigger>
 
             </TabsList>
+            <MobileMenuNav labels={{ drinks: t("menu.tab_drinks"), week: t("menu.tab_week"), sweets: t("menu.tab_sweets"), navigation: t("a11y.nav_mobile") }} />
 
             <TabsContent value="bebidas" className="space-y-14">
               <ProductGallery
@@ -424,13 +436,13 @@ const Cardapio = () => {
 
             <TabsContent value="semana">
               {units.length > 1 && (
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">{t("menu.unit")}</span>
+                 <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
+                   <span className="mr-1 shrink-0 text-[10px] uppercase text-muted-foreground">{t("menu.unit")}</span>
                   <Button
                     variant={activeUnit === "all" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveUnit("all")}
-                    className={activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                     className={`shrink-0 ${activeUnit === "all" ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
                   >
                     {t("menu.all")}
                   </Button>
@@ -440,7 +452,7 @@ const Cardapio = () => {
                       variant={activeUnit === u.id ? "default" : "outline"}
                       size="sm"
                       onClick={() => setActiveUnit(u.id)}
-                      className={activeUnit === u.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                       className={`shrink-0 ${activeUnit === u.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
                     >
                       {tRecord(u, "nome")}
                     </Button>
@@ -448,14 +460,14 @@ const Cardapio = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-2 mb-8">
+              <div className="mb-5 flex gap-2 overflow-x-auto pb-2 md:mb-8 md:flex-wrap">
                 {days.map((day) => (
                   <Button
                     key={day.id}
                     variant={activeDay === day.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveDay(day.id)}
-                    className={activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}
+                    className={`shrink-0 ${activeDay === day.id ? "bg-primary text-primary-foreground" : "border-border hover:border-primary hover:text-primary"}`}
                   >
                     {tDay(day.dia_semana, true)}
                   </Button>
@@ -472,17 +484,17 @@ const Cardapio = () => {
                     onChange={(e) => setQuerySemana(e.target.value)}
                     placeholder={t("menu.search_dish")}
                     aria-label={t("menu.search_dish_aria")}
-                    className="pl-9 pr-9 bg-secondary/40 border-border"
+                     className="pl-9 pr-9 bg-secondary/40 border-border max-md:h-12"
                   />
                   {querySemana && (
-                    <button
+                    <Button variant="ghost" size="icon"
                       type="button"
                       onClick={() => setQuerySemana("")}
                       aria-label={t("menu.clear_search")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                      className="absolute right-0 top-1/2 -translate-y-1/2"
                     >
                       <X className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
+                    </Button>
                   )}
                 </div>
                 {Object.keys(DIET_TAGS_META).some((k) => dietCounts[k]) && (
@@ -493,18 +505,18 @@ const Cardapio = () => {
                       const active = activeDiet === key;
                       const Icon = meta.icon;
                       return (
-                        <button
+                        <Button variant="outline" size="sm"
                           key={key}
                           type="button"
                           onClick={() => setActiveDiet(active ? null : key)}
                           aria-pressed={active}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                          className={`inline-flex h-auto items-center gap-1 rounded-full px-2.5 py-1 text-xs border transition-colors ${
                             active ? meta.className : "bg-secondary/40 text-muted-foreground border-border hover:text-foreground"
                           }`}
                         >
                           <Icon className="h-3 w-3" /> {t(meta.labelKey)}
                           <span className="opacity-70">({count})</span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -518,121 +530,55 @@ const Cardapio = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.35 }}
-                  className="flex flex-col md:flex-row gap-8"
+                  className="flex flex-col gap-5 md:flex-row md:gap-8"
                 >
                   {selectedItems.length > 0 ? (
                     <>
-                      <div className="md:hidden flex justify-center">
-                        <div className="relative w-full max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/40">
-                          <AnimatePresence mode="wait">
-                            <motion.div
-                              key={selectedItems[selectedItemIndex]?.id || selectedItemIndex}
-                              initial={{ opacity: 0, x: 30 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: -30 }}
-                              transition={{ duration: 0.3, ease: "easeOut" }}
-                              className="absolute inset-0"
-                            >
-                              {(() => {
-                                const item = selectedItems[selectedItemIndex];
-                                if (!item) return null;
-                                const currentDay = days.find((d) => d.id === activeDay);
-                                if (!item.imagem_url) {
-                                  return <DishPlaceholder prato={tRecord(item, "prato")} dia={currentDay ? tDay(currentDay.dia_semana) : undefined} size="lg" soonLabel={t("menu.photo_soon")} />;
-                                }
-                                return (
-                                  <>
-                                    {item.tipo_midia === 'video' ? (
-                                      <video src={item.imagem_url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                                    ) : (
-                                      <img src={item.imagem_url} alt={tRecord(item, "prato")} className="w-full h-full object-cover" />
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
-                                    <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-                                      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-1">{currentDay ? tDay(currentDay.dia_semana) : ""}</p>
-                                      <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-display text-xl font-bold text-white">{tRecord(item, "prato")}</h2>
-                                        <div className="flex gap-1 shrink-0">
-                                        <button onClick={shareWhatsApp} aria-label={t("menu.share_wa")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><Share2 className="h-3.5 w-3.5" /></button>
-                                        <button onClick={shareCurrent} aria-label={t("menu.share_link")} className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"><LinkIcon className="h-3.5 w-3.5" /></button>
-                                        </div>
-                                      </div>
-                                      {item.descricao && <p className="text-white/85 text-xs mt-1 line-clamp-3">{tRecord(item, "descricao")}</p>}
-                                      <div className="flex flex-wrap gap-1 mt-2">
-                                        {item.esgotado && (
-                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-500/80 text-white border border-red-300/40">
-                                            <AlertTriangle className="h-3 w-3" /> {t("menu.sold_out_today")}
-                                          </span>
-                                        )}
-                                        {item.badge && (
-                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground border border-primary/30">
-                                            <Sparkles className="h-3 w-3" /> {tRecord(item, "badge")}
-                                          </span>
-                                        )}
-                                        {(item.disponivel_de || item.disponivel_ate) && (
-                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-black/60 text-white border border-white/20">
-                                            <Clock className="h-3 w-3" />
-                                            {(item.disponivel_de || "").slice(0,5)}{item.disponivel_ate ? `–${item.disponivel_ate.slice(0,5)}` : ""}
-                                          </span>
-                                        )}
-                                        {isAvailableNow(item) === true && !item.esgotado && (
-                                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/80 text-white border border-emerald-300/40">
-                                            <CheckCircle2 className="h-3 w-3" /> {t("menu.now")}
-                                          </span>
-                                        )}
-                                      </div>
-                                      {item.tags && item.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-2">
-                                          {item.tags.map((tag) => {
-                                            const meta = DIET_TAGS_META[tag];
-                                            if (!meta) return null;
-                                            const Icon = meta.icon;
-                                            return (
-                                              <span key={tag} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${meta.className}`}>
-                                                <Icon className="h-2.5 w-2.5" />
-                                                {t(meta.labelKey)}
-                                              </span>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </>
-                                );
-                              })()}
-                            </motion.div>
-                          </AnimatePresence>
-                        </div>
-                      </div>
+                      <MobileDishPreview
+                         item={selectedItems[selectedItemIndex] ? { ...selectedItems[selectedItemIndex], badge: tRecord(selectedItems[selectedItemIndex], "badge") } : undefined}
+                         name={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "prato") : ""}
+                         description={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "descricao") : ""}
+                         day={(() => { const d = days.find((x) => x.id === activeDay); return d ? tDay(d.dia_semana) : ""; })()}
+                         photoSoon={t("menu.photo_soon")}
+                         shareLabel={t("menu.share_wa")}
+                         linkLabel={t("menu.share_link")}
+                         onShare={shareWhatsApp}
+                         onCopy={shareCurrent}
+                       />
 
-                      <div className="flex-1 min-w-0">
-                        <h2 className="font-display text-2xl font-bold mb-6">
+                       <div className="flex-1 min-w-0">
+                        <h2 className="menu-editorial-title mb-3 border-b border-border pb-2 font-display text-2xl font-bold md:mb-6 md:border-0 md:pb-0">
                           {(() => { const d = days.find((x) => x.id === activeDay); return d ? tDay(d.dia_semana) : ""; })()}
                         </h2>
-                        <div className="space-y-1">
+                        <div className="space-y-2 md:space-y-1">
                           {selectedItems.map((item, index) => {
                             const DishIcon = getDishIcon(item.prato);
                             const isActive = index === selectedItemIndex;
                             const avail = isAvailableNow(item);
                             return (
-                              <button
+                              <Button
                                 key={item.id}
+                                 type="button"
+                                 variant="ghost"
                                 onClick={() => setSelectedItemIndex(index)}
                                 aria-current={isActive ? "true" : undefined}
                                 aria-label={`${tRecord(item, "prato")}${item.esgotado ? ` ${t("menu.sold_out_paren")}` : ""}`}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
+                                className={`h-auto w-full flex items-center justify-start gap-3 whitespace-normal px-2 py-3 text-left transition-all duration-300 md:px-4 ${
                                   isActive
                                     ? "bg-primary/10 border-l-4 border-primary shadow-sm"
                                     : "hover:bg-secondary/80 border-l-4 border-transparent"
                                 }`}
                               >
-                                <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors duration-300 ${
+                                 <div className={`flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary md:h-9 md:w-9 ${
                                   isActive ? "bg-primary/20" : "bg-secondary"
                                 }`}>
-                                  <DishIcon className={`h-4 w-4 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                   {item.imagem_url && item.tipo_midia !== "video"
+                                     ? <img src={item.imagem_url} alt="" loading="lazy" className="h-full w-full object-cover md:hidden" />
+                                     : <DishIcon className="h-5 w-5 md:hidden" aria-hidden="true" />}
+                                   <DishIcon className="hidden h-4 w-4 md:block" aria-hidden="true" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <span className={`text-sm font-medium transition-colors duration-300 block ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                                  <span className={`menu-editorial-title block text-xl font-medium leading-tight transition-colors duration-300 md:text-sm ${item.esgotado ? "line-through opacity-70" : ""} ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                                     {tRecord(item, "prato")}
                                   </span>
                                   {item.descricao && (
@@ -673,7 +619,7 @@ const Cardapio = () => {
                                     </div>
                                   )}
                                 </div>
-                              </button>
+                              </Button>
                             );
                           })}
                         </div>
