@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,23 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const CATEGORIAS = ["entrada", "principal", "acompanhamento", "sobremesa"] as const;
+
+/** Campos reaproveitados de um prato homônimo já cadastrado em outro dia. */
+interface PratoHerdavel {
+  id: string;
+  day_id: string;
+  prato: string;
+  imagem_url?: string | null;
+  tipo_midia?: string | null;
+  descricao?: string | null;
+  badge?: string | null;
+  categoria?: string | null;
+  alergenos?: string[] | null;
+  tags?: string[] | null;
+  disponivel_de?: string | null;
+  disponivel_ate?: string | null;
+  traducoes?: Record<string, unknown> | null;
+}
 const DIET_TAGS = [
   { key: "vegano", label: "Vegano", icon: Leaf, color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
   { key: "vegetariano", label: "Vegetariano", icon: Sprout, color: "bg-green-500/15 text-green-600 border-green-500/30" },
@@ -72,11 +89,51 @@ const AdminMenu = () => {
   const [newBadge, setNewBadge] = useState("");
   const [savingNew, setSavingNew] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  /** Prato já cadastrado cujos dados foram aceitos para o novo item. */
+  const [herdarDe, setHerdarDe] = useState<PratoHerdavel | null>(null);
   // Live preview panel (only visible on lg+). User can toggle off.
   const [livePreviewOpen, setLivePreviewOpen] = useState(true);
   const [previewKey, setPreviewKey] = useState(0); // bump to force iframe reload after edits
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const normalizarNome = (v: string) =>
+    v.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  /**
+   * O mesmo prato é cadastrado como linha separada em cada dia, então quem
+   * adiciona costuma refazer do zero um item que já existe em outro dia —
+   * e a foto acaba não sendo reaproveitada. Aqui procuramos o homônimo já
+   * cadastrado para oferecer os dados dele.
+   */
+  const sugestao = useMemo(() => {
+    const alvo = normalizarNome(newPrato);
+    if (alvo.length < 3) return null;
+    const candidatos = (items as PratoHerdavel[]).filter(
+      (i) => i.id !== undefined && normalizarNome(String(i.prato ?? "")) === alvo && i.day_id !== activeDay,
+    );
+    if (candidatos.length === 0) return null;
+    // Prefere o que tem foto; entre eles, o mais completo.
+    const peso = (i: PratoHerdavel) =>
+      (i.imagem_url ? 8 : 0) + (i.descricao ? 2 : 0) + (i.badge ? 1 : 0) +
+      ((i.alergenos?.length ?? 0) > 0 ? 1 : 0) + ((i.tags?.length ?? 0) > 0 ? 1 : 0);
+    return [...candidatos].sort((a, b) => peso(b) - peso(a))[0] ?? null;
+  }, [newPrato, items, activeDay]);
+
+  const diaDaSugestao = sugestao
+    ? days.find((d) => d.id === sugestao.day_id)?.dia_semana ?? "outro dia"
+    : "";
+
+  const aplicarSugestao = () => {
+    if (!sugestao) return;
+    setHerdarDe(sugestao);
+    if (sugestao.descricao) setNewDescricao(sugestao.descricao);
+    if (sugestao.badge) setNewBadge(sugestao.badge);
+    if (sugestao.categoria) setNewCategoria(sugestao.categoria);
+    toast.success(
+      sugestao.imagem_url ? "Foto e dados copiados." : "Dados copiados (esse prato não tem foto).",
+    );
+  };
 
   const fetchData = async () => {
     const [d, i, u] = await Promise.all([
@@ -112,10 +169,26 @@ const AdminMenu = () => {
         unit_id: newUnitId || null,
         descricao: newDescricao.trim() || null,
         badge: newBadge || null,
+        // Reaproveita a mídia e os atributos do mesmo prato já cadastrado em
+        // outro dia, em vez de deixar o item novo sem foto até alguém subir
+        // uma cópia do arquivo que já está no storage.
+        ...(herdarDe
+          ? {
+              imagem_url: herdarDe.imagem_url ?? null,
+              tipo_midia: herdarDe.tipo_midia ?? "imagem",
+              alergenos: herdarDe.alergenos ?? [],
+              tags: herdarDe.tags ?? [],
+              disponivel_de: herdarDe.disponivel_de ?? null,
+              disponivel_ate: herdarDe.disponivel_ate ?? null,
+              traducoes: herdarDe.traducoes ?? {},
+            }
+          : {}),
       } as any).select("id").maybeSingle();
       if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
       // Generate EN/ES/FR versions in the background.
-      if (inserted?.id) void translateContent("weekly_menu_items", { ids: [inserted.id] });
+      // Se herdou tradução pronta, não gasta chamada de IA de novo.
+      const jaTraduzido = herdarDe && herdarDe.traducoes && Object.keys(herdarDe.traducoes).length > 0;
+      if (inserted?.id && !jaTraduzido) void translateContent("weekly_menu_items", { ids: [inserted.id] });
       const dayName = days.find(d => d.id === activeDay)?.dia_semana;
       await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
       setNewPrato("");
@@ -123,6 +196,7 @@ const AdminMenu = () => {
       setNewBadge("");
       setNewCategoria("principal");
       setNewUnitId("");
+      setHerdarDe(null);
       setAddDialogOpen(false);
       toast.success("Prato adicionado!");
       fetchData();
@@ -997,7 +1071,12 @@ const AdminMenu = () => {
                 autoFocus
                 value={newPrato}
                 maxLength={80}
-                onChange={(e) => { setNewPrato(e.target.value); if (nameError) setNameError(null); }}
+                onChange={(e) => {
+                  setNewPrato(e.target.value);
+                  if (nameError) setNameError(null);
+                  // O nome mudou: o que foi herdado não vale mais.
+                  if (herdarDe) setHerdarDe(null);
+                }}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addItem(); } }}
                 placeholder="Ex: Maniçoba tradicional"
                 aria-invalid={!!nameError}
@@ -1009,6 +1088,55 @@ const AdminMenu = () => {
                 </p>
               ) : (
                 <p className="text-[11px] text-muted-foreground mt-1">Será exibido no site exatamente como digitado.</p>
+              )}
+
+              {/* Prato homônimo já cadastrado em outro dia: oferece a mídia e os
+                  atributos dele, para não recadastrar do zero nem deixar sem foto. */}
+              {sugestao && !herdarDe && (
+                <div className="mt-2 flex items-start gap-2.5 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
+                  {sugestao.imagem_url ? (
+                    <img src={sugestao.imagem_url} alt="" className="h-11 w-11 flex-shrink-0 rounded object-cover" />
+                  ) : (
+                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded bg-muted">
+                      <ImageOff className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] leading-snug">
+                      Já existe <strong>{sugestao.prato}</strong> em <strong>{diaDaSugestao}</strong>
+                      {sugestao.imagem_url ? " com foto." : ", mas sem foto."}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {[
+                        sugestao.imagem_url && "foto",
+                        sugestao.descricao && "descrição",
+                        sugestao.badge && "selo",
+                        (sugestao.alergenos?.length ?? 0) > 0 && "alérgenos",
+                        (sugestao.tags?.length ?? 0) > 0 && "tags",
+                        Object.keys(sugestao.traducoes ?? {}).length > 0 && "traduções",
+                      ].filter(Boolean).join(" · ") || "sem dados extras"}
+                    </p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline"
+                          className="h-7 flex-shrink-0 text-[11px]" onClick={aplicarSugestao}>
+                    <Copy className="h-3 w-3 mr-1" /> Aproveitar
+                  </Button>
+                </div>
+              )}
+
+              {herdarDe && (
+                <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-[11px] text-emerald-300">
+                  <Copy className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="flex-1">
+                    Aproveitando {herdarDe.imagem_url ? "foto e " : ""}dados de{" "}
+                    <strong>{diaDaSugestao || "outro dia"}</strong>.
+                  </span>
+                  <button type="button" onClick={() => setHerdarDe(null)}
+                          className="text-muted-foreground hover:text-foreground"
+                          aria-label="Descartar dados aproveitados">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
             </div>
 
