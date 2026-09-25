@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { translateContent } from "@/lib/translateContent";
+import {
+  camposHerdados, encontrarPratoHerdavel, jaTraduzido, resumirHeranca,
+  type PratoHerdavel,
+} from "@/lib/pratoHerdavel";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, Image, Video, X, UtensilsCrossed, MapPin, Tag, Images, Leaf, Sprout, WheatOff, Flame, HelpCircle, ExternalLink, Settings2, AlertTriangle, Sparkles, Copy, CopyPlus, Printer, FileDown, ChevronDown, CalendarDays, Eye, EyeOff, Camera, ImageOff } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
@@ -29,23 +33,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const CATEGORIAS = ["entrada", "principal", "acompanhamento", "sobremesa"] as const;
-
-/** Campos reaproveitados de um prato homônimo já cadastrado em outro dia. */
-interface PratoHerdavel {
-  id: string;
-  day_id: string;
-  prato: string;
-  imagem_url?: string | null;
-  tipo_midia?: string | null;
-  descricao?: string | null;
-  badge?: string | null;
-  categoria?: string | null;
-  alergenos?: string[] | null;
-  tags?: string[] | null;
-  disponivel_de?: string | null;
-  disponivel_ate?: string | null;
-  traducoes?: Record<string, unknown> | null;
-}
 const DIET_TAGS = [
   { key: "vegano", label: "Vegano", icon: Leaf, color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
   { key: "vegetariano", label: "Vegetariano", icon: Sprout, color: "bg-green-500/15 text-green-600 border-green-500/30" },
@@ -97,28 +84,10 @@ const AdminMenu = () => {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  const normalizarNome = (v: string) =>
-    v.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-  /**
-   * O mesmo prato é cadastrado como linha separada em cada dia, então quem
-   * adiciona costuma refazer do zero um item que já existe em outro dia —
-   * e a foto acaba não sendo reaproveitada. Aqui procuramos o homônimo já
-   * cadastrado para oferecer os dados dele.
-   */
-  const sugestao = useMemo(() => {
-    const alvo = normalizarNome(newPrato);
-    if (alvo.length < 3) return null;
-    const candidatos = (items as PratoHerdavel[]).filter(
-      (i) => i.id !== undefined && normalizarNome(String(i.prato ?? "")) === alvo && i.day_id !== activeDay,
-    );
-    if (candidatos.length === 0) return null;
-    // Prefere o que tem foto; entre eles, o mais completo.
-    const peso = (i: PratoHerdavel) =>
-      (i.imagem_url ? 8 : 0) + (i.descricao ? 2 : 0) + (i.badge ? 1 : 0) +
-      ((i.alergenos?.length ?? 0) > 0 ? 1 : 0) + ((i.tags?.length ?? 0) > 0 ? 1 : 0);
-    return [...candidatos].sort((a, b) => peso(b) - peso(a))[0] ?? null;
-  }, [newPrato, items, activeDay]);
+  const sugestao = useMemo(
+    () => encontrarPratoHerdavel(items as PratoHerdavel[], newPrato, activeDay),
+    [newPrato, items, activeDay],
+  );
 
   const diaDaSugestao = sugestao
     ? days.find((d) => d.id === sugestao.day_id)?.dia_semana ?? "outro dia"
@@ -172,23 +141,14 @@ const AdminMenu = () => {
         // Reaproveita a mídia e os atributos do mesmo prato já cadastrado em
         // outro dia, em vez de deixar o item novo sem foto até alguém subir
         // uma cópia do arquivo que já está no storage.
-        ...(herdarDe
-          ? {
-              imagem_url: herdarDe.imagem_url ?? null,
-              tipo_midia: herdarDe.tipo_midia ?? "imagem",
-              alergenos: herdarDe.alergenos ?? [],
-              tags: herdarDe.tags ?? [],
-              disponivel_de: herdarDe.disponivel_de ?? null,
-              disponivel_ate: herdarDe.disponivel_ate ?? null,
-              traducoes: herdarDe.traducoes ?? {},
-            }
-          : {}),
+        ...(herdarDe ? camposHerdados(herdarDe) : {}),
       } as any).select("id").maybeSingle();
       if (error) { toast.error("Falha ao adicionar: " + error.message); return; }
       // Generate EN/ES/FR versions in the background.
       // Se herdou tradução pronta, não gasta chamada de IA de novo.
-      const jaTraduzido = herdarDe && herdarDe.traducoes && Object.keys(herdarDe.traducoes).length > 0;
-      if (inserted?.id && !jaTraduzido) void translateContent("weekly_menu_items", { ids: [inserted.id] });
+      if (inserted?.id && !jaTraduzido(herdarDe)) {
+        void translateContent("weekly_menu_items", { ids: [inserted.id] });
+      }
       const dayName = days.find(d => d.id === activeDay)?.dia_semana;
       await logAction("cardapio", "criou", `Adicionou prato '${nome}' em ${dayName}`);
       setNewPrato("");
@@ -1107,14 +1067,7 @@ const AdminMenu = () => {
                       {sugestao.imagem_url ? " com foto." : ", mas sem foto."}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {[
-                        sugestao.imagem_url && "foto",
-                        sugestao.descricao && "descrição",
-                        sugestao.badge && "selo",
-                        (sugestao.alergenos?.length ?? 0) > 0 && "alérgenos",
-                        (sugestao.tags?.length ?? 0) > 0 && "tags",
-                        Object.keys(sugestao.traducoes ?? {}).length > 0 && "traduções",
-                      ].filter(Boolean).join(" · ") || "sem dados extras"}
+                      {resumirHeranca(sugestao).join(" · ") || "sem dados extras"}
                     </p>
                   </div>
                   <Button type="button" size="sm" variant="outline"
