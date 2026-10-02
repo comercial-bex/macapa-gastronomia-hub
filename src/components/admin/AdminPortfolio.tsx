@@ -95,16 +95,16 @@ const AdminPortfolio = () => {
       // Escrita paralela: categoria_id é a fonte de verdade, o texto segue
       // preenchido enquanto a página pública ainda lê a coluna legada.
       const cat = categorias.find((c) => c.id === form.categoria_id);
-      const payload: Record<string, unknown> = {
+      // Só envia categoria_id se o domínio carregou — num banco onde a
+      // migration ainda não rodou a coluna não existe, e mandá-la faria o
+      // PostgREST recusar o save inteiro com 400 em vez de só ignorar.
+      const payload = {
         titulo: form.titulo, descricao: form.descricao || null,
         categoria: cat?.nome ?? form.categoria,
         tipo: form.tipo, destaque: form.destaque, ativo: form.ativo,
         ordem: form.ordem, url, unit_id: form.unit_id || null,
+        ...(dominioDisponivel ? { categoria_id: form.categoria_id || null } : {}),
       };
-      // Só envia categoria_id se o domínio carregou — num banco onde a
-      // migration ainda não rodou a coluna não existe, e mandá-la faria o
-      // PostgREST recusar o save inteiro com 400 em vez de só ignorar.
-      if (dominioDisponivel) payload.categoria_id = form.categoria_id || null;
       if (editing) {
         const { error } = await supabase.from("portfolio_items").update(payload).eq("id", editing.id);
         if (error) throw error;

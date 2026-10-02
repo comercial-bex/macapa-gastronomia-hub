@@ -14,6 +14,40 @@ html.lenis, html.lenis body {
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Menu Cormorant";
+  src: url("./assets/fonts/cormorant-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Menu Karla";
+  src: url("./assets/fonts/karla-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@media (max-width: 767px) {
+  .mobile-menu-app {
+    --background: 90 21.62% 14.51%;
+    --foreground: 42.86 45.16% 87.84%;
+    --primary: 40.3 62.04% 57.65%;
+    --primary-foreground: 90 21.62% 14.51%;
+    --secondary: 91.58 18.1% 20.59%;
+    --secondary-foreground: 42.86 45.16% 87.84%;
+    --muted: 91.58 18.1% 20.59%;
+    --muted-foreground: 42.86 25% 72%;
+    --border: 40.3 25% 35%;
+    --input: 40.3 25% 35%;
+    --ring: 40.3 62.04% 57.65%;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Menu Karla", sans-serif;
+  }
+  .mobile-menu-app .menu-editorial-title { font-family: "Menu Cormorant", serif; }
+  .mobile-menu-app .menu-compact-visual { height: 12rem; }
+  .mobile-menu-app .menu-mobile-nav { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+}
+
 @layer base {
   :root {
     --background: 90 25% 15%;

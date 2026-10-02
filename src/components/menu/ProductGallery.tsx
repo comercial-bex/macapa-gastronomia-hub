@@ -40,32 +40,47 @@ const ProductGallery = ({ categories, items, loading, error, labels, localize, l
   if (error) return <p role="alert" className="py-12 text-center text-destructive">{labels.loadError}</p>;
   if (items.length === 0) return <p className="py-12 text-center text-muted-foreground">{labels.empty}</p>;
 
-  return <div className="space-y-6">
-    <div className="space-y-3">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        <Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} aria-label={labels.search} className="border-border bg-secondary/40 pl-9 pr-9" />
-        {query && <Button type="button" variant="ghost" size="icon" onClick={() => setQuery("")} aria-label={labels.clear} className="absolute right-0 top-1/2 -translate-y-1/2"><X className="h-4 w-4" /></Button>}
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-1" aria-label={labels.search}>
-        <Button size="sm" variant={activeCategory === "all" ? "default" : "outline"} onClick={() => setActiveCategory("all")}>{labels.all}</Button>
-        {categories.map((entry) => <Button key={entry.id} size="sm" variant={activeCategory === entry.id ? "default" : "outline"} onClick={() => setActiveCategory(entry.id)}>{localize(entry, "nome")}</Button>)}
-      </div>
+  const chips = <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label={labels.all}>
+    <Button size="sm" variant={activeCategory === "all" ? "default" : "outline"} onClick={() => setActiveCategory("all")} className="shrink-0 rounded-full">{labels.all}</Button>
+    {categories.map((entry) => <Button key={entry.id} size="sm" variant={activeCategory === entry.id ? "default" : "outline"} onClick={() => setActiveCategory(entry.id)} className="shrink-0 rounded-full">{localize(entry, "nome")}</Button>)}
+  </div>;
+  const preview = <ProductPreview item={selected} categoryName={category ? localize(category, "nome") : ""} name={selected ? localize(selected, "nome") : ""} description={selected ? localize(selected, "descricao") : ""} photoSoon={labels.photoSoon} formattedPrice={price} />;
+
+  return <div className="space-y-5 md:space-y-6">
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+      <Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={labels.search} aria-label={labels.search} className="border-border bg-secondary/40 pl-9 pr-9 max-md:h-12" />
+      {query && <Button type="button" variant="ghost" size="icon" onClick={() => setQuery("")} aria-label={labels.clear} className="absolute right-0 top-1/2 -translate-y-1/2"><X className="h-4 w-4" /></Button>}
     </div>
-    {filtered.length === 0 ? <p className="py-12 text-center text-muted-foreground">{labels.noResults}</p> : (
+    {chips}
+    {filtered.length === 0 ? <p className="py-12 text-center text-muted-foreground">{labels.noResults}</p> : (<>
       <div className="grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="md:order-2 md:sticky md:top-24"><ProductPreview item={selected} categoryName={category ? localize(category, "nome") : ""} name={selected ? localize(selected, "nome") : ""} description={selected ? localize(selected, "descricao") : ""} photoSoon={labels.photoSoon} formattedPrice={price} /></div>
-        <div className="space-y-7 md:order-1">
+        <div className="hidden md:order-2 md:block md:sticky md:top-24">{preview}</div>
+        <div className="space-y-6 md:order-1 md:space-y-7">
           {categories.map((entry) => {
             const categoryItems = filtered.filter((item) => item.category_id === entry.id);
             if (!categoryItems.length) return null;
-            return <section key={entry.id} aria-labelledby={`product-${entry.id}`}><h2 id={`product-${entry.id}`} className="mb-3 font-display text-xl font-bold text-primary">{localize(entry, "nome")}</h2><div className="space-y-1">
-              {categoryItems.map((item) => <Button key={item.id} variant="ghost" aria-current={selected?.id === item.id ? "true" : undefined} onClick={() => setSelectedId(item.id)} onMouseEnter={() => setSelectedId(item.id)} onFocus={() => setSelectedId(item.id)} className={`h-auto w-full justify-start whitespace-normal border-l-4 px-4 py-3 text-left ${selected?.id === item.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-secondary/70"}`}><UtensilsCrossed className="h-4 w-4 shrink-0 text-primary" /><span className="min-w-0 flex-1"><span className="block font-medium text-foreground">{localize(item, "nome")}{item.volume && <span className="ml-1 text-xs font-normal text-muted-foreground">({item.volume})</span>}</span>{item.descricao && <span className="mt-1 block line-clamp-2 text-xs font-normal text-muted-foreground">{localize(item, "descricao")}</span>}</span>{item.badge && <Sparkles className="h-4 w-4 shrink-0 text-primary" />}{item.preco != null && <span className="shrink-0 text-sm font-semibold text-primary">{money(item.preco)}</span>}</Button>)}
+            return <section key={entry.id} aria-labelledby={`product-${entry.id}`}><h2 id={`product-${entry.id}`} className="menu-editorial-title mb-3 border-b border-border pb-2 font-display text-2xl font-bold text-foreground md:border-0 md:pb-0 md:text-xl md:italic md:text-primary">{localize(entry, "nome")}</h2><div className="space-y-2 md:space-y-1">
+              {categoryItems.map((item) => <div key={item.id} className="border-b border-border/60 last:border-0 md:border-0"><Button variant="ghost" aria-expanded={selected?.id === item.id} aria-current={selected?.id === item.id ? "true" : undefined} onClick={() => setSelectedId(item.id)} onMouseEnter={() => { if (window.matchMedia('(min-width: 768px)').matches) setSelectedId(item.id); }} onFocus={() => { if (window.matchMedia('(min-width: 768px)').matches) setSelectedId(item.id); }} className={`h-auto w-full items-center justify-start gap-3 whitespace-normal border-l-4 px-1 py-3 text-left md:items-start md:px-4 ${selected?.id === item.id ? "border-primary bg-primary/10 max-md:text-foreground" : "border-transparent hover:bg-secondary/70"}`}>
+                <span className="order-first flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary md:order-last md:h-14 md:w-14">
+                  {item.imagem_url ? <img src={item.imagem_url} alt="" loading="lazy" className="h-full w-full object-cover" /> : <UtensilsCrossed className="h-5 w-5 text-primary/50" aria-hidden="true" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-start justify-between gap-2">
+                    <span className="menu-editorial-title min-w-0 font-medium text-foreground max-md:text-xl max-md:leading-tight">{localize(item, "nome")}{item.volume && <span className="ml-1 text-xs font-normal text-muted-foreground">({item.volume})</span>}{item.badge && <Sparkles className="ml-1 inline h-3.5 w-3.5 text-primary" aria-hidden="true" />}</span>
+                    {item.preco != null && <span className="shrink-0 text-sm font-semibold text-primary">{money(item.preco)}</span>}
+                  </span>
+                  {item.descricao && <span className="mt-1 block line-clamp-2 text-xs font-normal text-muted-foreground">{localize(item, "descricao")}</span>}
+                </span>
+              </Button>{selected?.id === item.id && (item.imagem_url || item.descricao) && <div className="mb-3 ml-3 border-l border-primary/40 pl-3 md:hidden">
+                {item.imagem_url && <img src={item.imagem_url} alt={localize(item, "nome")} loading="lazy" className="mb-2 aspect-[16/9] w-full rounded-md object-contain bg-secondary" />}
+                {item.descricao && <p className="text-sm leading-relaxed text-muted-foreground">{localize(item, "descricao")}</p>}
+              </div>}</div>)}
             </div></section>;
           })}
         </div>
       </div>
-    )}
+    </>)}
   </div>;
 };
 
