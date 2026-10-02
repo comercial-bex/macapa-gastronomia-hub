@@ -44,6 +44,23 @@ BEGIN
     WHERE unit_id IS NULL;
 END $$;
 
+-- 1.1b A FK herdada é ON DELETE SET NULL. Com a coluna NOT NULL isso vira
+--      contradição: apagar uma unidade tenta zerar unit_id e viola o NOT NULL,
+--      e o AdminUnits nem checa o erro do delete — a unidade "sumia" da tela e
+--      continuava no banco. RESTRICT torna a regra explícita: unidade com
+--      reserva ou candidatura não se apaga, e a UI passa a dizer isso.
+DO $$ BEGIN
+  ALTER TABLE public.reservations DROP CONSTRAINT IF EXISTS reservations_unit_id_fkey;
+  ALTER TABLE public.reservations
+    ADD CONSTRAINT reservations_unit_id_fkey
+    FOREIGN KEY (unit_id) REFERENCES public.units(id) ON DELETE RESTRICT;
+
+  ALTER TABLE public.job_applications DROP CONSTRAINT IF EXISTS job_applications_unit_id_fkey;
+  ALTER TABLE public.job_applications
+    ADD CONSTRAINT job_applications_unit_id_fkey
+    FOREIGN KEY (unit_id) REFERENCES public.units(id) ON DELETE RESTRICT;
+END $$;
+
 -- 1.2 NOT NULL apenas se o backfill zerou os órfãos. Uma unidade ausente
 --     não deve derrubar o deploy: nesse caso a coluna segue nullable e a
 --     política de RLS abaixo continua protegendo o escopo.
@@ -156,6 +173,16 @@ COMMENT ON COLUMN public.beverage_categories.grupo IS
 --     com ON DELETE SET NULL, preservando o log (user_nome continua
 --     guardando o nome histórico) sem perder integridade referencial.
 ALTER TABLE public.audit_logs ALTER COLUMN user_id DROP NOT NULL;
+
+-- O Postgres valida as linhas existentes ao criar a FK. Como até aqui não
+-- havia constraint nenhuma, qualquer usuário administrativo excluído no
+-- passado deixou user_id apontando para auth.users inexistente — e a
+-- migration abortaria, travando esta e as seguintes. Zera os órfãos antes;
+-- user_nome preserva quem foi, que é o que a auditoria precisa.
+UPDATE public.audit_logs a
+   SET user_id = NULL
+ WHERE a.user_id IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM auth.users u WHERE u.id = a.user_id);
 
 DO $$ BEGIN
   ALTER TABLE public.audit_logs

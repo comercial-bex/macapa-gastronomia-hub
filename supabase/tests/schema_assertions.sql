@@ -40,12 +40,16 @@ INSERT INTO public.units (nome, endereco, principal, ativo, capacidade_por_horar
 
 INSERT INTO auth.users (id, email) VALUES
   ('aaaaaaaa-0000-0000-0000-000000000001', 'gerente.a@test'),
-  ('aaaaaaaa-0000-0000-0000-000000000002', 'gerente.global@test');
+  ('aaaaaaaa-0000-0000-0000-000000000002', 'gerente.global@test'),
+  ('aaaaaaaa-0000-0000-0000-00000000000b', 'gerente.b@test'),
+  -- Admin usado pelas asserções de troca de papel e de retenção.
+  ('aaaaaaaa-0000-0000-0000-0000000000ad', 'admin@test');
 
 INSERT INTO public.user_roles (user_id, role, unit_id) VALUES
   ('aaaaaaaa-0000-0000-0000-000000000001', 'gerente',
     (SELECT id FROM public.units WHERE nome = 'T_Unidade A')),
-  ('aaaaaaaa-0000-0000-0000-000000000002', 'gerente', NULL);
+  ('aaaaaaaa-0000-0000-0000-000000000002', 'gerente', NULL),
+  ('aaaaaaaa-0000-0000-0000-0000000000ad', 'admin', NULL);
 
 DO $$ BEGIN RAISE NOTICE '--- link_contact: deduplicação por telefone ---'; END $$;
 
@@ -191,11 +195,79 @@ BEGIN
   ASSERT n >= 1, 'content_categories.escopo deveria ter CHECK';
 END $$;
 
-DO $$ BEGIN RAISE NOTICE '--- retenção de dados pessoais ---'; END $$;
+DO $$ BEGIN RAISE NOTICE '--- escopo de contacts por unidade ---'; END $$;
 
--- A função exige admin. Cria um e assume a identidade dele via claim do JWT.
-INSERT INTO auth.users (id, email) VALUES ('aaaaaaaa-0000-0000-0000-0000000000ad', 'admin@test');
-INSERT INTO public.user_roles (user_id, role) VALUES ('aaaaaaaa-0000-0000-0000-0000000000ad', 'admin');
+-- Gerente escopado na Unidade B, que não tem nenhuma reserva do contato.
+INSERT INTO public.user_roles (user_id, role, unit_id)
+SELECT 'aaaaaaaa-0000-0000-0000-00000000000b', 'gerente', id
+  FROM public.units WHERE nome = 'T_Unidade B'
+ON CONFLICT DO NOTHING;
+
+GRANT SELECT, UPDATE ON public.contacts TO authenticated;
+
+-- Testa atravessando o RLS, não chamando a função direto: é a política que
+-- precisa estar escopada, e verificar só o helper deixaria passar uma
+-- política que esquecesse de usá-lo.
+SET ROLE authenticated;
+SET request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-000000000001';
+DO $$
+DECLARE n int;
+BEGIN
+  SELECT count(*) INTO n FROM public.contacts WHERE telefone_normalizado = '96900000001';
+  ASSERT n = 1, 'gerente da Unidade A deveria enxergar o contato com reserva na sua unidade';
+END $$;
+
+SET request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-00000000000b';
+DO $$
+DECLARE n int;
+BEGIN
+  SELECT count(*) INTO n FROM public.contacts WHERE telefone_normalizado = '96900000001';
+  ASSERT n = 0,
+    format('REGRESSÃO: gerente de outra unidade enxerga dados pessoais do contato (%s linha(s))', n);
+END $$;
+RESET ROLE;
+RESET request.jwt.claim.sub;
+
+DO $$ BEGIN RAISE NOTICE '--- FK de unidade impede delete silencioso ---'; END $$;
+
+DO $$
+DECLARE unit_a uuid; barrou boolean := false;
+BEGIN
+  SELECT id INTO unit_a FROM public.units WHERE nome = 'T_Unidade A';
+  BEGIN
+    DELETE FROM public.units WHERE id = unit_a;
+  EXCEPTION WHEN foreign_key_violation THEN
+    barrou := true;
+  END;
+  ASSERT barrou,
+    'apagar unidade com reserva deveria ser barrado pela FK, não falhar no NOT NULL nem passar calado';
+END $$;
+
+DO $$ BEGIN RAISE NOTICE '--- troca de papel é atômica ---'; END $$;
+
+DO $$
+DECLARE n int; falhou boolean := false;
+BEGIN
+  PERFORM set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-0000000000ad', true);
+
+  -- Unidade inexistente: o insert viola a FK e o delete tem de ser desfeito.
+  BEGIN
+    PERFORM public.set_user_role('aaaaaaaa-0000-0000-0000-000000000001',
+                                 'gerente', '00000000-0000-0000-0000-0000000000ff');
+  EXCEPTION WHEN foreign_key_violation THEN
+    falhou := true;
+  END;
+  ASSERT falhou, 'unidade inexistente deveria violar a FK';
+
+  SELECT count(*) INTO n FROM public.user_roles
+   WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000001';
+  ASSERT n = 1,
+    format('REGRESSÃO: troca malsucedida deixou o usuário sem papel (%s linhas)', n);
+
+  PERFORM set_config('request.jwt.claim.sub', '', true);
+END $$;
+
+DO $$ BEGIN RAISE NOTICE '--- retenção de dados pessoais ---'; END $$;
 
 DO $$
 DECLARE negou boolean := false;

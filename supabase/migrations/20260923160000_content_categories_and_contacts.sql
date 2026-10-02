@@ -161,19 +161,6 @@ COMMENT ON COLUMN public.contacts.telefone_normalizado IS
 
 ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
 
--- Sem política de INSERT/SELECT para anon: o vínculo é feito pelo trigger
--- SECURITY DEFINER abaixo, então o visitante cria o contato sem poder lê-lo.
-DROP POLICY IF EXISTS "Admin or gerente read contacts" ON public.contacts;
-CREATE POLICY "Admin or gerente read contacts"
-  ON public.contacts FOR SELECT TO authenticated
-  USING (public.is_admin() OR public.has_role(auth.uid(), 'gerente'));
-
-DROP POLICY IF EXISTS "Admin or gerente update contacts" ON public.contacts;
-CREATE POLICY "Admin or gerente update contacts"
-  ON public.contacts FOR UPDATE TO authenticated
-  USING (public.is_admin() OR public.has_role(auth.uid(), 'gerente'))
-  WITH CHECK (public.is_admin() OR public.has_role(auth.uid(), 'gerente'));
-
 DROP POLICY IF EXISTS "Admin delete contacts" ON public.contacts;
 CREATE POLICY "Admin delete contacts"
   ON public.contacts FOR DELETE TO authenticated
@@ -191,6 +178,58 @@ ALTER TABLE public.job_applications
 
 CREATE INDEX IF NOT EXISTS idx_reservations_contact_id ON public.reservations(contact_id);
 CREATE INDEX IF NOT EXISTS idx_job_applications_contact_id ON public.job_applications(contact_id);
+
+-- Acesso de gerente a um contato é DERIVADO: ele enxerga a pessoa se, e
+-- somente se, houver reserva ou candidatura dela numa unidade que ele
+-- administra. Checar apenas has_role('gerente') daria a qualquer gerente
+-- escopado o nome, telefone, e-mail e notas internas de todos os contatos —
+-- o mesmo furo de escopo que esta onda corrige em reservations.
+--
+-- SECURITY DEFINER para a política não reavaliar o RLS de reservations/
+-- job_applications a cada linha (evita recursão de política e o custo de
+-- avaliar duas políticas aninhadas por contato).
+CREATE OR REPLACE FUNCTION public.can_access_contact(_contact_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT public.is_admin()
+    OR EXISTS (
+      SELECT 1 FROM public.reservations r
+      WHERE r.contact_id = _contact_id
+        AND public.has_role_for_unit(auth.uid(), 'gerente', r.unit_id)
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.job_applications a
+      WHERE a.contact_id = _contact_id
+        AND public.has_role_for_unit(auth.uid(), 'gerente', a.unit_id)
+    );
+$$;
+
+COMMENT ON FUNCTION public.can_access_contact(uuid) IS
+  'Gerente acessa o contato apenas se houver reserva ou candidatura dele numa unidade sob sua responsabilidade. Admin acessa tudo.';
+
+REVOKE EXECUTE ON FUNCTION public.can_access_contact(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.can_access_contact(uuid) TO authenticated;
+
+CREATE INDEX IF NOT EXISTS idx_reservations_contact_unit
+  ON public.reservations(contact_id, unit_id);
+CREATE INDEX IF NOT EXISTS idx_job_applications_contact_unit
+  ON public.job_applications(contact_id, unit_id);
+
+-- Sem política de INSERT/SELECT para anon: o vínculo é feito pelo trigger
+-- SECURITY DEFINER abaixo, então o visitante cria o contato sem poder lê-lo.
+DROP POLICY IF EXISTS "Admin or gerente read contacts" ON public.contacts;
+CREATE POLICY "Admin or scoped gerente read contacts"
+  ON public.contacts FOR SELECT TO authenticated
+  USING (public.can_access_contact(id));
+
+DROP POLICY IF EXISTS "Admin or gerente update contacts" ON public.contacts;
+DROP POLICY IF EXISTS "Admin or scoped gerente update contacts" ON public.contacts;
+CREATE POLICY "Admin or scoped gerente update contacts"
+  ON public.contacts FOR UPDATE TO authenticated
+  USING (public.can_access_contact(id))
+  WITH CHECK (public.can_access_contact(id));
 
 -- 2.3 Vínculo automático.
 --
@@ -322,3 +361,40 @@ WITH (security_invoker = true) AS
 
 COMMENT ON VIEW public.contact_history IS
   'Reservas e candidaturas de cada pessoa em ordem única. Respeita o RLS do consultante (security_invoker).';
+
+
+-- =====================================================================
+-- 3) TROCA DE PAPEL ATÔMICA
+--
+-- A edge function fazia DELETE e depois INSERT em duas chamadas. Se o
+-- insert falhasse — por exemplo, unidade apagada entre carregar a tela e
+-- submeter, violando a FK — o usuário já tinha perdido todos os papéis e
+-- ficava sem acesso nenhum, com a API devolvendo erro. O corpo de uma
+-- função plpgsql roda numa transação só, então ou troca ou não mexe.
+-- =====================================================================
+
+CREATE OR REPLACE FUNCTION public.set_user_role(
+  _user_id uuid,
+  _role public.app_role,
+  _unit_id uuid DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Apenas admin pode alterar papéis.' USING ERRCODE = '42501';
+  END IF;
+
+  DELETE FROM public.user_roles WHERE user_id = _user_id;
+  INSERT INTO public.user_roles (user_id, role, unit_id)
+    VALUES (_user_id, _role, CASE WHEN _role = 'gerente' THEN _unit_id ELSE NULL END);
+END $$;
+
+COMMENT ON FUNCTION public.set_user_role(uuid, public.app_role, uuid) IS
+  'Substitui o papel administrativo do usuário numa transação única. Falha no insert desfaz o delete, para que uma troca malsucedida nunca deixe o usuário sem acesso.';
+
+REVOKE EXECUTE ON FUNCTION public.set_user_role(uuid, public.app_role, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.set_user_role(uuid, public.app_role, uuid) TO authenticated;

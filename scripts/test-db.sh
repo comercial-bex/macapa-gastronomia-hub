@@ -71,16 +71,37 @@ CREATE PUBLICATION supabase_realtime;
 SQL
 
 echo "==> aplicando migrations"
+
+# Lista FECHADA de migrations que não aplicam num banco novo porque inserem
+# dados referenciando UUIDs que só existem em produção. Qualquer outra falha
+# é erro de schema e precisa derrubar o teste — tratar toda falha como "seed"
+# fazia o script imprimir OK com uma migration quebrada.
+SEEDS_ESPERADOS=(
+  "20260422182446_38e4ffee-4c61-4cfa-a12a-4825f6b1482f.sql"
+)
+
+e_seed_conhecido() {
+  local nome="$1"
+  for s in "${SEEDS_ESPERADOS[@]}"; do
+    [ "$nome" = "$s" ] && return 0
+  done
+  return 1
+}
+
 applied=0
 skipped=0
 for f in "$REPO_ROOT"/supabase/migrations/*.sql; do
-  if psql -v ON_ERROR_STOP=1 -q -f "$f" >/dev/null 2>&1; then
+  nome="$(basename "$f")"
+  if erro=$(psql -v ON_ERROR_STOP=1 -q -f "$f" 2>&1); then
     applied=$((applied + 1))
-  else
-    # Migrations de seed referenciam UUIDs da base de produção e não aplicam
-    # num banco novo. Não são erro de schema.
-    echo "    ignorada (seed): $(basename "$f")"
+  elif e_seed_conhecido "$nome"; then
+    echo "    ignorada (seed conhecido): $nome"
     skipped=$((skipped + 1))
+  else
+    echo "" >&2
+    echo "ERRO: a migration $nome falhou e não está na lista de seeds esperados." >&2
+    echo "$erro" | grep -E "ERROR|DETAIL|LINE" | head -10 >&2
+    exit 1
   fi
 done
 echo "    $applied aplicadas, $skipped ignoradas"

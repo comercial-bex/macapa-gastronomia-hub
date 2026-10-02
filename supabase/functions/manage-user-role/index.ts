@@ -131,16 +131,14 @@ Deno.serve(async (req) => {
       }
 
       // Um usuário tem um papel administrativo por vez: troca é substituição.
-      const { error: delErr } = await admin
-        .from("user_roles")
-        .delete()
-        .eq("user_id", targetUserId);
-      if (delErr) return json({ error: delErr.message }, 500);
-
-      const { error: insErr } = await admin
-        .from("user_roles")
-        .insert({ user_id: targetUserId, role, unit_id: role === "gerente" ? unitId : null });
-      if (insErr) return json({ error: insErr.message }, 500);
+      // Via RPC para delete+insert ficarem na mesma transação — em duas
+      // chamadas, um insert que falha deixaria o usuário sem papel nenhum.
+      const { error: rpcErr } = await anonClient.rpc("set_user_role", {
+        _user_id: targetUserId,
+        _role: role,
+        _unit_id: role === "gerente" ? unitId : null,
+      });
+      if (rpcErr) return json({ error: rpcErr.message }, 500);
 
       return json({ success: true });
     }
