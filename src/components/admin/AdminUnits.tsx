@@ -75,8 +75,19 @@ const AdminUnits = () => {
   const del = async (id: string) => {
     if (!confirm("Excluir?")) return;
     const unit = units.find(u => u.id === id);
-    await supabase.from("units").delete().eq("id", id);
-    await logAction("unidades", "excluiu", `Excluiu unidade '${unit?.nome}'`);
+    // O erro do delete era ignorado: a unidade saía da tela e continuava no
+    // banco. Com a FK em RESTRICT, unidade com reserva ou candidatura não é
+    // apagável — e isso precisa aparecer para quem clicou.
+    const { error } = await supabase.from("units").delete().eq("id", id);
+    if (error) {
+      toast.error(
+        error.code === "23503"
+          ? "Esta unidade tem reservas ou candidaturas vinculadas e não pode ser excluída. Desative-a no lugar."
+          : "Não foi possível excluir: " + error.message,
+      );
+      return;
+    }
+    await logAction("unidades", "excluiu", `Excluiu unidade '${unit?.nome}'`, { tabela: "units", registroId: id });
     toast.success("Excluído!"); fetchData();
   };
 

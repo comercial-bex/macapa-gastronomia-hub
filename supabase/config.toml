@@ -2,3 +2,8 @@ project_id = "ziohtymahgkylawzbwqf"
 
 [functions.create-admin-user]
 verify_jwt = false
+
+# A autorização é feita dentro da função (getClaims + rpc is_admin), igual à
+# create-admin-user, para poder devolver 401/403 com mensagem própria.
+[functions.manage-user-role]
+verify_jwt = false

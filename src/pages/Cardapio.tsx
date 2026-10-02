@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Fish, Beef, Drumstick, Shell, CookingPot, Wheat, UtensilsCrossed, Leaf, Sprout, WheatOff, Flame, AlertTriangle, Sparkles, Clock, Search, X, CheckCircle2, Share2, Link as LinkIcon, MapPin, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import ProductGallery from "@/components/menu/ProductGallery";
+import AllergenList from "@/components/menu/AllergenList";
 import MobileMenuNav from "@/components/menu/MobileMenuNav";
 import MobileDishPreview from "@/components/menu/MobileDishPreview";
 import UnitMap from "@/components/menu/UnitMap";
@@ -81,6 +82,7 @@ interface Beverage {
   descricao?: string | null;
   badge?: string | null;
   esgotado?: boolean | null;
+  alergenos?: string[] | null;
 }
 
 interface MenuDay {
@@ -103,6 +105,7 @@ interface MenuItem {
   esgotado?: boolean | null;
   disponivel_de?: string | null;
   disponivel_ate?: string | null;
+  alergenos?: string[] | null;
 }
 
 interface Unit {
@@ -252,9 +255,16 @@ const Cardapio = () => {
   };
 
   // Categories split by group (drinks, wines, sweets)
-  const bebidasCats = categories.filter((c) => !["doces", "vinhos"].includes(c.grupo || "bebidas"));
-  const vinhosCats = categories.filter((c) => c.grupo === "vinhos");
-  const docesCats = categories.filter((c) => c.grupo === "doces");
+  // Inclusão explícita, não exclusão. Com lista de exclusão, um grupo novo
+  // caía silenciosamente na aba Bebidas sem ninguém decidir isso. O domínio é
+  // fechado no banco (CHECK em beverage_categories.grupo) — ampliar exige
+  // atualizar os dois lados.
+  const inGroup = (grupo: "bebidas" | "doces" | "vinhos") =>
+    categories.filter((c) => (c.grupo || "bebidas") === grupo);
+
+  const bebidasCats = inGroup("bebidas");
+  const vinhosCats = inGroup("vinhos");
+  const docesCats = inGroup("doces");
 
   // Keyboard navigation on dish list
   useEffect(() => {
@@ -599,7 +609,7 @@ const Cardapio = () => {
                 >
                   {selectedItems.length > 0 ? (
                     <>
-                       {(selectedItems[selectedItemIndex]?.imagem_url || selectedItems[selectedItemIndex]?.descricao || selectedItems[selectedItemIndex]?.badge) && <MobileDishPreview
+                       {(selectedItems[selectedItemIndex]?.imagem_url || selectedItems[selectedItemIndex]?.descricao || selectedItems[selectedItemIndex]?.badge || (selectedItems[selectedItemIndex]?.alergenos?.length ?? 0) > 0) && <MobileDishPreview
                          item={selectedItems[selectedItemIndex] ? { ...selectedItems[selectedItemIndex], badge: tRecord(selectedItems[selectedItemIndex], "badge") } : undefined}
                          name={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "prato") : ""}
                          description={selectedItems[selectedItemIndex] ? tRecord(selectedItems[selectedItemIndex], "descricao") : ""}
@@ -677,6 +687,7 @@ const Cardapio = () => {
                                       })}
                                     </div>
                                   )}
+                                  <AllergenList alergenos={item.alergenos} compact />
                                 </div>
                               </Button>
                             );
@@ -759,6 +770,7 @@ const Cardapio = () => {
                                           })}
                                         </div>
                                       )}
+                                      <AllergenList alergenos={item.alergenos} />
                                     </div>
                                   </>
                                 );

@@ -1,7 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Referência ao registro afetado. Sem isso o log guardava apenas módulo e uma
+ * descrição em texto livre, e era impossível ver o histórico de um item
+ * específico ou navegar do log até ele — dois itens de mesmo nome geravam
+ * entradas indistinguíveis.
+ */
+interface AuditTarget {
+  /** Tabela do registro (ex.: "weekly_menu_items"). */
+  tabela?: string;
+  /** ID do registro afetado. */
+  registroId?: string | null;
+}
+
 export const useAuditLog = () => {
-  const logAction = async (modulo: string, acao: string, descricao: string) => {
+  const logAction = async (
+    modulo: string,
+    acao: string,
+    descricao: string,
+    target: AuditTarget = {},
+  ) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -18,6 +36,8 @@ export const useAuditLog = () => {
         acao,
         modulo,
         descricao,
+        tabela: target.tabela ?? null,
+        registro_id: target.registroId ?? null,
       });
     } catch (err) {
       console.error("Audit log error:", err);

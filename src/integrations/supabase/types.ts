@@ -21,7 +21,9 @@ export type Database = {
           descricao: string | null
           id: string
           modulo: string
-          user_id: string
+          registro_id: string | null
+          tabela: string | null
+          user_id: string | null
           user_nome: string | null
         }
         Insert: {
@@ -30,7 +32,9 @@ export type Database = {
           descricao?: string | null
           id?: string
           modulo: string
-          user_id: string
+          registro_id?: string | null
+          tabela?: string | null
+          user_id?: string | null
           user_nome?: string | null
         }
         Update: {
@@ -39,10 +43,20 @@ export type Database = {
           descricao?: string | null
           id?: string
           modulo?: string
-          user_id?: string
+          registro_id?: string | null
+          tabela?: string | null
+          user_id?: string | null
           user_nome?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       beverage_categories: {
         Row: {
@@ -127,10 +141,75 @@ export type Database = {
           },
         ]
       }
+      content_categories: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          escopo: string
+          id: string
+          nome: string
+          ordem: number
+          traducoes: Json
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          escopo: string
+          id?: string
+          nome: string
+          ordem?: number
+          traducoes?: Json
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          escopo?: string
+          id?: string
+          nome?: string
+          ordem?: number
+          traducoes?: Json
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          notas_internas: string | null
+          primeiro_contato: string
+          telefone_normalizado: string
+          telefone_original: string
+          ultimo_contato: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          notas_internas?: string | null
+          primeiro_contato?: string
+          telefone_normalizado: string
+          telefone_original: string
+          ultimo_contato?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          notas_internas?: string | null
+          primeiro_contato?: string
+          telefone_normalizado?: string
+          telefone_original?: string
+          ultimo_contato?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           created_at: string
-          curriculo_url: string | null
           disponibilidade: string | null
           email: string
           experiencia: string | null
@@ -143,7 +222,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          curriculo_url?: string | null
           disponibilidade?: string | null
           email: string
           experiencia?: string | null
@@ -156,7 +234,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          curriculo_url?: string | null
           disponibilidade?: string | null
           email?: string
           experiencia?: string | null
@@ -223,6 +300,7 @@ export type Database = {
         Row: {
           ativo: boolean
           categoria: string
+          categoria_id: string | null
           created_at: string
           descricao: string | null
           destaque: boolean
@@ -237,6 +315,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           categoria?: string
+          categoria_id?: string | null
           created_at?: string
           descricao?: string | null
           destaque?: boolean
@@ -251,6 +330,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           categoria?: string
+          categoria_id?: string | null
           created_at?: string
           descricao?: string | null
           destaque?: boolean
@@ -351,18 +431,21 @@ export type Database = {
           chave: string
           descricao: string
           id: string
+          traducoes: Json
           valor: string
         }
         Insert: {
           chave: string
           descricao?: string
           id?: string
+          traducoes?: Json
           valor?: string
         }
         Update: {
           chave?: string
           descricao?: string
           id?: string
+          traducoes?: Json
           valor?: string
         }
         Relationships: []
@@ -468,6 +551,7 @@ export type Database = {
           ativo: boolean
           badge: string | null
           categoria: string | null
+          categoria_id: string | null
           day_id: string | null
           descricao: string | null
           disponivel_ate: string | null
@@ -487,6 +571,7 @@ export type Database = {
           ativo?: boolean
           badge?: string | null
           categoria?: string | null
+          categoria_id?: string | null
           day_id?: string | null
           descricao?: string | null
           disponivel_ate?: string | null
@@ -506,6 +591,7 @@ export type Database = {
           ativo?: boolean
           badge?: string | null
           categoria?: string | null
+          categoria_id?: string | null
           day_id?: string | null
           descricao?: string | null
           disponivel_ate?: string | null
@@ -539,9 +625,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contact_history: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          data_evento: string | null
+          pessoas: number | null
+          registro_id: string | null
+          status: string | null
+          tipo: string | null
+          unit_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      anonymize_stale_personal_data: {
+        Args: { _dias?: number; _dry_run?: boolean }
+        Returns: Json
+      }
       count_reserved_seats: {
         Args: { _data: string; _horario: string; _unit_id: string }
         Returns: number

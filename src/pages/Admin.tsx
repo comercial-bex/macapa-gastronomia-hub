@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard, ExternalLink, Languages } from "lucide-react";
+import { Image, Wine, CalendarDays, MapPin, Briefcase, Users, BookOpen, LogOut, Settings, ClipboardList, User, Menu, X, LayoutDashboard, ExternalLink, Languages, UserCog, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoMacapaba from "@/assets/logo-macapaba.png";
 import AdminPortfolio from "@/components/admin/AdminPortfolio";
@@ -17,6 +17,8 @@ import AdminProfile from "@/components/admin/AdminProfile";
 import AdminAuditLog from "@/components/admin/AdminAuditLog";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminTranslations from "@/components/admin/AdminTranslations";
+import AdminUsers from "@/components/admin/AdminUsers";
+import AdminContacts from "@/components/admin/AdminContacts";
 import { getAdministrativeRoles, hasAdministrativeAccess, type AppRole } from "@/lib/adminAuth";
 import SEO from "@/components/SEO";
 
@@ -30,8 +32,10 @@ const sidebarLinks: Array<{ label: string; path: string; icon: typeof LayoutDash
   { label: "Vagas", path: "/admin/vagas", icon: Briefcase, roles: ["admin"] },
   { label: "Candidaturas", path: "/admin/candidaturas", icon: Users, roles: ["admin", "gerente"] },
   { label: "Reservas", path: "/admin/reservas", icon: BookOpen, roles: ["admin", "gerente"] },
+  { label: "Contatos", path: "/admin/contatos", icon: UserRound, roles: ["admin", "gerente"] },
   { label: "Traduções", path: "/admin/traducoes", icon: Languages, roles: ["admin", "editor"] },
   { label: "Histórico", path: "/admin/historico", icon: ClipboardList, roles: ["admin"] },
+  { label: "Usuários", path: "/admin/usuarios", icon: UserCog, roles: ["admin"] },
   { label: "Configurações", path: "/admin/configuracoes", icon: Settings, roles: ["admin", "editor"] },
 ];
 
@@ -203,8 +207,10 @@ const Admin = () => {
             <Route path="vagas" element={guarded(["admin"], <AdminJobs />)} />
             <Route path="candidaturas" element={guarded(["admin", "gerente"], <AdminApplications />)} />
             <Route path="reservas" element={guarded(["admin", "gerente"], <AdminReservations />)} />
+            <Route path="contatos" element={guarded(["admin", "gerente"], <AdminContacts />)} />
             <Route path="traducoes" element={guarded(["admin", "editor"], <AdminTranslations />)} />
             <Route path="historico" element={guarded(["admin"], <AdminAuditLog />)} />
+            <Route path="usuarios" element={guarded(["admin"], <AdminUsers />)} />
             <Route path="configuracoes" element={guarded(["admin", "editor"], <AdminSettings />)} />
             <Route path="perfil" element={<AdminProfile />} />
             <Route path="*" element={<AdminDashboard />} />
